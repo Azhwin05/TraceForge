@@ -1,0 +1,194 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Download, CheckCircle, XCircle, Send, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import {
+  approveDimensionReport,
+  rejectDimensionReport,
+  markSubmittedToCustomer,
+} from "@/app/(app)/dimension-reports/actions"
+import type { DimensionStatus, UserRole } from "@/types/database"
+
+function cn(...cls: (string | boolean | undefined | null)[]): string {
+  return cls.filter(Boolean).join(" ")
+}
+
+interface Props {
+  reportId: string
+  dimensionStatus: DimensionStatus
+  userRole: UserRole
+  generatedPdfPath: string | null
+}
+
+export function DimensionStatusActions({
+  reportId,
+  dimensionStatus,
+  userRole,
+  generatedPdfPath,
+}: Props) {
+  const router = useRouter()
+  const [approvedByName, setApprovedByName] = useState("")
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [showRejectForm, setShowRejectForm] = useState(false)
+  const [loading, setLoading] = useState<string | null>(null)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+
+  const isAdminOrQa = ["admin", "qa"].includes(userRole)
+
+  async function handleGeneratePdf() {
+    setLoading("generate")
+    try {
+      const resp = await fetch(`/api/dimension-reports/${reportId}/generate`, { method: "POST" })
+      const data = await resp.json()
+      if (!resp.ok || data.error) {
+        toast.error(data.error ?? "PDF generation failed")
+      } else {
+        setDownloadUrl(data.downloadUrl)
+        toast.success("PDF generated successfully")
+        router.refresh()
+      }
+    } catch {
+      toast.error("Network error generating PDF")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleApprove() {
+    if (!approvedByName.trim()) { toast.error("Approved-by name is required"); return }
+    setLoading("approve")
+    const result = await approveDimensionReport(reportId, approvedByName)
+    setLoading(null)
+    if (result.error) { toast.error(result.error); return }
+    toast.success("Report approved")
+    router.refresh()
+  }
+
+  async function handleReject() {
+    if (!rejectionReason.trim()) { toast.error("Rejection reason is required"); return }
+    setLoading("reject")
+    const result = await rejectDimensionReport(reportId, rejectionReason)
+    setLoading(null)
+    if (result.error) { toast.error(result.error); return }
+    toast.success("Report rejected")
+    setShowRejectForm(false)
+    router.refresh()
+  }
+
+  async function handleSubmit() {
+    setLoading("submit")
+    const result = await markSubmittedToCustomer(reportId)
+    setLoading(null)
+    if (result.error) { toast.error(result.error); return }
+    toast.success("Marked as submitted to customer")
+    router.refresh()
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Generate / Download PDF */}
+      {isAdminOrQa && (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleGeneratePdf}
+            disabled={loading === "generate"}
+          >
+            <RefreshCw className={cn("mr-1.5 h-4 w-4", loading === "generate" && "animate-spin")} />
+            {generatedPdfPath ? "Re-generate PDF" : "Generate PDF"}
+          </Button>
+
+          {(downloadUrl ?? generatedPdfPath) && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                if (downloadUrl) {
+                  window.open(downloadUrl, "_blank")
+                } else if (generatedPdfPath) {
+                  const resp = await fetch(`/api/dimension-reports/${reportId}/generate-url`)
+                  const data = await resp.json()
+                  if (data.url) window.open(data.url, "_blank")
+                }
+              }}
+            >
+              <Download className="mr-1.5 h-4 w-4" /> Download PDF
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Approve */}
+      {isAdminOrQa && dimensionStatus === "draft" && (
+        <div className="rounded-lg border border-border p-4 space-y-3">
+          <h3 className="text-sm font-semibold">Approve Report</h3>
+          <div>
+            <Label htmlFor="approvedBy">Approved By (name)</Label>
+            <Input
+              id="approvedBy"
+              value={approvedByName}
+              onChange={(e) => setApprovedByName(e.target.value)}
+              placeholder="Inspector / QA name"
+              className="mt-1 max-w-xs"
+            />
+          </div>
+          <Button size="sm" onClick={handleApprove} disabled={loading === "approve"}>
+            <CheckCircle className="mr-1.5 h-4 w-4" />
+            {loading === "approve" ? "Approving…" : "Approve"}
+          </Button>
+        </div>
+      )}
+
+      {/* Reject */}
+      {isAdminOrQa && (dimensionStatus === "draft" || dimensionStatus === "approved") && (
+        <>
+          {!showRejectForm ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive border-destructive/30 hover:bg-destructive/10"
+              onClick={() => setShowRejectForm(true)}
+            >
+              <XCircle className="mr-1.5 h-4 w-4" /> Reject
+            </Button>
+          ) : (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-destructive">Reject Report</h3>
+              <div>
+                <Label htmlFor="rejReason">Reason <span className="text-destructive">*</span></Label>
+                <textarea
+                  id="rejReason"
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={2}
+                  className="mt-1 flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50 resize-none"
+                  placeholder="State reason for rejection"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="destructive" onClick={handleReject} disabled={loading === "reject"}>
+                  {loading === "reject" ? "Rejecting…" : "Confirm Reject"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowRejectForm(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Mark Submitted */}
+      {isAdminOrQa && dimensionStatus === "approved" && (
+        <Button size="sm" onClick={handleSubmit} disabled={loading === "submit"}>
+          <Send className="mr-1.5 h-4 w-4" />
+          {loading === "submit" ? "Saving…" : "Mark Submitted to Customer"}
+        </Button>
+      )}
+    </div>
+  )
+}

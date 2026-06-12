@@ -1,0 +1,41 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { requireRole } from "@/lib/auth"
+
+type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master"
+
+const WRITE_ROLES: Record<TogglableTable, string[]> = {
+  consumable_master: ["admin"],
+  chemical_master:   ["admin", "qa"],
+  instrument_master: ["admin", "qa"],
+}
+
+const TABLE_PATHS: Record<TogglableTable, string> = {
+  consumable_master: "/master-data/consumables",
+  chemical_master:   "/master-data/chemicals",
+  instrument_master: "/master-data/instruments",
+}
+
+export async function toggleMasterItemActive(
+  table: TogglableTable,
+  id: string,
+  currentValue: boolean,
+): Promise<{ error?: string }> {
+  const roles = WRITE_ROLES[table] as Array<"admin" | "qa" | "engineer" | "operator" | "management" | "accounts">
+  const guard = await requireRole(roles)
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase
+    .from(table)
+    .update({ is_active: !currentValue })
+    .eq("id", id)
+
+  if (error) return { error: error.message }
+
+  const basePath = TABLE_PATHS[table]
+  revalidatePath(basePath)
+  revalidatePath(`${basePath}/${id}`)
+  return {}
+}

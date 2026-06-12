@@ -1,0 +1,169 @@
+"use client"
+
+import { useTransition } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Truck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DocumentCard } from "@/components/documents/document-card"
+import { FileUpload } from "@/components/documents/file-upload"
+import { dispatchSchema, type DispatchInput } from "@/lib/validations/process-execution"
+import { createDispatch } from "@/app/(app)/job-cards/detail-actions"
+import type { Dispatch, JobCardStatus, UserRole } from "@/types/database"
+
+export function DispatchSection({
+  jobCardId,
+  status,
+  userRole,
+  dispatches,
+}: {
+  jobCardId: string
+  status: JobCardStatus
+  userRole: UserRole
+  dispatches: Dispatch[]
+}) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
+  const canDispatch = ["admin"].includes(userRole) && status === "dispatch_ready"
+  const hasDispatched = dispatches.length > 0
+
+  const { register, handleSubmit, formState: { errors } } = useForm<DispatchInput>({
+    resolver: zodResolver(dispatchSchema),
+    defaultValues: { dispatch_date: new Date().toISOString().split("T")[0] },
+  })
+
+  function onSubmit(data: DispatchInput) {
+    startTransition(async () => {
+      const result = await createDispatch(jobCardId, data)
+      if (result.error) {
+        toast.error("Dispatch failed", { description: result.error })
+      } else {
+        toast.success("Job dispatched successfully")
+        router.refresh()
+      }
+    })
+  }
+
+  const activeStatuses: JobCardStatus[] = [
+    "dispatch_ready", "dispatched", "accounts_processing", "closed",
+  ]
+  if (!activeStatuses.includes(status) && !hasDispatched) return null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Truck className="h-4 w-4" /> Dispatch
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {hasDispatched && (
+          <div className="space-y-2">
+            {dispatches.map((d) => (
+              <div key={d.id} className="rounded-lg border border-border p-3 text-sm space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">DC #{d.dc_number}</span>
+                  <span className="text-muted-foreground">
+                    {new Date(d.dispatch_date).toLocaleDateString("en-IN", {
+                      day: "numeric", month: "short", year: "numeric",
+                    })}
+                  </span>
+                </div>
+                {d.vehicle_details && (
+                  <p className="text-muted-foreground">Vehicle: {d.vehicle_details}</p>
+                )}
+                {d.remarks && <p className="text-muted-foreground">{d.remarks}</p>}
+                <DocumentCard
+                  storagePath={d.storage_path}
+                  legacyDocUrl={d.doc_url}
+                  compact
+                />
+                <FileUpload
+                  entityType="dispatch"
+                  entityId={d.id}
+                  documentType="dispatch_doc"
+                  userRole={userRole}
+                  jobCardId={jobCardId}
+                  sourceModule="dispatch_section"
+                  label={d.storage_path ? "Replace Document" : "Upload Dispatch Doc"}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {canDispatch && (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 border-t border-border pt-4">
+            <p className="text-sm font-medium">Create Dispatch Record</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="dc_number">DC Number *</Label>
+                <Input
+                  id="dc_number"
+                  placeholder="DC-2024-001"
+                  {...register("dc_number")}
+                  aria-invalid={!!errors.dc_number}
+                />
+                {errors.dc_number && (
+                  <p className="text-xs text-destructive">{errors.dc_number.message}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="dispatch_date">Dispatch Date *</Label>
+                <Input
+                  id="dispatch_date"
+                  type="date"
+                  {...register("dispatch_date")}
+                  aria-invalid={!!errors.dispatch_date}
+                />
+                {errors.dispatch_date && (
+                  <p className="text-xs text-destructive">{errors.dispatch_date.message}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="vehicle_details">Vehicle Details</Label>
+              <Input
+                id="vehicle_details"
+                placeholder="e.g. TN 01 AB 1234 - Tempo"
+                {...register("vehicle_details")}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="doc_url">Document URL</Label>
+              <Input
+                id="doc_url"
+                type="url"
+                placeholder="https://..."
+                {...register("doc_url")}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="remarks">Remarks</Label>
+              <Textarea
+                id="remarks"
+                placeholder="Any dispatch notes..."
+                className="min-h-[80px]"
+                {...register("remarks")}
+              />
+            </div>
+            <Button type="submit" size="sm" disabled={isPending}>
+              {isPending ? "Dispatching..." : "Confirm Dispatch"}
+            </Button>
+          </form>
+        )}
+
+        {!hasDispatched && !canDispatch && (
+          <p className="text-sm text-muted-foreground">Dispatch details will appear here.</p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
