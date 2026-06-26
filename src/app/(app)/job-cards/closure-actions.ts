@@ -113,15 +113,15 @@ export async function validateJobClosure(data: unknown): Promise<{
 
     // 5. Check delivery challan
     const deliveryChalan = jobCard.documents?.find(
-      (d: any) => d.document_type === "outgoing_delivery_challan"
+      (d: Record<string, unknown>) => d.document_type === "outgoing_delivery_challan"
     )
     if (!deliveryChalan) {
       blockers.push("Outgoing Delivery Challan is required")
     }
 
     // 6. Check invoice
-    const invoice = jobCard.documents?.find((d: any) => d.document_type === "invoice")
-    const accountsRecord = jobCard.accounts?.[0]
+    const invoice = jobCard.documents?.find((d: Record<string, unknown>) => d.document_type === "invoice")
+    const accountsRecord = jobCard.accounts?.[0] as Record<string, unknown> | undefined
 
     if (!invoice) {
       warnings.push("No invoice uploaded (may be processed separately)")
@@ -132,7 +132,7 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 7. Check dossier
-    const hasDossier = jobCard.documents?.some((d: any) => d.document_type === "dossier_zip")
+    const hasDossier = jobCard.documents?.some((d: Record<string, unknown>) => d.document_type === "dossier_zip")
     if (!hasDossier) {
       warnings.push("Customer dossier should be generated before closure")
     }
