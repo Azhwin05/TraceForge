@@ -71,14 +71,14 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 2. Check WPS approval
-    const wpsDoc = jobCard.documents?.find((d: any) => d.document_type === "wps_pdf")
+    const wpsDoc = jobCard.documents?.find((d: Record<string, unknown>) => d.document_type === "wps_pdf")
     if (!wpsDoc || wpsDoc.approval_status !== "approved") {
       blockers.push("WPS must be uploaded and approved")
     }
 
     // 3. Check PWHT if required
     if (jobCard.process_type.includes("welding")) {
-      const pwhtRecord = jobCard.pwht_runs?.[0]
+      const pwhtRecord = jobCard.pwht_runs?.[0] as Record<string, unknown> | undefined
       if (!pwhtRecord) {
         blockers.push("Heat Treatment Chart required but not found")
       } else if (pwhtRecord.approval_status !== "approved") {
@@ -99,11 +99,11 @@ export async function validateJobClosure(data: unknown): Promise<{
 
       // Check approvals
       const dimensionApproved = jobCard.dimension_reports?.some(
-        (r: any) => r.dimension_status === "approved"
+        (r: Record<string, unknown>) => r.dimension_status === "approved"
       )
-      const pmiApproved = jobCard.pmi_reports?.some((r: any) => r.pmi_status === "approved")
+      const pmiApproved = jobCard.pmi_reports?.some((r: Record<string, unknown>) => r.pmi_status === "approved")
       const overlayApproved = jobCard.overlay_welding_reports?.some(
-        (r: any) => r.report_status === "approved"
+        (r: Record<string, unknown>) => r.report_status === "approved"
       )
 
       if (!dimensionApproved && !pmiApproved && !overlayApproved) {

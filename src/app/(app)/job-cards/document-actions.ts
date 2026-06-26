@@ -69,7 +69,7 @@ export async function uploadJobCardDocument(data: unknown): Promise<
   const guard = await requireRole(["admin", "operator", "engineer", "qa", "accounts"])
   if (guard.error) return { error: guard.error }
 
-  const { supabase, user, profile } = guard
+  const { supabase, user } = guard
 
   try {
     const validated = uploadDocumentSchema.parse(data)
@@ -160,7 +160,7 @@ export async function approveDocument(data: unknown): Promise<{ error?: string }
   const guard = await requireRole(["admin", "qa"])
   if (guard.error) return { error: guard.error }
 
-  const { supabase, user, profile } = guard
+  const { supabase } = guard
 
   try {
     const validated = approveDocumentSchema.parse(data)
@@ -212,7 +212,7 @@ export async function rejectDocument(data: unknown): Promise<{ error?: string }>
   const guard = await requireRole(["admin", "qa"])
   if (guard.error) return { error: guard.error }
 
-  const { supabase, user } = guard
+  const { supabase } = guard
 
   try {
     const validated = rejectDocumentSchema.parse(data)

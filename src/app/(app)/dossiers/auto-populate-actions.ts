@@ -88,7 +88,7 @@ export async function autopopulateDossier(data: unknown): Promise<{
         typeof metadata === "object" &&
         metadata !== null &&
         "dossier_eligible" in metadata
-          ? (metadata as any).dossier_eligible
+          ? (metadata as Record<string, unknown>).dossier_eligible
           : true // Default to eligible if not explicitly set
 
       if (!isDossierEligible) return false

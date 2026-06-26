@@ -56,9 +56,9 @@ interface StageInfo {
 
 interface JobCardWorkflowTrackerProps {
   jobCard: JobCard
-  documents: any[] // Would be proper Document type from database
-  pwhtData?: any
-  reports?: any
+  documents: Record<string, unknown>[] // Would be proper Document type from database
+  pwhtData?: Record<string, unknown>
+  reports?: Record<string, unknown>
   onUploadClick: (stage: WorkflowStage) => void
   onApproveClick: (documentId: string) => void
   onRejectClick: (documentId: string) => void
@@ -149,9 +149,6 @@ function getStatusLabel(status: StageStatus) {
 
 export function JobCardWorkflowTracker({
   jobCard,
-  documents,
-  pwhtData,
-  reports,
   onUploadClick,
   onApproveClick,
   onRejectClick,
