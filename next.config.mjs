@@ -51,10 +51,12 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              // Scripts: self + Sentry CDN for error reporting
+              // Scripts: self + Sentry CDN for error reporting.
+              // NOTE: 'unsafe-inline' is required for Next.js hydration scripts.
+              // TODO: replace with a nonce-based CSP for stricter production security.
               isDev
                 ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
-                : "script-src 'self' https://browser.sentry-cdn.com https://js.sentry-cdn.com",
+                : "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com https://js.sentry-cdn.com",
               // Styles: self + unsafe-inline required by shadcn/Tailwind
               "style-src 'self' 'unsafe-inline'",
               // Images: self + Supabase storage
