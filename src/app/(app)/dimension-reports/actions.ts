@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
+import { sanitizeError } from "@/lib/security"
 import { dimensionReportSchema, type DimensionReportInput } from "@/lib/validations/dimension-report"
 
 function sanitize(v: string | null | undefined): string | null {
@@ -62,7 +63,7 @@ export async function createDimensionReport(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/dimension-reports")
@@ -106,7 +107,7 @@ export async function updateDimensionReport(
     .update(buildRow(parsed.data))
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   const jobCardId = (cur as { job_card_id: string } | null)?.job_card_id
   if (jobCardId) revalidatePath(`/job-cards/${jobCardId}`)
@@ -144,7 +145,7 @@ export async function approveDimensionReport(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/dimension-reports")
   revalidatePath(`/dimension-reports/${id}`)
@@ -176,7 +177,7 @@ export async function rejectDimensionReport(
     .update({ dimension_status: "rejected", rejection_reason: reason || null })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/dimension-reports")
   revalidatePath(`/dimension-reports/${id}`)
@@ -211,7 +212,7 @@ export async function markSubmittedToCustomer(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/dimension-reports")
   revalidatePath(`/dimension-reports/${id}`)
@@ -234,7 +235,7 @@ export async function saveDimensionPdfPath(
     .update({ generated_pdf_path: storagePath })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[dimension-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/dimension-reports/${id}`)
   return {}

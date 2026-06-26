@@ -5,6 +5,8 @@ import type { JobCardWithRelations, JobCardStatus } from "@/types/database"
 export const metadata = { title: "Job Cards — ValveTrack" }
 export const revalidate = 60
 
+const PAGE_SIZE = 25
+
 const VALID_STATUSES: JobCardStatus[] = [
   "created", "wps_pending", "wps_uploaded", "wps_approved",
   "process_assigned", "in_process", "process_complete",
@@ -15,16 +17,20 @@ const VALID_STATUSES: JobCardStatus[] = [
 export default async function JobCardsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; page?: string }>
 }) {
-  const { status } = await searchParams
+  const { status, page: pageParam } = await searchParams
+
   const activeStatus = VALID_STATUSES.includes(status as JobCardStatus)
     ? (status as JobCardStatus)
     : null
 
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1)
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
   const supabase = await createClient()
 
-  // Build query — apply status filter only when one is selected
   let query = supabase
     .from("job_cards")
     .select(
@@ -32,7 +38,7 @@ export default async function JobCardsPage({
       { count: "exact" }
     )
     .order("created_at", { ascending: false })
-    .limit(100)
+    .range(from, to)
 
   if (activeStatus) {
     query = query.eq("status", activeStatus)
@@ -46,12 +52,18 @@ export default async function JobCardsPage({
       .neq("status", "closed"),
   ])
 
+  const totalCount = count ?? 0
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
   return (
     <JobCardsClient
       jobCards={(data ?? []) as unknown as JobCardWithRelations[]}
-      totalCount={count ?? 0}
+      totalCount={totalCount}
       activeCount={activeCount ?? 0}
       currentStatus={activeStatus}
+      page={page}
+      pageSize={PAGE_SIZE}
+      totalPages={totalPages}
     />
   )
 }

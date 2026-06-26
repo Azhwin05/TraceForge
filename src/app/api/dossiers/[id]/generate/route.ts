@@ -4,6 +4,7 @@ import JSZip from "jszip"
 import { createElement } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { requireAuth } from "@/lib/auth"
+import { isValidUUID, sanitizeError, isValidOrigin } from "@/lib/security"
 import { DossierIndexPdf } from "@/components/dossier/dossier-index-pdf"
 import type { CustomerDossier, DossierDocument, Document as DocRecord, UserRole } from "@/types/database"
 
@@ -21,10 +22,21 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // CSRF guard
+  if (!isValidOrigin(req.headers, req.method, process.env.NEXT_PUBLIC_APP_URL ?? "")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+
   const { id } = await params
 
+  // UUID validation
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid dossier ID" }, { status: 400 })
+  }
+
   try {
-    const { profile } = await requireAuth()
+    const session = await requireAuth()
+    const { profile } = session
     const userRole = (profile?.role ?? "operator") as UserRole
     if (!["admin", "qa"].includes(userRole)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -108,7 +120,8 @@ export async function POST(
       })
 
     if (indexUploadErr) {
-      return NextResponse.json({ error: `Index PDF upload failed: ${indexUploadErr.message}` }, { status: 500 })
+      console.error("[Dossier generate] index PDF upload failed:", indexUploadErr)
+      return NextResponse.json({ error: "Index PDF upload failed. Please try again." }, { status: 500 })
     }
 
     // Insert index document row
@@ -130,7 +143,8 @@ export async function POST(
     })
 
     if (indexDocErr) {
-      return NextResponse.json({ error: `Index doc insert failed: ${indexDocErr.message}` }, { status: 500 })
+      console.error("[Dossier generate] index doc insert failed:", indexDocErr)
+      return NextResponse.json({ error: sanitizeError(indexDocErr) }, { status: 500 })
     }
 
     // ── Generate ZIP ──────────────────────────────────────────────────────────
@@ -199,6 +213,7 @@ export async function POST(
       })
 
     if (zipUploadErr) {
+      console.error("[Dossier generate] ZIP upload failed:", zipUploadErr)
       // ZIP failed — still mark as generated (index succeeded)
       await supabase
         .from("customer_dossiers")
@@ -208,7 +223,7 @@ export async function POST(
         success: true,
         indexPath: indexStoragePath,
         zipPath: null,
-        warning: `ZIP generation failed: ${zipUploadErr.message}`,
+        warning: "ZIP archive generation failed. Index PDF was saved successfully.",
         skipped,
       })
     }
@@ -248,7 +263,7 @@ export async function POST(
       skipped,
     })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Internal error"
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error("[Dossier generate] unexpected error:", err)
+    return NextResponse.json({ error: sanitizeError(err) }, { status: 500 })
   }
 }

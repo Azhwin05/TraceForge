@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireAuth, requireRole } from "@/lib/auth"
+import { sanitizeError } from "@/lib/security"
 import type { CreateJobCardInput, CreateClientInput, CreateWpsInput } from "@/lib/validations/job-card"
 import type { JobCardStatus, UserRole } from "@/types/database"
 
@@ -56,7 +57,7 @@ export async function createJobCard(
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/job-cards")
   revalidatePath("/dashboard")
@@ -103,7 +104,7 @@ export async function updateJobCardStatus(
     .update(updatePayload)
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/job-cards/${id}`)
   revalidatePath("/job-cards")
@@ -128,7 +129,7 @@ export async function createClient_(
     .select("id, name")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
   return { client }
 }
 

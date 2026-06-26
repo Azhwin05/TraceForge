@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
+import { sanitizeError } from "@/lib/security"
 import { pmiReportSchema, type PmiReportInput } from "@/lib/validations/pmi-report"
 import type { PmiReadings } from "@/types/database"
 
@@ -81,7 +82,7 @@ export async function createPmiReport(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/pmi-reports")
@@ -119,7 +120,7 @@ export async function updatePmiReport(
     .update(buildRow(parsed.data))
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/pmi-reports")
   revalidatePath(`/pmi-reports/${id}`)
@@ -142,9 +143,11 @@ export async function approvePmiReport(
     .select("pmi_status")
     .eq("id", id)
     .single()
-  if (!existing || (existing as { pmi_status: string }).pmi_status !== "draft") {
-    return { error: "Only draft reports can be approved." }
-  }
+  if (!existing) return { error: "Report not found." }
+  const currentStatus = (existing as { pmi_status: string }).pmi_status
+  if (currentStatus === "approved")  return { error: "Report is already approved." }
+  if (currentStatus === "submitted") return { error: "Submitted reports cannot be re-approved." }
+  if (currentStatus !== "draft")     return { error: "Only draft reports can be approved." }
 
   const { error } = await supabase
     .from("pmi_reports")
@@ -155,7 +158,7 @@ export async function approvePmiReport(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/pmi-reports")
   revalidatePath(`/pmi-reports/${id}`)
@@ -169,16 +172,29 @@ export async function rejectPmiReport(
   id: string,
   reason: string,
 ): Promise<{ error?: string }> {
+  if (!reason?.trim()) return { error: "A rejection reason is required." }
+
   const guard = await requireRole(["admin", "qa"])
   if (guard.error) return { error: guard.error }
   const { supabase } = guard
 
+  // Idempotency: cannot reject already-submitted reports
+  const { data: existing } = await supabase
+    .from("pmi_reports")
+    .select("pmi_status")
+    .eq("id", id)
+    .single()
+  if (!existing) return { error: "Report not found." }
+  const st = (existing as { pmi_status: string }).pmi_status
+  if (st === "submitted") return { error: "Submitted reports cannot be rejected." }
+  if (st === "rejected")  return { error: "Report is already rejected." }
+
   const { error } = await supabase
     .from("pmi_reports")
-    .update({ pmi_status: "rejected", rejection_reason: reason || null })
+    .update({ pmi_status: "rejected", rejection_reason: reason.trim() })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/pmi-reports")
   revalidatePath(`/pmi-reports/${id}`)
@@ -215,7 +231,7 @@ export async function markSubmittedToCustomer(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/pmi-reports")
   revalidatePath(`/pmi-reports/${id}`)
@@ -238,7 +254,7 @@ export async function savePdfPath(
     .update({ generated_pdf_path: storagePath })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[pmi-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/pmi-reports/${id}`)
   return {}

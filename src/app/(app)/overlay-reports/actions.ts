@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
+import { sanitizeError } from "@/lib/security"
 import { overlayReportSchema, type OverlayReportInput } from "@/lib/validations/overlay-report"
 
 function sanitize(v: string | null | undefined): string | null {
@@ -92,7 +93,7 @@ export async function createOverlayReport(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[overlay-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/overlay-reports")
@@ -135,7 +136,7 @@ export async function updateOverlayReport(
     .update(buildRow(parsed.data))
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[overlay-reports]", error); return { error: sanitizeError(error) } }
 
   const jobCardId = (cur as { job_card_id: string } | null)?.job_card_id
   if (jobCardId) revalidatePath(`/job-cards/${jobCardId}`)
@@ -173,7 +174,7 @@ export async function approveOverlayReport(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[overlay-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/overlay-reports")
   revalidatePath(`/overlay-reports/${id}`)
@@ -205,7 +206,7 @@ export async function rejectOverlayReport(
     .update({ report_status: "rejected", rejection_reason: reason || null })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[overlay-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/overlay-reports")
   revalidatePath(`/overlay-reports/${id}`)
@@ -240,7 +241,7 @@ export async function markOverlaySubmitted(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) { console.error("[overlay-reports]", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/overlay-reports")
   revalidatePath(`/overlay-reports/${id}`)

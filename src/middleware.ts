@@ -2,13 +2,19 @@ import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/middleware"
 import { rateLimit } from "@/lib/rate-limit"
 
-// Rate limit login attempts: 10 requests per 60 seconds per IP
-const LOGIN_LIMIT = 10
+const IS_DEV = process.env.NODE_ENV !== "production"
+
+// Login: relaxed in dev for quick-switching between test accounts
+const LOGIN_LIMIT = IS_DEV ? 100 : 5
 const LOGIN_WINDOW_MS = 60 * 1000
 
-// Rate limit API / server actions: 120 requests per 60 seconds per IP
-const API_LIMIT = 120
+// General API
+const API_LIMIT = IS_DEV ? 1000 : 100
 const API_WINDOW_MS = 60 * 1000
+
+// Heavy PDF/ZIP generation endpoints
+const GENERATE_LIMIT = IS_DEV ? 100 : 10
+const GENERATE_WINDOW_MS = 60 * 60 * 1000
 
 function getIp(req: NextRequest): string {
   return (
@@ -18,33 +24,59 @@ function getIp(req: NextRequest): string {
   )
 }
 
+function rateLimitResponse(resetAt: number): NextResponse {
+  const retryAfter = Math.ceil((resetAt - Date.now()) / 1000)
+  return new NextResponse("Too many requests. Please try again later.", {
+    status: 429,
+    headers: {
+      "Retry-After": String(retryAfter),
+      "X-RateLimit-Limit": String(LOGIN_LIMIT),
+    },
+  })
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const method = request.method
   const ip = getIp(request)
 
-  // Stricter rate limit on login route
+  // ── Login endpoint: strict limit ─────────────────────────────────────────
   if (pathname.startsWith("/login")) {
-    const { allowed, remaining, resetAt } = rateLimit(
-      `login:${ip}`,
-      LOGIN_LIMIT,
-      LOGIN_WINDOW_MS
-    )
-    if (!allowed) {
-      return new NextResponse("Too many requests. Please try again later.", {
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((resetAt - Date.now()) / 1000)),
-          "X-RateLimit-Remaining": String(remaining),
-        },
-      })
-    }
+    const { allowed, resetAt } = rateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS)
+    if (!allowed) return rateLimitResponse(resetAt)
   }
 
-  // General rate limit for all app routes and API calls
-  if (pathname.startsWith("/(app)") || pathname.startsWith("/api")) {
-    const { allowed } = rateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS)
-    if (!allowed) {
-      return new NextResponse("Too many requests.", { status: 429 })
+  // ── PDF/ZIP generation endpoints: very strict limit ──────────────────────
+  const isGenerateRoute = /^\/api\/(pmi-reports|dimension-reports|overlay-reports|dossiers)\/[^/]+\/generate$/.test(pathname)
+  if (isGenerateRoute && method === "POST") {
+    const { allowed, resetAt } = rateLimit(`generate:${ip}`, GENERATE_LIMIT, GENERATE_WINDOW_MS)
+    if (!allowed) return rateLimitResponse(resetAt)
+  }
+
+  // ── General API / app limit ──────────────────────────────────────────────
+  if (pathname.startsWith("/api")) {
+    const { allowed, resetAt } = rateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS)
+    if (!allowed) return rateLimitResponse(resetAt)
+  }
+
+  // ── CSRF: reject state-mutating requests from foreign origins ────────────
+  const safeMethods = ["GET", "HEAD", "OPTIONS"]
+  if (!safeMethods.includes(method) && pathname.startsWith("/api")) {
+    const origin = request.headers.get("origin")
+    const referer = request.headers.get("referer")
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+
+    if (appUrl && (origin ?? referer)) {
+      try {
+        const expectedHost = new URL(appUrl).host
+        const candidateHost = new URL(origin ?? referer ?? "").host
+        if (candidateHost !== expectedHost) {
+          return new NextResponse("Forbidden", { status: 403 })
+        }
+      } catch {
+        // Malformed origin/referer header — block it
+        return new NextResponse("Forbidden", { status: 403 })
+      }
     }
   }
 

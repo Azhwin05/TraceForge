@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { escapeHtml } from "@/lib/security"
 import type { JobCardStatus } from "@/types/database"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -44,19 +45,22 @@ export async function sendJobCardStatusEmail({
 
   const statusLabel = STATUS_LABELS[newStatus] ?? newStatus
   const jobUrl = `${APP_URL}/job-cards/${jobCardId}`
+  const safeJcNumber   = escapeHtml(jcNumber)
+  const safeClientName = escapeHtml(clientName)
+  const safeChangedBy  = escapeHtml(changedBy)
 
   await resend.emails.send({
     from: FROM,
     to: Array.isArray(to) ? to : [to],
-    subject: `[ValveTrack] ${jcNumber} → ${statusLabel}`,
+    subject: `[ValveTrack] ${safeJcNumber} → ${statusLabel}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a1a;">Job Card Status Update</h2>
         <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
-          <tr><td style="padding:8px; color:#666; width:140px;">Job Card</td><td style="padding:8px; font-weight:600; font-family:monospace;">${jcNumber}</td></tr>
-          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Client</td><td style="padding:8px;">${clientName}</td></tr>
+          <tr><td style="padding:8px; color:#666; width:140px;">Job Card</td><td style="padding:8px; font-weight:600; font-family:monospace;">${safeJcNumber}</td></tr>
+          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Client</td><td style="padding:8px;">${safeClientName}</td></tr>
           <tr><td style="padding:8px; color:#666;">New Status</td><td style="padding:8px; font-weight:600; color:#0070f3;">${statusLabel}</td></tr>
-          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Changed By</td><td style="padding:8px;">${changedBy}</td></tr>
+          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Changed By</td><td style="padding:8px;">${safeChangedBy}</td></tr>
         </table>
         <a href="${jobUrl}" style="display:inline-block; background:#0070f3; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600;">
           View Job Card
@@ -85,19 +89,23 @@ export async function sendNewJobCardEmail({
   if (!isEmailEnabled()) return
 
   const jobUrl = `${APP_URL}/job-cards/${jobCardId}`
+  const safeJcNumber    = escapeHtml(jcNumber)
+  const safeClientName  = escapeHtml(clientName)
+  const safeDescription = escapeHtml(description)
+  const safeCreatedBy   = escapeHtml(createdBy)
 
   await resend.emails.send({
     from: FROM,
     to: Array.isArray(to) ? to : [to],
-    subject: `[ValveTrack] New Job Card Created: ${jcNumber}`,
+    subject: `[ValveTrack] New Job Card Created: ${safeJcNumber}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a1a;">New Job Card Created</h2>
         <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
-          <tr><td style="padding:8px; color:#666; width:140px;">Job Card</td><td style="padding:8px; font-weight:600; font-family:monospace;">${jcNumber}</td></tr>
-          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Client</td><td style="padding:8px;">${clientName}</td></tr>
-          <tr><td style="padding:8px; color:#666;">Description</td><td style="padding:8px;">${description}</td></tr>
-          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Created By</td><td style="padding:8px;">${createdBy}</td></tr>
+          <tr><td style="padding:8px; color:#666; width:140px;">Job Card</td><td style="padding:8px; font-weight:600; font-family:monospace;">${safeJcNumber}</td></tr>
+          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Client</td><td style="padding:8px;">${safeClientName}</td></tr>
+          <tr><td style="padding:8px; color:#666;">Description</td><td style="padding:8px;">${safeDescription}</td></tr>
+          <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Created By</td><td style="padding:8px;">${safeCreatedBy}</td></tr>
         </table>
         <a href="${jobUrl}" style="display:inline-block; background:#0070f3; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600;">
           View Job Card
@@ -120,10 +128,10 @@ export async function sendOverdueAlertEmail({
   const rows = overdueJobs
     .map(
       (jc) =>
-        `<tr><td style="padding:8px; font-family:monospace;">${jc.jcNumber}</td>
-         <td style="padding:8px;">${jc.clientName}</td>
+        `<tr><td style="padding:8px; font-family:monospace;">${escapeHtml(jc.jcNumber)}</td>
+         <td style="padding:8px;">${escapeHtml(jc.clientName)}</td>
          <td style="padding:8px; color:#e65;">${jc.daysAtStage}d</td>
-         <td style="padding:8px;">${jc.status.replace(/_/g, " ")}</td></tr>`
+         <td style="padding:8px;">${escapeHtml(jc.status.replace(/_/g, " "))}</td></tr>`
     )
     .join("")
 

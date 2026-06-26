@@ -1,4 +1,10 @@
 export async function register() {
+  // Validate required env vars on first startup — fail fast in all runtimes
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { validateEnv } = await import("@/lib/env")
+    validateEnv()
+  }
+
   if (!process.env.SENTRY_DSN) return
 
   if (process.env.NEXT_RUNTIME === "nodejs") {

@@ -14,18 +14,14 @@ export function SignOutButton() {
     setIsSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
+    window.location.href = "/login";
   }
 
   return (
     <DropdownMenuItem
-      onSelect={(e) => {
-        e.preventDefault();
-        void handleSignOut();
-      }}
+      onClick={() => void handleSignOut()}
       disabled={isSigningOut}
-      className="text-destructive focus:text-destructive"
+      className="text-destructive"
     >
       {isSigningOut ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
