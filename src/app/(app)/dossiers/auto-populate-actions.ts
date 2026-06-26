@@ -146,10 +146,11 @@ export async function createDossierWithAutoPopulate(data: unknown): Promise<{
       .insert({
         job_card_id: validated.jobCardId,
         dossier_number: `DOSS-${Date.now()}`,
+        dossier_date: new Date().toISOString().slice(0, 10),
         status: "draft",
         created_by: user.id,
         created_at: new Date().toISOString(),
-        notes: validated.remarks,
+        remarks: validated.remarks ?? null,
       })
       .select("id")
       .single()
@@ -164,9 +165,8 @@ export async function createDossierWithAutoPopulate(data: unknown): Promise<{
       const dossierDocuments = suggestedDocIds.map((docId, index) => ({
         dossier_id: newDossier.id,
         document_id: docId,
-        sequence_order: index + 1,
-        added_by: user.id,
-        added_at: new Date().toISOString(),
+        sort_order: index + 1,
+        included: true,
       }))
 
       const { error: linkError } = await supabase
