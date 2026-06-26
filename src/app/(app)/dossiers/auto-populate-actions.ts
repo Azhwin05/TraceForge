@@ -146,7 +146,7 @@ export async function createDossierWithAutoPopulate(data: unknown): Promise<{
       .insert({
         job_card_id: validated.jobCardId,
         dossier_number: `DOSS-${Date.now()}`,
-        status: "ready",
+        status: "draft",
         created_by: user.id,
         created_at: new Date().toISOString(),
         notes: validated.remarks,
