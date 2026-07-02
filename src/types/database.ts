@@ -2,7 +2,13 @@
 // Last updated: Phase 1 — Document-Controlled ERP Foundation
 // Regenerate with `supabase gen types typescript` once the project is linked.
 
-export type UserRole = "admin" | "operator" | "engineer" | "qa" | "accounts" | "management";
+export type UserRole = "admin" | "operator" | "engineer" | "qa" | "accounts" | "management" | "customer";
+
+/** Internal staff roles (everyone except external portal customers). */
+export const INTERNAL_ROLES = ["admin", "operator", "engineer", "qa", "accounts", "management"] as const;
+export function isInternalRole(role: string | null | undefined): boolean {
+  return !!role && (INTERNAL_ROLES as readonly string[]).includes(role);
+}
 export type JobCardStatus =
   | "created" | "wps_pending" | "wps_uploaded" | "wps_approved"
   | "process_assigned" | "in_process" | "process_complete"
@@ -15,6 +21,7 @@ export type GrnStatus = "pending" | "received" | "held";
 export type PaymentStatus = "pending" | "partial" | "received";
 export type ExecutionStatus = "assigned" | "in_progress" | "completed";
 export type PwhtJobStatus = "pending" | "passed" | "failed";
+export type PwhtApprovalStatus = "draft" | "submitted" | "approved" | "rejected";
 
 // ── Phase 1 new enums ──────────────────────────────────────────────────────
 export type WpsMasterStatus = "draft" | "approved" | "superseded";
@@ -34,16 +41,23 @@ export type DocumentType =
   | "pwht_chart" | "dispatch_doc" | "invoice" | "calibration_cert"
   | "customer_po" | "customer_drawing" | "job_card_pdf"
   | "overlay_welding_report" | "annotated_drawing" | "other"
-  | "dossier_index" | "dossier_zip";
+  | "dossier_index" | "dossier_zip"
+  // Expanded in migration 0015 for the client manufacturing workflow
+  | "welding_report" | "electrode_test_certificate" | "consumable_certificate"
+  | "material_test_certificate" | "nde_report" | "lpt_report" | "hardness_report"
+  | "incoming_delivery_challan" | "outgoing_delivery_challan"
+  | "final_acceptance_document" | "contract_review" | "process_layout";
 
 export interface Database {
   public: {
     Tables: {
       profiles: {
-        Row: { id: string; full_name: string; role: UserRole; phone: string | null; is_active: boolean; created_at: string };
-        Insert: { id: string; full_name: string; role: UserRole; phone?: string | null; is_active?: boolean; created_at?: string };
+        Row: { id: string; full_name: string; role: UserRole; phone: string | null; is_active: boolean; created_at: string; client_id: string | null };
+        Insert: { id: string; full_name: string; role: UserRole; phone?: string | null; is_active?: boolean; created_at?: string; client_id?: string | null };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "profiles_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
+        ];
       };
       clients: {
         Row: { id: string; name: string; contact_name: string | null; contact_email: string | null; contact_phone: string | null; address: string | null; created_at: string };
@@ -139,7 +153,9 @@ export interface Database {
           generated_pdf_path?: string | null; inspected_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["pmi_reports"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "pmi_reports_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       dimension_reports: {
         Row: {
@@ -164,7 +180,9 @@ export interface Database {
           dimensions?: Record<string, unknown>[] | null;
         };
         Update: Partial<Database["public"]["Tables"]["dimension_reports"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "dimension_reports_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       process_executions: {
         Row: { id: string; job_card_id: string; process_type: ProcessType; welder_name: string | null; amps_required: string | null; volts_required: string | null; amps_actual: number | null; volts_actual: number | null; travel_speed: number | null; gas_flow_rate: number | null; pre_heat_temp: number | null; inter_pass_temp: number | null; weld_height: number | null; polarity: string | null; consumable_batch: string | null; notes: string | null; assigned_to: string | null; started_at: string | null; completed_at: string | null; status: ExecutionStatus; consumable_master_id: string | null; weld_date: string | null; post_heat_temp: number | null; consumable_feed_rate: number | null; weld_metal: string | null };
@@ -173,16 +191,27 @@ export interface Database {
         Relationships: [];
       };
       pwht_runs: {
-        Row: { id: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url: string | null; created_by: string | null; created_at: string; unloading_temp: number | null; cooling_method: CoolingMethod | null; pwht_result: "pass" | "fail" | null; storage_path: string | null };
-        Insert: { id?: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url?: string | null; created_by?: string | null; created_at?: string; unloading_temp?: number | null; cooling_method?: CoolingMethod | null; pwht_result?: "pass" | "fail" | null; storage_path?: string | null };
+        Row: { id: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url: string | null; created_by: string | null; created_at: string; unloading_temp: number | null; cooling_method: CoolingMethod | null; pwht_result: "pass" | "fail" | null; storage_path: string | null; approval_status: PwhtApprovalStatus; approved_by: string | null; approved_at: string | null; rejected_by: string | null; rejected_at: string | null; rejection_reason: string | null; submitted_by: string | null; submitted_at: string | null; submitted_to_customer: boolean; submitted_to_customer_at: string | null; component_identification: string | null; wps_number: string | null; cycle_start: string | null; cycle_end: string | null; rate_of_cooling: number | null; notes: string | null };
+        Insert: { id?: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url?: string | null; created_by?: string | null; created_at?: string; unloading_temp?: number | null; cooling_method?: CoolingMethod | null; pwht_result?: "pass" | "fail" | null; storage_path?: string | null; approval_status?: PwhtApprovalStatus; approved_by?: string | null; approved_at?: string | null; rejected_by?: string | null; rejected_at?: string | null; rejection_reason?: string | null; submitted_by?: string | null; submitted_at?: string | null; submitted_to_customer?: boolean; submitted_to_customer_at?: string | null; component_identification?: string | null; wps_number?: string | null; cycle_start?: string | null; cycle_end?: string | null; rate_of_cooling?: number | null; notes?: string | null };
         Update: Partial<Database["public"]["Tables"]["pwht_runs"]["Insert"]>;
         Relationships: [];
+      };
+      pwht_chart_readings: {
+        Row: { id: string; pwht_run_id: string; channel: string; recorded_at: string; temperature_c: number; source: "manual" | "import"; created_by: string | null; created_at: string };
+        Insert: { id?: string; pwht_run_id: string; channel?: string; recorded_at: string; temperature_c: number; source?: "manual" | "import"; created_by?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["pwht_chart_readings"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "pwht_chart_readings_pwht_run_id_fkey"; columns: ["pwht_run_id"]; isOneToOne: false; referencedRelation: "pwht_runs"; referencedColumns: ["id"] }
+        ];
       };
       pwht_run_jobs: {
         Row: { id: string; pwht_run_id: string; job_card_id: string; status: PwhtJobStatus; is_final: boolean };
         Insert: { id?: string; pwht_run_id: string; job_card_id: string; status?: PwhtJobStatus; is_final?: boolean };
         Update: Partial<Database["public"]["Tables"]["pwht_run_jobs"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "pwht_run_jobs_pwht_run_id_fkey"; columns: ["pwht_run_id"]; isOneToOne: false; referencedRelation: "pwht_runs"; referencedColumns: ["id"] },
+          { foreignKeyName: "pwht_run_jobs_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       dispatches: {
         Row: { id: string; job_card_id: string; dc_number: string; dispatch_date: string; vehicle_details: string | null; remarks: string | null; doc_url: string | null; created_by: string | null; created_at: string; storage_path: string | null };
@@ -386,7 +415,9 @@ export interface Database {
           created_by?: string | null; created_at?: string; updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["overlay_welding_reports"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "overlay_welding_reports_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       documents: {
         Row: {
@@ -418,7 +449,9 @@ export interface Database {
           uploaded_by?: string | null; uploaded_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["documents"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "documents_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       customer_dossiers: {
         Row: {
@@ -430,6 +463,7 @@ export interface Database {
           status: "draft" | "generated" | "submitted" | "archived";
           generated_index_pdf_path: string | null; generated_zip_path: string | null;
           submitted_to_customer: boolean; submitted_at: string | null; submitted_by: string | null;
+          email_sent_to: string | null; email_sent_at: string | null; email_sent_by: string | null;
           created_by: string | null; created_at: string; updated_at: string;
         };
         Insert: {
@@ -441,10 +475,13 @@ export interface Database {
           status?: "draft" | "generated" | "submitted" | "archived";
           generated_index_pdf_path?: string | null; generated_zip_path?: string | null;
           submitted_to_customer?: boolean; submitted_at?: string | null; submitted_by?: string | null;
+          email_sent_to?: string | null; email_sent_at?: string | null; email_sent_by?: string | null;
           created_by?: string | null; created_at?: string; updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_dossiers"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "customer_dossiers_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
       };
       customer_dossier_documents: {
         Row: {
@@ -460,11 +497,45 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["customer_dossier_documents"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "customer_dossier_documents_dossier_id_fkey"; columns: ["dossier_id"]; isOneToOne: false; referencedRelation: "customer_dossiers"; referencedColumns: ["id"] },
+          { foreignKeyName: "customer_dossier_documents_document_id_fkey"; columns: ["document_id"]; isOneToOne: false; referencedRelation: "documents"; referencedColumns: ["id"] }
+        ];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      generate_jc_number: { Args: Record<string, never>; Returns: string };
+      job_card_gate_blockers: {
+        Args: { p_job_card_id: string; p_new_status: string };
+        Returns: string[];
+      };
+      job_card_payment_blocker: {
+        Args: { p_job_card_id: string };
+        Returns: string | null;
+      };
+      log_admin_action: {
+        Args: {
+          p_entity_type: string;
+          p_entity_id: string;
+          p_action: string;
+          p_payload?: Record<string, unknown>;
+        };
+        Returns: undefined;
+      };
+      log_document_dispatch: {
+        Args: {
+          p_entity_type: string;
+          p_entity_id: string;
+          p_payload?: Record<string, unknown>;
+        };
+        Returns: undefined;
+      };
+      instruments_expiring_soon: {
+        Args: { days_ahead?: number };
+        Returns: unknown[];
+      };
+    };
     Enums: {
       user_role: UserRole;
       job_card_status: JobCardStatus;
@@ -481,6 +552,7 @@ export type JobCard = Database["public"]["Tables"]["job_cards"]["Row"];
 export type WpsQualification = Database["public"]["Tables"]["wps_qualifications"]["Row"];
 export type ProcessExecution = Database["public"]["Tables"]["process_executions"]["Row"];
 export type PwhtRun = Database["public"]["Tables"]["pwht_runs"]["Row"];
+export type PwhtChartReading = Database["public"]["Tables"]["pwht_chart_readings"]["Row"];
 export type Dispatch = Database["public"]["Tables"]["dispatches"]["Row"];
 export type Accounts = Database["public"]["Tables"]["accounts"]["Row"];
 export type AuditLog = Database["public"]["Tables"]["audit_log"]["Row"];

@@ -70,15 +70,30 @@ export async function validateJobClosure(data: unknown): Promise<{
       return { canClose: false, blockers: ["Job card not found"], warnings: [] }
     }
 
+    // The nested-relation select isn't covered by the generated types
+    type JobCardWithRelations = {
+      id: string
+      status: string
+      process_type: string[]
+      documents: Array<Record<string, unknown>> | null
+      pmi_reports: Array<Record<string, unknown>> | null
+      dimension_reports: Array<Record<string, unknown>> | null
+      overlay_welding_reports: Array<Record<string, unknown>> | null
+      pwht_runs: Array<Record<string, unknown>> | null
+      dispatches: Array<Record<string, unknown>> | null
+      accounts: Array<Record<string, unknown>> | null
+    }
+    const jc = jobCard as unknown as JobCardWithRelations
+
     // 2. Check WPS approval
-    const wpsDoc = jobCard.documents?.find((d: Record<string, unknown>) => d.document_type === "wps_pdf")
+    const wpsDoc = jc.documents?.find((d: Record<string, unknown>) => d.document_type === "wps_pdf")
     if (!wpsDoc || wpsDoc.approval_status !== "approved") {
       blockers.push("WPS must be uploaded and approved")
     }
 
     // 3. Check PWHT if required
-    if (jobCard.process_type.includes("welding")) {
-      const pwhtRecord = jobCard.pwht_runs?.[0] as Record<string, unknown> | undefined
+    if (jc.process_type.includes("welding")) {
+      const pwhtRecord = jc.pwht_runs?.[0] as Record<string, unknown> | undefined
       if (!pwhtRecord) {
         blockers.push("Heat Treatment Chart required but not found")
       } else if (pwhtRecord.approval_status !== "approved") {
@@ -87,22 +102,22 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 4. Check inspection reports
-    if (jobCard.process_type.includes("welding")) {
+    if (jc.process_type.includes("welding")) {
       const hasInspection =
-        jobCard.dimension_reports?.length > 0 ||
-        jobCard.pmi_reports?.length > 0 ||
-        jobCard.overlay_welding_reports?.length > 0
+        (jc.dimension_reports?.length ?? 0) > 0 ||
+        (jc.pmi_reports?.length ?? 0) > 0 ||
+        (jc.overlay_welding_reports?.length ?? 0) > 0
 
       if (!hasInspection) {
         blockers.push("At least one inspection report (Dimension, PMI, or Overlay) is required")
       }
 
       // Check approvals
-      const dimensionApproved = jobCard.dimension_reports?.some(
+      const dimensionApproved = jc.dimension_reports?.some(
         (r: Record<string, unknown>) => r.dimension_status === "approved"
       )
-      const pmiApproved = jobCard.pmi_reports?.some((r: Record<string, unknown>) => r.pmi_status === "approved")
-      const overlayApproved = jobCard.overlay_welding_reports?.some(
+      const pmiApproved = jc.pmi_reports?.some((r: Record<string, unknown>) => r.pmi_status === "approved")
+      const overlayApproved = jc.overlay_welding_reports?.some(
         (r: Record<string, unknown>) => r.report_status === "approved"
       )
 
@@ -112,7 +127,7 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 5. Check delivery challan
-    const deliveryChalan = jobCard.documents?.find(
+    const deliveryChalan = jc.documents?.find(
       (d: Record<string, unknown>) => d.document_type === "outgoing_delivery_challan"
     )
     if (!deliveryChalan) {
@@ -120,8 +135,8 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 6. Check invoice
-    const invoice = jobCard.documents?.find((d: Record<string, unknown>) => d.document_type === "invoice")
-    const accountsRecord = jobCard.accounts?.[0] as Record<string, unknown> | undefined
+    const invoice = jc.documents?.find((d: Record<string, unknown>) => d.document_type === "invoice")
+    const accountsRecord = jc.accounts?.[0] as Record<string, unknown> | undefined
 
     if (!invoice) {
       warnings.push("No invoice uploaded (may be processed separately)")
@@ -132,7 +147,7 @@ export async function validateJobClosure(data: unknown): Promise<{
     }
 
     // 7. Check dossier
-    const hasDossier = jobCard.documents?.some((d: Record<string, unknown>) => d.document_type === "dossier_zip")
+    const hasDossier = jc.documents?.some((d: Record<string, unknown>) => d.document_type === "dossier_zip")
     if (!hasDossier) {
       warnings.push("Customer dossier should be generated before closure")
     }
@@ -168,13 +183,34 @@ export async function forceCloseJob(data: unknown): Promise<{
   try {
     const validated = forceCloseJobSchema.parse(data)
 
-    // Update job status
+    // Document gates are NEVER overridable — force close may only waive the
+    // payment gate. The DB trigger re-enforces the same rules as a backstop.
+    const { data: blockers } = await supabase
+      .rpc("job_card_gate_blockers", { p_job_card_id: validated.jobCardId, p_new_status: "closed" })
+    if (Array.isArray(blockers) && blockers.length > 0) {
+      return { error: `Cannot force close — document requirements are not met: ${blockers.join("; ")}` }
+    }
+
+    // Record the override BEFORE the status change so the audit trail shows
+    // intent even if the transition itself is rejected by the trigger.
+    const { error: auditError } = await supabase.rpc("log_admin_action", {
+      p_entity_type: "job_card",
+      p_entity_id: validated.jobCardId,
+      p_action: "force_close",
+      p_payload: {
+        override_reason: validated.overrideReason,
+        closed_by: user.id,
+      },
+    })
+    if (auditError) {
+      console.error("[force-close-job] audit failed", auditError)
+      return { error: "Could not record the override in the audit trail; job was not closed." }
+    }
+
+    // Update job status (trigger validates the transition path + gates)
     const { error: updateError } = await supabase
       .from("job_cards")
-      .update({
-        status: "closed",
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status: "closed" })
       .eq("id", validated.jobCardId)
 
     if (updateError) {
@@ -182,20 +218,9 @@ export async function forceCloseJob(data: unknown): Promise<{
       return { error: sanitizeError(updateError) }
     }
 
-    // Log admin override in audit
-    await supabase.from("audit_log").insert({
-      entity_type: "job_card",
-      entity_id: validated.jobCardId,
-      action: "force_close",
-      new_value: {
-        override_reason: validated.overrideReason,
-        closed_by: user.id,
-      },
-      performed_by: user.id,
-      performed_at: new Date().toISOString(),
-    })
-
     revalidatePath(`/job-cards/${validated.jobCardId}`)
+    revalidatePath("/job-cards")
+    revalidatePath("/dashboard")
 
     return { success: true }
   } catch (e) {

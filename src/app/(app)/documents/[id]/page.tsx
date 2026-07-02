@@ -29,6 +29,18 @@ const DOC_TYPE_LABELS: Record<DocumentType, string> = {
   other:                  "Other",
   dossier_index:          "Dossier Index PDF",
   dossier_zip:            "Dossier ZIP Pack",
+  welding_report:            "Welding Report",
+  electrode_test_certificate: "Electrode Test Certificate",
+  consumable_certificate:    "Consumable Certificate",
+  material_test_certificate: "Material Test Certificate (MTC)",
+  nde_report:                "NDT Report",
+  lpt_report:                "LPT Report",
+  hardness_report:           "Hardness Report",
+  incoming_delivery_challan: "Incoming Delivery Challan",
+  outgoing_delivery_challan: "Outgoing Delivery Challan",
+  final_acceptance_document: "Final Acceptance Document",
+  contract_review:           "Contract Review",
+  process_layout:            "Process Layout",
 }
 
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {

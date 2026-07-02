@@ -16,6 +16,9 @@ export default async function AppLayout({
   const { user, profile } = session
   if (!profile || !profile.is_active) redirect("/login?error=account_disabled")
 
+  // External portal customers must never reach the internal app
+  if (profile.role === "customer") redirect("/portal")
+
   const role = (profile.role ?? "operator") as UserRole
 
   // Fetch unacknowledged alert count for the sidebar badge

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAuth } from "@/lib/auth"
+import { isValidUUID } from "@/lib/security"
 
 // GET /api/dossiers/[id]/generate-url?type=index|zip
 // Returns a signed URL for the dossier index PDF or ZIP pack.
@@ -9,6 +10,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid dossier ID" }, { status: 400 })
+  }
 
   try {
     await requireAuth()

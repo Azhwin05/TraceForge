@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { UserRole } from "@/types/database"
 
-type Profile = { full_name: string | null; role: string; is_active: boolean }
+type Profile = { full_name: string | null; role: string; is_active: boolean; client_id: string | null }
 
 export const getSessionWithProfile = cache(async () => {
   const supabase = await createClient()
@@ -14,7 +14,7 @@ export const getSessionWithProfile = cache(async () => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, is_active")
+    .select("full_name, role, is_active, client_id")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -48,4 +48,23 @@ export async function requireRole(allowedRoles: UserRole[]) {
     return { error: "Unauthorized: insufficient permissions" as const }
   }
   return { user, profile, role, supabase, error: null }
+}
+
+/**
+ * Guard for the external customer portal. Ensures the current user is an active
+ * customer bound to a client. Redirects staff to the internal app and
+ * unauthenticated users to login. Customer data isolation is ultimately
+ * enforced by RLS (`current_client_id()`); this is the app-layer gate.
+ */
+export async function requireCustomer(): Promise<AuthSession & { clientId: string }> {
+  const session = await requireAuth()
+  const { profile } = session
+  if (profile.role !== "customer") {
+    // Internal staff shouldn't be in the portal
+    redirect("/dashboard")
+  }
+  if (!profile.client_id) {
+    redirect("/login?error=portal_not_provisioned")
+  }
+  return { ...session, clientId: profile.client_id }
 }

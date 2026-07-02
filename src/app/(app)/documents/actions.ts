@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
+import { validateFileSignature } from "@/lib/documents/file-signature"
 import type { DocumentEntityType, DocumentType, UserRole } from "@/types/database"
+
+// Files up to this size are downloaded server-side to verify their magic bytes.
+// Larger files are accepted on extension alone (already limited to 50 MB client-side).
+const SIGNATURE_CHECK_MAX_BYTES = 10 * 1024 * 1024
 
 // Role permission map — mirrors storage RLS but enforced at the action layer.
 const DOCUMENT_UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
@@ -22,6 +27,18 @@ const DOCUMENT_UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
   other:                 ["admin", "qa", "engineer"],
   dossier_index:         ["admin"],
   dossier_zip:           ["admin"],
+  welding_report:            ["admin", "engineer", "qa"],
+  electrode_test_certificate: ["admin", "engineer", "qa"],
+  consumable_certificate:    ["admin", "engineer", "qa"],
+  material_test_certificate: ["admin", "qa"],
+  nde_report:                ["admin", "qa"],
+  lpt_report:                ["admin", "qa"],
+  hardness_report:           ["admin", "qa"],
+  incoming_delivery_challan: ["admin", "operator"],
+  outgoing_delivery_challan: ["admin"],
+  final_acceptance_document: ["admin", "qa"],
+  contract_review:           ["admin"],
+  process_layout:            ["admin", "engineer"],
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +79,28 @@ export async function registerUploadedDocument(
   // Sanity-check path (the client must have already uploaded to this path)
   if (!input.storagePath || input.storagePath.split("/").length < 3) {
     return { data: null, error: "Invalid storage path." }
+  }
+
+  // Server-side content validation: the client-side MIME/extension check is
+  // advisory only. Download the object and verify its magic bytes match the
+  // claimed file type; delete the object if it doesn't.
+  if ((input.fileSize ?? 0) <= SIGNATURE_CHECK_MAX_BYTES) {
+    const { data: fileBlob, error: downloadErr } = await supabase.storage
+      .from("documents")
+      .download(input.storagePath)
+
+    if (downloadErr || !fileBlob) {
+      return { data: null, error: "Uploaded file could not be verified. Please re-upload." }
+    }
+
+    const bytes = new Uint8Array(await fileBlob.slice(0, 4096).arrayBuffer())
+    const signatureError = validateFileSignature(input.fileName, bytes)
+    if (signatureError) {
+      try {
+        await supabase.storage.from("documents").remove([input.storagePath])
+      } catch {}
+      return { data: null, error: signatureError }
+    }
   }
 
   // Find the current latest version so we can increment it

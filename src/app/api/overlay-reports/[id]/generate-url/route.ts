@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { STORAGE_BUCKET } from "@/lib/documents/storage-utils"
+import { isValidUUID } from "@/lib/security"
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  if (!isValidUUID(params.id)) {
+    return NextResponse.json({ error: "Invalid report ID" }, { status: 400 })
+  }
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()

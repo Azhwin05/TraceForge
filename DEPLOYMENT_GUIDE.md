@@ -179,3 +179,26 @@ Supabase Storage (PDF/Documents)
 **Estimated Deploy Time**: 5-10 minutes  
 
 🎉 **Your client can now see and test the ValveTrack ERP system!**
+
+---
+
+## ⚠️ REQUIRED: Apply migration 0017 (2026-07-02 enterprise hardening)
+
+Before deploying this version, run `supabase/migrations/0017_enterprise_gates_pwht_chart.sql`
+against the database (Supabase Dashboard → SQL Editor, or `supabase db push`).
+
+It delivers:
+- **Workflow gates in the DB trigger** — dispatch/close now require approved WPS,
+  inspection reports, and PWHT (when required). "No document → No progress" is
+  enforced at the database, not just the UI.
+- **PWHT chart recorder schema** — `pwht_chart_readings` table + run columns
+  (component ID, WPS number, cycle window).
+- **Repairs migration 0016** — 0016 contains invalid SQL (`ADD COLUMN IF NOT EXISTS (…)`
+  multi-column form) and an index on a non-existent column. If 0016 was never applied
+  or failed, SKIP it — 0017 idempotently includes everything 0016 intended.
+- Unique DC/invoice numbers, missing FK indexes, `updated_at` triggers,
+  `log_admin_action` / `log_document_dispatch` audit RPCs,
+  dossier email-tracking columns, operator INSERT policy on clients.
+
+Also set `RESEND_API_KEY` + `RESEND_FROM_EMAIL` in the environment to enable the
+"Email to Customer" automated documentation feature.

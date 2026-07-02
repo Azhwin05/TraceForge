@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Download, Loader2, FileArchive, CheckCircle, Archive } from "lucide-react"
+import { Download, Loader2, FileArchive, CheckCircle, Archive, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { markDossierSubmitted, archiveDossier } from "@/app/(app)/dossiers/actions"
+import { markDossierSubmitted, archiveDossier, emailDossierToCustomer } from "@/app/(app)/dossiers/actions"
 import type { DossierStatus, UserRole } from "@/types/database"
 
 type Props = {
@@ -14,6 +14,8 @@ type Props = {
   userRole: UserRole
   generatedIndexPath: string | null
   generatedZipPath: string | null
+  emailSentTo?: string | null
+  emailSentAt?: string | null
 }
 
 export function DossierStatusActions({
@@ -22,6 +24,8 @@ export function DossierStatusActions({
   userRole,
   generatedIndexPath,
   generatedZipPath,
+  emailSentTo,
+  emailSentAt,
 }: Props) {
   const router = useRouter()
   const [isGenerating, setIsGenerating] = useState(false)
@@ -29,11 +33,17 @@ export function DossierStatusActions({
   const [submittedBy, setSubmittedBy] = useState("")
   const [showSubmitForm, setShowSubmitForm] = useState(false)
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false)
+  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [emailTo, setEmailTo] = useState("")
+  const [emailMessage, setEmailMessage] = useState("")
   const [isPending, startTransition] = useTransition()
 
   const canGenerate = ["admin", "qa"].includes(userRole) && dossierStatus !== "submitted" && dossierStatus !== "archived"
   const canSubmit   = ["admin", "qa"].includes(userRole) && dossierStatus === "generated"
   const canArchive  = userRole === "admin" && dossierStatus !== "submitted"
+  const canEmail    = ["admin", "qa"].includes(userRole) &&
+    ["generated", "submitted"].includes(dossierStatus) &&
+    (generatedIndexPath !== null || generatedZipPath !== null)
 
   async function handleGenerate() {
     setIsGenerating(true)
@@ -85,6 +95,25 @@ export function DossierStatusActions({
     })
   }
 
+  function handleEmail() {
+    if (!emailTo.trim()) { toast.error("Enter the recipient's email address"); return }
+    startTransition(async () => {
+      const result = await emailDossierToCustomer({
+        dossierId,
+        to: emailTo.trim(),
+        message: emailMessage.trim() || undefined,
+      })
+      if (result.error) { toast.error(result.error) }
+      else {
+        toast.success(`Document package emailed to ${result.sentTo}`)
+        setShowEmailForm(false)
+        setEmailTo("")
+        setEmailMessage("")
+        router.refresh()
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {/* Generate */}
@@ -118,6 +147,53 @@ export function DossierStatusActions({
         <Button variant="outline" size="sm" onClick={() => openFile("zip")} className="w-full sm:w-auto">
           <Download className="mr-1.5 h-3.5 w-3.5" /> Download ZIP Pack
         </Button>
+      )}
+
+      {/* Email to customer (automated documentation) */}
+      {canEmail && (
+        <div>
+          {!showEmailForm ? (
+            <div className="space-y-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-blue-500/40 text-blue-700 hover:bg-blue-50 w-full sm:w-auto"
+                onClick={() => setShowEmailForm(true)}
+              >
+                <Mail className="mr-1.5 h-3.5 w-3.5" /> Email to Customer
+              </Button>
+              {emailSentTo && emailSentAt && (
+                <p className="text-xs text-muted-foreground">
+                  Last sent to {emailSentTo} on {new Date(emailSentAt).toLocaleString()}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 space-y-2">
+              <p className="text-xs font-medium text-blue-800">Email document package</p>
+              <input
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                placeholder="customer@example.com"
+                className="w-full h-7 rounded border border-input bg-background px-2 text-sm"
+              />
+              <textarea
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Optional message to include…"
+                rows={2}
+                className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
+              />
+              <div className="flex gap-2">
+                <Button size="sm" className="bg-blue-700 hover:bg-blue-800" onClick={handleEmail} disabled={isPending}>
+                  {isPending ? "Sending…" : "Send"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setShowEmailForm(false)}>Cancel</Button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Submit */}

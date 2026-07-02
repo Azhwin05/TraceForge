@@ -19,6 +19,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
   qa: "bg-amber-100 text-amber-700",
   accounts: "bg-green-100 text-green-700",
   management: "bg-rose-100 text-rose-700",
+  customer: "bg-slate-100 text-slate-700",
 }
 
 export function UsersClient({

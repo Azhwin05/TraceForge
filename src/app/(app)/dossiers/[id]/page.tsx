@@ -240,6 +240,8 @@ export default async function DossierDetailPage({
                   userRole={userRole}
                   generatedIndexPath={dossier.generated_index_pdf_path}
                   generatedZipPath={dossier.generated_zip_path}
+                  emailSentTo={dossier.email_sent_to}
+                  emailSentAt={dossier.email_sent_at}
                 />
               </CardContent>
             </Card>
