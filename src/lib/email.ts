@@ -116,6 +116,107 @@ export async function sendNewJobCardEmail({
   })
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Automated documentation — customer document package (dossier / MDB) delivery
+// ─────────────────────────────────────────────────────────────────────────────
+export async function sendDossierEmail({
+  to,
+  dossierNumber,
+  jcNumber,
+  customerName,
+  poNumber,
+  documents,
+  indexUrl,
+  zipUrl,
+  message,
+  sentBy,
+}: {
+  to: string | string[]
+  dossierNumber: string
+  jcNumber: string
+  customerName: string
+  poNumber?: string | null
+  documents: Array<{ name: string; type: string }>
+  indexUrl: string | null
+  zipUrl: string | null
+  message?: string | null
+  sentBy: string
+}): Promise<{ error?: string }> {
+  if (!isEmailEnabled()) {
+    return { error: "Email is not configured (RESEND_API_KEY missing)." }
+  }
+
+  const safeDossier  = escapeHtml(dossierNumber)
+  const safeJc       = escapeHtml(jcNumber)
+  const safeCustomer = escapeHtml(customerName)
+  const safePo       = poNumber ? escapeHtml(poNumber) : "—"
+  const safeMessage  = message ? escapeHtml(message) : null
+  const safeSentBy   = escapeHtml(sentBy)
+
+  const docRows = documents
+    .map(
+      (d, i) =>
+        `<tr${i % 2 ? ' style="background:#f9f9f9;"' : ""}>
+           <td style="padding:6px 8px; color:#666; width:32px;">${i + 1}</td>
+           <td style="padding:6px 8px;">${escapeHtml(d.name)}</td>
+           <td style="padding:6px 8px; color:#666;">${escapeHtml(d.type.replace(/_/g, " "))}</td>
+         </tr>`
+    )
+    .join("")
+
+  const links: string[] = []
+  if (zipUrl) {
+    links.push(
+      `<a href="${zipUrl}" style="display:inline-block; background:#0070f3; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600; margin-right:8px;">Download Document Package (ZIP)</a>`
+    )
+  }
+  if (indexUrl) {
+    links.push(
+      `<a href="${indexUrl}" style="display:inline-block; background:#fff; color:#0070f3; border:1px solid #0070f3; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:600;">View Index PDF</a>`
+    )
+  }
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: Array.isArray(to) ? to : [to],
+      subject: `[Raghav Engineering] Manufacturing Documentation — ${safeJc} / Dossier ${safeDossier}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 640px; margin: 0 auto;">
+          <h2 style="color: #1a1a1a;">Manufacturing Documentation Package</h2>
+          <p style="color:#444;">Please find the quality documentation package for your order below.</p>
+          <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
+            <tr><td style="padding:8px; color:#666; width:140px;">Dossier No.</td><td style="padding:8px; font-weight:600; font-family:monospace;">${safeDossier}</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">Job Card</td><td style="padding:8px; font-family:monospace;">${safeJc}</td></tr>
+            <tr><td style="padding:8px; color:#666;">Customer</td><td style="padding:8px;">${safeCustomer}</td></tr>
+            <tr style="background:#f9f9f9;"><td style="padding:8px; color:#666;">PO Number</td><td style="padding:8px;">${safePo}</td></tr>
+          </table>
+          ${safeMessage ? `<p style="color:#444; border-left:3px solid #0070f3; padding:8px 12px; background:#f5f9ff;">${safeMessage}</p>` : ""}
+          <h3 style="color:#1a1a1a; font-size:14px;">Included Documents (${documents.length})</h3>
+          <table style="width:100%; border-collapse:collapse; margin: 8px 0 20px; font-size:13px; border:1px solid #eee;">
+            <thead>
+              <tr style="background:#f0f0f0;">
+                <th style="padding:6px 8px; text-align:left;">#</th>
+                <th style="padding:6px 8px; text-align:left;">Document</th>
+                <th style="padding:6px 8px; text-align:left;">Type</th>
+              </tr>
+            </thead>
+            <tbody>${docRows}</tbody>
+          </table>
+          ${links.join("")}
+          <p style="color:#999; font-size:12px; margin-top:24px;">
+            Download links are valid for 7 days. Sent by ${safeSentBy} · Raghav Engineering · ValveTrack
+          </p>
+        </div>
+      `,
+    })
+    if (error) return { error: error.message ?? "Email send failed" }
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Email send failed" }
+  }
+}
+
 export async function sendOverdueAlertEmail({
   to,
   overdueJobs,

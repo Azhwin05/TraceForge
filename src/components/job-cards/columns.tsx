@@ -71,7 +71,7 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
     accessorKey: "process_type",
     header: "Process",
     cell: ({ getValue }) => {
-      const types = getValue() as ProcessType[]
+      const types = (getValue() as ProcessType[] | null) ?? []
       return (
         <div className="flex flex-wrap gap-1">
           {types.map((t) => (

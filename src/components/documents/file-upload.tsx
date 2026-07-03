@@ -33,6 +33,18 @@ const UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
   other:                 ["admin", "qa", "engineer"],
   dossier_index:         ["admin"],
   dossier_zip:           ["admin"],
+  welding_report:            ["admin", "engineer", "qa"],
+  electrode_test_certificate: ["admin", "engineer", "qa"],
+  consumable_certificate:    ["admin", "engineer", "qa"],
+  material_test_certificate: ["admin", "qa"],
+  nde_report:                ["admin", "qa"],
+  lpt_report:                ["admin", "qa"],
+  hardness_report:           ["admin", "qa"],
+  incoming_delivery_challan: ["admin", "operator"],
+  outgoing_delivery_challan: ["admin"],
+  final_acceptance_document: ["admin", "qa"],
+  contract_review:           ["admin"],
+  process_layout:            ["admin", "engineer"],
 }
 
 export type FileUploadProps = {

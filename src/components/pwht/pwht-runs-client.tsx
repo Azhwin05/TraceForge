@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -137,8 +138,16 @@ export function PwhtRunsClient({
                   <CardHeader>
                     <CardTitle className="flex items-start justify-between text-base">
                       <div>
-                        <span className="font-mono text-brand-primary">{run.chart_number}</span>
+                        <Link href={`/pwht-runs/${run.id}`} className="font-mono text-brand-primary hover:underline">
+                          {run.chart_number}
+                        </Link>
                         <span className="text-muted-foreground font-normal ml-3 text-sm">Furnace: {run.furnace_id}</span>
+                        <Link
+                          href={`/pwht-runs/${run.id}`}
+                          className="ml-3 text-xs font-normal text-blue-600 hover:underline"
+                        >
+                          Chart recorder →
+                        </Link>
                       </div>
                       <div className="flex items-center gap-2 text-sm font-normal">
                         {pendCount > 0 && <span className="bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 text-xs">{pendCount} pending</span>}

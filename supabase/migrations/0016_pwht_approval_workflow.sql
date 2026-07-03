@@ -1,3 +1,10 @@
+-- ⚠️ DO NOT RUN — SUPERSEDED / NEVER APPLIED. See supabase/MIGRATION_STATE.md.
+-- This file contains invalid SQL: `ALTER TABLE ... ADD COLUMN IF NOT EXISTS (...)`
+-- (the multi-column parenthesised form is not valid Postgres) and an index on a
+-- non-existent `pwht_runs.job_card_id`. The PWHT approval workflow it intended was
+-- applied correctly, idempotently, by the live 2026-07-02
+-- `enterprise_gates_pwht_chart_recorder` migration instead.
+--
 -- Phase 1: PWHT Approval Workflow
 -- Adds formal approval workflow to heat treatment records
 

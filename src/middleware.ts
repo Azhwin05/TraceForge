@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/middleware"
-import { rateLimit } from "@/lib/rate-limit"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 const IS_DEV = process.env.NODE_ENV !== "production"
 
@@ -42,20 +42,20 @@ export async function middleware(request: NextRequest) {
 
   // ── Login endpoint: strict limit ─────────────────────────────────────────
   if (pathname.startsWith("/login")) {
-    const { allowed, resetAt } = rateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS)
+    const { allowed, resetAt } = await checkRateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS)
     if (!allowed) return rateLimitResponse(resetAt)
   }
 
   // ── PDF/ZIP generation endpoints: very strict limit ──────────────────────
   const isGenerateRoute = /^\/api\/(pmi-reports|dimension-reports|overlay-reports|dossiers)\/[^/]+\/generate$/.test(pathname)
   if (isGenerateRoute && method === "POST") {
-    const { allowed, resetAt } = rateLimit(`generate:${ip}`, GENERATE_LIMIT, GENERATE_WINDOW_MS)
+    const { allowed, resetAt } = await checkRateLimit(`generate:${ip}`, GENERATE_LIMIT, GENERATE_WINDOW_MS)
     if (!allowed) return rateLimitResponse(resetAt)
   }
 
   // ── General API / app limit ──────────────────────────────────────────────
   if (pathname.startsWith("/api")) {
-    const { allowed, resetAt } = rateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS)
+    const { allowed, resetAt } = await checkRateLimit(`api:${ip}`, API_LIMIT, API_WINDOW_MS)
     if (!allowed) return rateLimitResponse(resetAt)
   }
 
