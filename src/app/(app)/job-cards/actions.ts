@@ -76,6 +76,14 @@ export async function updateJobCardStatus(
     return { error: "Unauthorized: your role cannot perform this transition" }
   }
 
+  // Document gates — same rules the DB trigger enforces, checked here first so
+  // the user gets a readable list of blockers instead of a raised exception.
+  const { data: blockers } = await supabase
+    .rpc("job_card_gate_blockers", { p_job_card_id: id, p_new_status: newStatus })
+  if (Array.isArray(blockers) && blockers.length > 0) {
+    return { error: `Blocked: ${blockers.join("; ")}` }
+  }
+
   // Fetch current status to store as previous_status when going on_hold
   const { data: current } = await supabase
     .from("job_cards")
@@ -115,7 +123,9 @@ export async function updateJobCardStatus(
 export async function createClient_(
   data: CreateClientInput
 ): Promise<{ error?: string; client?: { id: string; name: string } }> {
-  const { supabase } = await requireAuth()
+  const guard = await requireRole(["admin", "operator"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
 
   const { data: client, error } = await supabase
     .from("clients")

@@ -14,3 +14,26 @@ export const createPwhtRunSchema = z.object({
 })
 
 export type CreatePwhtRunInput = z.infer<typeof createPwhtRunSchema>
+
+// ── Chart recorder ───────────────────────────────────────────────────────────
+export const chartReadingSchema = z.object({
+  recorded_at: z.string().min(1, "Time is required"),
+  temperature_c: z
+    .number({ message: "Temperature must be a number" })
+    .min(-50, "Temperature out of range")
+    .max(2000, "Temperature out of range"),
+  channel: z.string().max(20).optional(),
+})
+
+export type ChartReadingInput = z.infer<typeof chartReadingSchema>
+
+export const updatePwhtDetailsSchema = z.object({
+  component_identification: z.string().max(300).optional(),
+  wps_number: z.string().max(100).optional(),
+  cycle_start: z.string().optional(),
+  cycle_end: z.string().optional(),
+  rate_of_cooling: z.number().min(0).optional().nullable(),
+  notes: z.string().max(2000).optional(),
+})
+
+export type UpdatePwhtDetailsInput = z.infer<typeof updatePwhtDetailsSchema>

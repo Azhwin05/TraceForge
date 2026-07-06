@@ -18,6 +18,7 @@ import {
   Ruler,
   Layers,
   FolderOpen,
+  Users,
   PackageCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -86,6 +87,12 @@ const NAV_GROUPS: NavGroup[] = [
     heading: "System",
     items: [
       { href: "/audit",    label: "Audit Trail", icon: History },
+      {
+        href: "/portal-users",
+        label: "Portal Users",
+        icon: Users,
+        roles: ["admin"],
+      },
       {
         href: "/settings",
         label: "Settings",

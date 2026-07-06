@@ -76,6 +76,14 @@ export async function createDispatch(
     return { error: "Job card must be in dispatch_ready status before dispatching" }
   }
 
+  // Document gates — approved WPS / inspection reports / PWHT (if required).
+  // The DB trigger enforces the same rules; this gives a readable error first.
+  const { data: blockers } = await supabase
+    .rpc("job_card_gate_blockers", { p_job_card_id: jobCardId, p_new_status: "dispatched" })
+  if (Array.isArray(blockers) && blockers.length > 0) {
+    return { error: `Dispatch blocked: ${blockers.join("; ")}` }
+  }
+
   const { error: dispatchError } = await supabase
     .from("dispatches")
     .insert({

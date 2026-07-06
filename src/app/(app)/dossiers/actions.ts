@@ -1,9 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 import { requireAuth, requireRole } from "@/lib/auth"
 import { dossierSchema } from "@/lib/validations/dossier"
-import type { DossierStatus, Document as DocRecord, DocumentType } from "@/types/database"
+import { sendDossierEmail } from "@/lib/email"
+import { sanitizeError } from "@/lib/security"
+import type { DossierStatus, Document as DocRecord, DocumentType, CustomerDossier } from "@/types/database"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sort order for document types in dossier
@@ -148,6 +151,129 @@ export async function markDossierSubmitted(
   revalidatePath(`/dossiers/${id}`)
   revalidatePath("/dossiers")
   return { error: null }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// emailDossierToCustomer — automated documentation delivery
+// Generates 7-day signed URLs for the index PDF + ZIP pack and emails them to
+// the customer. Audit-logged via the log_document_dispatch RPC.
+// ─────────────────────────────────────────────────────────────────────────────
+const emailDossierSchema = z.object({
+  dossierId: z.string().uuid("Invalid dossier ID"),
+  to: z.string().email("A valid recipient email is required"),
+  message: z.string().max(2000).optional(),
+})
+
+const SIGNED_URL_TTL_SECONDS = 7 * 24 * 3600 // 7 days
+
+export async function emailDossierToCustomer(raw: unknown): Promise<{ error?: string; sentTo?: string }> {
+  const session = await requireRole(["admin", "qa"])
+  if (session.error) return { error: session.error }
+  const { supabase, user, profile } = session
+
+  const parsed = emailDossierSchema.safeParse(raw)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Validation error" }
+  }
+  const { dossierId, to, message } = parsed.data
+
+  try {
+    // Fetch dossier — must be generated (or already submitted for a re-send)
+    const { data: rawDossier } = await supabase
+      .from("customer_dossiers")
+      .select("*")
+      .eq("id", dossierId)
+      .single()
+
+    if (!rawDossier) return { error: "Dossier not found" }
+    const dossier = rawDossier as CustomerDossier
+
+    if (!["generated", "submitted"].includes(dossier.status)) {
+      return { error: "The dossier must be generated before it can be emailed." }
+    }
+    if (!dossier.generated_zip_path && !dossier.generated_index_pdf_path) {
+      return { error: "No generated files found — regenerate the dossier first." }
+    }
+
+    // Job card number for the email subject
+    const { data: jc } = await supabase
+      .from("job_cards")
+      .select("jc_number")
+      .eq("id", dossier.job_card_id)
+      .single()
+
+    // Included document list for the email body
+    const { data: dossierDocs } = await supabase
+      .from("customer_dossier_documents")
+      .select("document_name, document_type, included")
+      .eq("dossier_id", dossierId)
+      .order("sort_order")
+
+    const documents = ((dossierDocs ?? []) as Array<{ document_name: string | null; document_type: string | null; included: boolean }>)
+      .filter((d) => d.included)
+      .map((d) => ({ name: d.document_name ?? "Document", type: d.document_type ?? "other" }))
+
+    // Signed URLs (7-day)
+    let indexUrl: string | null = null
+    let zipUrl: string | null = null
+    if (dossier.generated_index_pdf_path) {
+      const { data } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(dossier.generated_index_pdf_path, SIGNED_URL_TTL_SECONDS)
+      indexUrl = data?.signedUrl ?? null
+    }
+    if (dossier.generated_zip_path) {
+      const { data } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(dossier.generated_zip_path, SIGNED_URL_TTL_SECONDS)
+      zipUrl = data?.signedUrl ?? null
+    }
+    if (!indexUrl && !zipUrl) {
+      return { error: "Could not create download links for the generated files." }
+    }
+
+    // Send
+    const sendResult = await sendDossierEmail({
+      to,
+      dossierNumber: dossier.dossier_number,
+      jcNumber: (jc as { jc_number: string } | null)?.jc_number ?? "—",
+      customerName: dossier.customer_name ?? "Customer",
+      poNumber: dossier.po_number,
+      documents,
+      indexUrl,
+      zipUrl,
+      message: message ?? null,
+      sentBy: profile.full_name ?? "ValveTrack",
+    })
+    if (sendResult.error) return { error: sendResult.error }
+
+    // Record on the dossier + audit trail
+    await supabase
+      .from("customer_dossiers")
+      .update({
+        email_sent_to: to,
+        email_sent_at: new Date().toISOString(),
+        email_sent_by: user.id,
+      })
+      .eq("id", dossierId)
+
+    const { error: auditErr } = await supabase.rpc("log_document_dispatch", {
+      p_entity_type: "dossier",
+      p_entity_id: dossierId,
+      p_payload: {
+        sent_to: to,
+        document_count: documents.length,
+        dossier_number: dossier.dossier_number,
+      },
+    })
+    if (auditErr) console.error("[email-dossier] audit log failed:", auditErr)
+
+    revalidatePath(`/dossiers/${dossierId}`)
+    return { sentTo: to }
+  } catch (e) {
+    console.error("[email-dossier]", e)
+    return { error: sanitizeError(e) }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

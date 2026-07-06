@@ -32,9 +32,7 @@ const DOCUMENT_TYPES = [
 
 const uploadDocumentSchema = z.object({
   jobCardId: z.string().uuid("Invalid job card ID"),
-  documentType: z.enum(DOCUMENT_TYPES as readonly [string, ...string[]], {
-    errorMap: () => ({ message: "Invalid document type" })
-  }),
+  documentType: z.enum(DOCUMENT_TYPES, { message: "Invalid document type" }),
   fileName: z.string().min(1, "Filename required"),
   filePath: z.string().min(1, "File path required"),
   fileSize: z.number().int().min(1, "File size required"),
@@ -116,6 +114,8 @@ export async function uploadJobCardDocument(data: unknown): Promise<
     const { data: newDoc, error: insertError } = await supabase
       .from("documents")
       .insert({
+        entity_type: "job_card",
+        entity_id: validated.jobCardId,
         job_card_id: validated.jobCardId,
         document_type: validated.documentType,
         storage_path: validated.filePath,
