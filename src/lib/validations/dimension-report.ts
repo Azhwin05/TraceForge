@@ -34,6 +34,12 @@ export const dimensionReportSchema = z.object({
   inspected_by:         z.string().nullish(),
   approved_by:          z.string().nullish(),
   result_status:        z.enum(["accepted", "rejected", "hold"]),
+  // Machining
+  machine_name:         z.string().nullish(),
+  operator:             z.string().nullish(),
+  drawing_size:         z.string().nullish(),
+  weld_deposit_thickness_before: z.string().nullish(),
+  weld_deposit_thickness_after:  z.string().nullish(),
   // Dimension rows
   dimensions: z.array(dimensionRowSchema).min(1, "At least one dimension row is required"),
 })
@@ -47,4 +53,19 @@ export function blankDimensionRow(): DimensionRowInput {
     actual_value_1: "", actual_value_2: "", actual_value_3: "",
     pass_fail: "na", remarks: "",
   }
+}
+
+// Machining grid — Milling / Soft-Pre-Machining / Hard-Facing × GSM/PSM/OAL/OD/ID/Top-OAH.
+// Inserted as preset-labeled rows into the same flexible `dimensions` array
+// (no separate schema — reuses dimensionRowSchema).
+export const MACHINING_STAGES = ["Milling", "Soft / Pre Machining", "Hard Facing"] as const
+export const MACHINING_MEASURES = ["GSM", "PSM", "OAL", "OD", "ID", "Top / OAH"] as const
+
+export function machiningGridRows(): DimensionRowInput[] {
+  return MACHINING_STAGES.flatMap((stage) =>
+    MACHINING_MEASURES.map((measure) => ({
+      ...blankDimensionRow(),
+      dimension_name: `${stage} — ${measure}`,
+    }))
+  )
 }

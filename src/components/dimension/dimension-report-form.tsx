@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   dimensionReportSchema,
   blankDimensionRow,
+  machiningGridRows,
   type DimensionReportInput,
 } from "@/lib/validations/dimension-report"
 import { createDimensionReport, updateDimensionReport } from "@/app/(app)/dimension-reports/actions"
@@ -52,6 +53,11 @@ function buildDefaults(
       inspected_by:         report.inspected_by ?? "",
       approved_by:          report.approved_by ?? report.approved_by_name ?? "",
       result_status:        (report.result_status as DimensionReportInput["result_status"]) ?? "accepted",
+      machine_name:         report.machine_name ?? "",
+      operator:             report.operator ?? "",
+      drawing_size:         report.drawing_size ?? "",
+      weld_deposit_thickness_before: report.weld_deposit_thickness_before ?? "",
+      weld_deposit_thickness_after:  report.weld_deposit_thickness_after ?? "",
       dimensions:           dims.length > 0 ? dims : [blankDimensionRow()],
     }
   }
@@ -76,6 +82,11 @@ function buildDefaults(
     inspected_by:         "",
     approved_by:          "",
     result_status:        "accepted",
+    machine_name:         "",
+    operator:             "",
+    drawing_size:         "",
+    weld_deposit_thickness_before: "",
+    weld_deposit_thickness_after:  "",
     dimensions:           [blankDimensionRow()],
   }
 }
@@ -292,19 +303,58 @@ export function DimensionReportForm({
         </CardContent>
       </Card>
 
+      {/* ── Machining Details ─────────────────────────────────────── */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Machining Details</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="space-y-1">
+              <Lbl>Machine Name</Lbl>
+              <Input {...register("machine_name")} />
+            </div>
+            <div className="space-y-1">
+              <Lbl>Operator</Lbl>
+              <Input {...register("operator")} />
+            </div>
+            <div className="space-y-1">
+              <Lbl>Drawing Size</Lbl>
+              <Input {...register("drawing_size")} />
+            </div>
+            <div className="space-y-1">
+              <Lbl>Weld Deposit Thickness — Before Machining</Lbl>
+              <Input {...register("weld_deposit_thickness_before")} />
+            </div>
+            <div className="space-y-1">
+              <Lbl>Weld Deposit Thickness — After Machining</Lbl>
+              <Input {...register("weld_deposit_thickness_after")} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Dimension Table ───────────────────────────────────────── */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Dimension Inspection Table</CardTitle>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => append(blankDimensionRow())}
-            >
-              <Plus className="h-3 w-3 mr-1" /> Add Row
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => append(machiningGridRows())}
+              >
+                <Plus className="h-3 w-3 mr-1" /> Insert Machining Grid
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => append(blankDimensionRow())}
+              >
+                <Plus className="h-3 w-3 mr-1" /> Add Row
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

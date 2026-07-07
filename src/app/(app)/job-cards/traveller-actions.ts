@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { advancedJobCardSchema, signOffSchema, linkWpsMasterSchema, type AdvancedJobCardInput, type SignOffInput } from "@/lib/validations/job-card"
 import { ndeRecordSchema, type NdeRecordInput } from "@/lib/validations/nde-record"
+import { airTestSchema, type AirTestInput } from "@/lib/validations/air-test"
 import type { UserRole } from "@/types/database"
 
 function nullify(v: string | undefined | null): string | null {
@@ -40,6 +41,7 @@ export async function upsertJobCardAdvancedDetails(
       regularization:       nullify(d.regularization),
       ring_heat_no:         nullify(d.ring_heat_no),
       mpi_rt_no:            nullify(d.mpi_rt_no),
+      punching_details:     nullify(d.punching_details),
     })
     .eq("id", jobCardId)
 
@@ -128,6 +130,13 @@ export async function upsertNdeRecord(
     chemical_2_id:         d.chemical_2_id ?? null,
     chemical_3_id:         d.chemical_3_id ?? null,
     chemical_4_id:         d.chemical_4_id ?? null,
+    test_coupon_number:    nullify(d.test_coupon_number),
+    deposit_thickness:     nullify(d.deposit_thickness),
+    hardness_requirement:  nullify(d.hardness_requirement),
+    nde_number:            nullify(d.nde_number),
+    duration:              nullify(d.duration),
+    observer:              nullify(d.observer),
+    chemicals_used_json:   d.chemicals_used ?? [],
     created_by:            user.id,
   }
 
@@ -139,6 +148,49 @@ export async function upsertNdeRecord(
   } else {
     const { data, error } = await supabase
       .from("nde_records")
+      .insert(row)
+      .select("id")
+      .single()
+    if (error) return { error: error.message }
+    revalidatePath(`/job-cards/${jobCardId}`)
+    return { id: (data as { id: string }).id }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// upsertAirTestRecord — admin + engineer + qa
+// ─────────────────────────────────────────────────────────────────────────────
+export async function upsertAirTestRecord(
+  jobCardId: string,
+  recordId: string | null,
+  raw: AirTestInput,
+): Promise<{ error?: string; id?: string }> {
+  const guard = await requireRole(["admin", "engineer", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase, user } = guard
+
+  const parsed = airTestSchema.safeParse(raw)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Validation error" }
+  const d = parsed.data
+
+  const row = {
+    job_card_id:  jobCardId,
+    tester_name:  nullify(d.tester_name),
+    pressure:     nullify(d.pressure),
+    duration:     nullify(d.duration),
+    result:       d.result,
+    notes:        nullify(d.notes),
+    created_by:   user.id,
+  }
+
+  if (recordId) {
+    const { error } = await supabase.from("air_test_records").update(row).eq("id", recordId)
+    if (error) return { error: error.message }
+    revalidatePath(`/job-cards/${jobCardId}`)
+    return {}
+  } else {
+    const { data, error } = await supabase
+      .from("air_test_records")
       .insert(row)
       .select("id")
       .single()

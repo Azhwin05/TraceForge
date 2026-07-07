@@ -3,7 +3,9 @@ import { z } from "zod"
 export const processExecutionSchema = z.object({
   process_type:        z.enum(["welding", "machining", "cladding", "overlay"]),
   welder_name:         z.string().optional(),
+  welder_id:           z.string().optional(),
   weld_date:           z.string().optional(),
+  weld_qty_actual:     z.number().optional(),
   // Consumable
   consumable_master_id: z.string().uuid().nullable().optional(),
   consumable_batch:    z.string().optional(),

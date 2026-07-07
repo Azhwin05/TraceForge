@@ -30,6 +30,11 @@ function buildRow(data: DimensionReportInput) {
     inspected_by:         sanitize(data.inspected_by),
     approved_by:          sanitize(data.approved_by),
     result_status:        data.result_status,
+    machine_name:         sanitize(data.machine_name),
+    operator:             sanitize(data.operator),
+    drawing_size:         sanitize(data.drawing_size),
+    weld_deposit_thickness_before: sanitize(data.weld_deposit_thickness_before),
+    weld_deposit_thickness_after:  sanitize(data.weld_deposit_thickness_after),
     dimensions:           data.dimensions as unknown as Record<string, unknown>[],
   }
 }

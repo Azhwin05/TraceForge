@@ -1,17 +1,17 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Microscope, Plus, Pencil } from "lucide-react"
+import { Microscope, Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { ndeRecordSchema, NDE_TYPE_LABELS, type NdeRecordInput } from "@/lib/validations/nde-record"
+import { ndeRecordSchema, NDE_TYPE_LABELS, blankNdeChemical, type NdeRecordInput } from "@/lib/validations/nde-record"
 import { upsertNdeRecord } from "@/app/(app)/job-cards/traveller-actions"
 import type { NdeRecord, ChemicalMaster, JobCardStatus, UserRole } from "@/types/database"
 
@@ -45,6 +45,15 @@ function ndeToForm(r: NdeRecord): NdeRecordInput {
     chemical_2_id:         r.chemical_2_id ?? null,
     chemical_3_id:         r.chemical_3_id ?? null,
     chemical_4_id:         (r as NdeRecord & { chemical_4_id?: string | null }).chemical_4_id ?? null,
+    test_coupon_number:    r.test_coupon_number ?? "",
+    deposit_thickness:     r.deposit_thickness ?? "",
+    hardness_requirement:  r.hardness_requirement ?? "",
+    nde_number:            r.nde_number ?? "",
+    duration:              r.duration ?? "",
+    observer:              r.observer ?? "",
+    chemicals_used:        Array.isArray(r.chemicals_used_json)
+      ? (r.chemicals_used_json as unknown as NdeRecordInput["chemicals_used"])
+      : [],
   }
 }
 
@@ -55,6 +64,8 @@ const BLANK: NdeRecordInput = {
   penetrant_dwell_time: "", developer_application: "", developer_dwell_time: "",
   post_cleaning: "", evaluation: "", result: "pending", notes: "",
   chemical_1_id: null, chemical_2_id: null, chemical_3_id: null, chemical_4_id: null,
+  test_coupon_number: "", deposit_thickness: "", hardness_requirement: "",
+  nde_number: "", duration: "", observer: "", chemicals_used: [],
 }
 
 export function NdeLptSection({
@@ -77,9 +88,14 @@ export function NdeLptSection({
   const canEdit = ["admin", "qa"].includes(userRole)
   const showSection = records.length > 0 || canEdit
 
-  const { register, handleSubmit, reset } = useForm<NdeRecordInput>({
+  const { register, handleSubmit, reset, control } = useForm<NdeRecordInput>({
     resolver: zodResolver(ndeRecordSchema),
     defaultValues: BLANK,
+  })
+
+  const { fields: chemFields, append: appendChem, remove: removeChem } = useFieldArray({
+    control,
+    name: "chemicals_used",
   })
 
   const byType = (type: string) => chemicals.filter((c) => c.type === type && c.is_active)
@@ -152,11 +168,17 @@ export function NdeLptSection({
                 </div>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-xs text-muted-foreground sm:grid-cols-3">
                   {r.report_number && <span>Report: {r.report_number}</span>}
+                  {r.nde_number && <span>NDE No.: {r.nde_number}</span>}
                   {r.inspection_date && <span>Date: {new Date(r.inspection_date).toLocaleDateString("en-IN")}</span>}
                   {r.inspected_by && <span>By: {r.inspected_by}</span>}
+                  {r.observer && <span>Observer: {r.observer}</span>}
                   {r.procedure_ref && <span>Proc: {r.procedure_ref}</span>}
                   {r.stage_of_test && <span>Stage: {r.stage_of_test}</span>}
                   {r.temperature_of_part != null && <span>Temp: {r.temperature_of_part}°C</span>}
+                  {r.test_coupon_number && <span>Coupon: {r.test_coupon_number}</span>}
+                  {r.deposit_thickness && <span>Deposit Thk: {r.deposit_thickness}</span>}
+                  {r.hardness_requirement && <span>Hardness Req: {r.hardness_requirement}</span>}
+                  {r.duration && <span>Duration: {r.duration}</span>}
                 </div>
                 {r.evaluation && (
                   <p className="text-xs text-muted-foreground border-t border-border pt-1.5">
@@ -213,6 +235,30 @@ export function NdeLptSection({
                 <div className="space-y-1">
                   <Label>Stage of Test</Label>
                   <Input placeholder="Pre / Post weld" {...register("stage_of_test")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>NDE Number</Label>
+                  <Input {...register("nde_number")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Observer</Label>
+                  <Input {...register("observer")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Duration</Label>
+                  <Input placeholder="e.g. 10 min" {...register("duration")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Test Coupon Number</Label>
+                  <Input {...register("test_coupon_number")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Deposit Thickness</Label>
+                  <Input {...register("deposit_thickness")} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Hardness Requirement</Label>
+                  <Input {...register("hardness_requirement")} />
                 </div>
               </div>
             </div>
@@ -300,6 +346,59 @@ export function NdeLptSection({
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Chemical Batch / Expiry (per-use) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Chemical Batch / Expiry
+                </p>
+                <Button
+                  type="button" size="xs" variant="outline"
+                  onClick={() => appendChem(blankNdeChemical())}
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Add Entry
+                </Button>
+              </div>
+              {chemFields.map((field, idx) => (
+                <div key={field.id} className="grid grid-cols-5 gap-2 mb-2 items-end">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Type</Label>
+                    <select
+                      {...register(`chemicals_used.${idx}.chemical_type` as const)}
+                      className="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+                    >
+                      <option value="">— Select —</option>
+                      <option value="cleaner">Cleaner</option>
+                      <option value="penetrant">Penetrant</option>
+                      <option value="developer">Developer</option>
+                      <option value="remover">Remover</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Chemical</Label>
+                    <Input className="h-8 text-xs" {...register(`chemicals_used.${idx}.chemical_name` as const)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Manufacturer</Label>
+                    <Input className="h-8 text-xs" {...register(`chemicals_used.${idx}.manufacturer` as const)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Batch No.</Label>
+                    <Input className="h-8 text-xs" {...register(`chemicals_used.${idx}.batch_no` as const)} />
+                  </div>
+                  <div className="flex gap-1 items-end">
+                    <div className="space-y-1 flex-1">
+                      <Label className="text-xs">Expiry</Label>
+                      <Input type="date" className="h-8 text-xs" {...register(`chemicals_used.${idx}.expiry_date` as const)} />
+                    </div>
+                    <Button type="button" size="xs" variant="ghost" onClick={() => removeChem(idx)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Evaluation & Result */}

@@ -77,7 +77,9 @@ export function ProcessExecutionSection({
     reset({
       process_type:         exec.process_type as ProcessType,
       welder_name:          exec.welder_name ?? "",
+      welder_id:            exec.welder_id ?? "",
       weld_date:            exec.weld_date ?? "",
+      weld_qty_actual:      exec.weld_qty_actual ?? undefined,
       consumable_master_id: exec.consumable_master_id ?? null,
       consumable_batch:     exec.consumable_batch ?? "",
       weld_metal:           (exec as ProcessExecution & { weld_metal?: string }).weld_metal ?? "",
@@ -185,7 +187,9 @@ export function ProcessExecutionSection({
 
                 <div className="grid grid-cols-2 gap-x-6 gap-y-0.5 text-xs text-muted-foreground sm:grid-cols-4">
                   {exec.welder_name && <span>Operator: {exec.welder_name}</span>}
+                  {exec.welder_id && <span>Welder ID: {exec.welder_id}</span>}
                   {exec.weld_date && <span>Date: {new Date(exec.weld_date).toLocaleDateString("en-IN")}</span>}
+                  {exec.weld_qty_actual != null && <span>Actual Qty: {exec.weld_qty_actual}</span>}
                   {exec.amps_actual != null && <span>Amps: {exec.amps_actual}A</span>}
                   {exec.volts_actual != null && <span>Volts: {exec.volts_actual}V</span>}
                   {exec.pre_heat_temp != null && <span>Pre-heat: {exec.pre_heat_temp}°C</span>}
@@ -245,8 +249,16 @@ export function ProcessExecutionSection({
                 <Input {...register("welder_name")} />
               </div>
               <div className="space-y-1">
+                <Label>Welder ID</Label>
+                <Input {...register("welder_id")} />
+              </div>
+              <div className="space-y-1">
                 <Label>Weld Date</Label>
                 <Input type="date" {...register("weld_date")} />
+              </div>
+              <div className="space-y-1">
+                <Label>Actual Weld Qty</Label>
+                <Input type="number" step="1" {...register("weld_qty_actual", { valueAsNumber: true })} />
               </div>
             </div>
 

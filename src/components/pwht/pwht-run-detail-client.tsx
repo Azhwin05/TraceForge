@@ -90,6 +90,9 @@ export function PwhtRunDetailClient({
     cycle_start: run.cycle_start ? run.cycle_start.slice(0, 16) : "",
     cycle_end: run.cycle_end ? run.cycle_end.slice(0, 16) : "",
     notes: run.notes ?? "",
+    process_name: run.process_name ?? "",
+    loading_time: run.loading_time != null ? String(run.loading_time) : "",
+    unloading_time: run.unloading_time != null ? String(run.unloading_time) : "",
   })
 
   const [newReading, setNewReading] = useState({ recorded_at: "", temperature_c: "", channel: "TC1" })
@@ -105,6 +108,9 @@ export function PwhtRunDetailClient({
         cycle_start: details.cycle_start ? new Date(details.cycle_start).toISOString() : undefined,
         cycle_end: details.cycle_end ? new Date(details.cycle_end).toISOString() : undefined,
         notes: details.notes,
+        process_name: details.process_name,
+        loading_time: details.loading_time ? Number(details.loading_time) : null,
+        unloading_time: details.unloading_time ? Number(details.unloading_time) : null,
       })
       if (res.error) toast.error(res.error)
       else { toast.success("Run details saved"); router.refresh() }
@@ -261,6 +267,8 @@ export function PwhtRunDetailClient({
               <div><span className="text-muted-foreground">Soaking temp</span><div className="font-medium">{run.soaking_temp} °C</div></div>
               <div><span className="text-muted-foreground">Soaking time</span><div className="font-medium">{run.soaking_time} min</div></div>
               <div><span className="text-muted-foreground">Heating rate</span><div className="font-medium">{run.rate_of_heating} °C/hr</div></div>
+              {run.loading_time != null && <div><span className="text-muted-foreground">Loading time</span><div className="font-medium">{run.loading_time} min</div></div>}
+              {run.unloading_time != null && <div><span className="text-muted-foreground">Unloading time</span><div className="font-medium">{run.unloading_time} min</div></div>}
             </div>
             <div className="grid gap-3 pt-2">
               <div className="grid grid-cols-2 gap-3">
@@ -285,6 +293,23 @@ export function PwhtRunDetailClient({
                   <Label htmlFor="cend">Cycle End</Label>
                   <Input id="cend" type="datetime-local" value={details.cycle_end} disabled={!canEdit}
                     onChange={(e) => setDetails((s) => ({ ...s, cycle_end: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="procname">Process Name</Label>
+                  <Input id="procname" value={details.process_name} disabled={!canEdit}
+                    onChange={(e) => setDetails((s) => ({ ...s, process_name: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="ltime">Loading Time (min)</Label>
+                  <Input id="ltime" type="number" value={details.loading_time} disabled={!canEdit}
+                    onChange={(e) => setDetails((s) => ({ ...s, loading_time: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="utime">Unloading Time (min)</Label>
+                  <Input id="utime" type="number" value={details.unloading_time} disabled={!canEdit}
+                    onChange={(e) => setDetails((s) => ({ ...s, unloading_time: e.target.value }))} />
                 </div>
               </div>
               <div>

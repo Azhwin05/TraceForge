@@ -15,6 +15,8 @@ import { DimensionReportSection } from "@/components/job-cards/dimension-report-
 import { OverlayReportSection } from "@/components/job-cards/overlay-report-section"
 import { AdvancedDetailsSection } from "@/components/job-cards/advanced-details-section"
 import { NdeLptSection } from "@/components/job-cards/nde-lpt-section"
+import { AirTestSection } from "@/components/job-cards/air-test-section"
+import { JobCardPdfButton } from "@/components/job-cards/job-card-pdf-button"
 import { PwhtSummarySection } from "@/components/job-cards/pwht-summary-section"
 import { SignOffSection } from "@/components/job-cards/sign-off-section"
 import { JobCardDocumentsSection } from "@/components/job-cards/job-card-documents-section"
@@ -24,7 +26,7 @@ import type {
   JobCard, JobCardDetail, UserRole, ProcessType, Document,
   WpsQualificationWithMaster, WpsMasterSummary,
   NdeRecord, ChemicalMaster, PwhtRunJobWithRun,
-  ConsumableMaster, DossierStatus,
+  ConsumableMaster, DossierStatus, AirTestRecord,
 } from "@/types/database"
 
 export const metadata = { title: "Job Card — ValveTrack" }
@@ -82,6 +84,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
     session,
     { data: jobCardDocs },
     { data: ndeRecords },
+    { data: airTestRecords },
     { data: pwhtJobs },
     { data: wpsMasters },
     { data: consumables },
@@ -114,6 +117,11 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
       .order("uploaded_at", { ascending: false }),
     supabase
       .from("nde_records")
+      .select("*")
+      .eq("job_card_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("air_test_records")
       .select("*")
       .eq("job_card_id", id)
       .order("created_at", { ascending: true }),
@@ -211,12 +219,15 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
               {jc.client?.name} · NBDN: {jc.nbdn_number}
             </p>
           </div>
-          <StatusActions
-            jobCardId={jc.id}
-            currentStatus={jc.status}
-            previousStatus={jc.previous_status}
-            userRole={userRole}
-          />
+          <div className="flex items-center gap-2">
+            <JobCardPdfButton jobCardId={jc.id} />
+            <StatusActions
+              jobCardId={jc.id}
+              currentStatus={jc.status}
+              previousStatus={jc.previous_status}
+              userRole={userRole}
+            />
+          </div>
         </div>
       </div>
 
@@ -331,6 +342,13 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         userRole={userRole}
         records={(ndeRecords ?? []) as NdeRecord[]}
         chemicals={(chemicals ?? []) as ChemicalMaster[]}
+      />
+
+      {/* Air Testing & Inspection */}
+      <AirTestSection
+        jobCardId={jc.id}
+        userRole={userRole}
+        records={(airTestRecords ?? []) as AirTestRecord[]}
       />
 
       {/* PWHT Summary */}

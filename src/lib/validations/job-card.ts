@@ -54,6 +54,7 @@ export const advancedJobCardSchema = z.object({
   regularization:        z.string().optional(),
   ring_heat_no:          z.string().optional(),
   mpi_rt_no:             z.string().optional(),
+  punching_details:      z.string().optional(),
 });
 
 export type AdvancedJobCardInput = z.infer<typeof advancedJobCardSchema>;

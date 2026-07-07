@@ -3,6 +3,20 @@ import { z } from "zod"
 export const NDE_TYPES = ["lpt", "mpi", "rt", "ut", "vt", "other"] as const
 export const NDE_RESULTS = ["pending", "accepted", "rejected"] as const
 
+export const ndeChemicalSchema = z.object({
+  chemical_type: z.string().default(""),
+  chemical_name: z.string().default(""),
+  manufacturer:  z.string().default(""),
+  batch_no:      z.string().default(""),
+  expiry_date:   z.string().default(""),
+})
+
+export type NdeChemicalInput = z.input<typeof ndeChemicalSchema>
+
+export function blankNdeChemical(): NdeChemicalInput {
+  return { chemical_type: "", chemical_name: "", manufacturer: "", batch_no: "", expiry_date: "" }
+}
+
 export const ndeRecordSchema = z.object({
   nde_type:             z.enum(NDE_TYPES),
   procedure_ref:        z.string().optional(),
@@ -29,6 +43,14 @@ export const ndeRecordSchema = z.object({
   chemical_2_id:        z.string().uuid().nullable().optional(),
   chemical_3_id:        z.string().uuid().nullable().optional(),
   chemical_4_id:        z.string().uuid().nullable().optional(),
+  // Additional job-card fields
+  test_coupon_number:   z.string().optional(),
+  deposit_thickness:    z.string().optional(),
+  hardness_requirement: z.string().optional(),
+  nde_number:           z.string().optional(),
+  duration:             z.string().optional(),
+  observer:             z.string().optional(),
+  chemicals_used:       z.array(ndeChemicalSchema).default([]),
 })
 
 // z.input<> so .default("pending") on result is optional in the form (RHF resolver compat)

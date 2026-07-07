@@ -52,7 +52,8 @@ export function AdvancedDetailsSection({
     jobCard.product_group || jobCard.buyer || jobCard.material_code ||
     jobCard.valve_size_class || jobCard.valve_type_component ||
     jobCard.base_material || jobCard.overlay_material || jobCard.base_material_grade ||
-    jobCard.regularization || jobCard.ring_heat_no || jobCard.mpi_rt_no
+    jobCard.regularization || jobCard.ring_heat_no || jobCard.mpi_rt_no ||
+    jobCard.punching_details
   )
 
   const { register, handleSubmit, reset } = useForm<AdvancedJobCardInput>({
@@ -69,6 +70,7 @@ export function AdvancedDetailsSection({
       regularization:       jobCard.regularization ?? "",
       ring_heat_no:         jobCard.ring_heat_no ?? "",
       mpi_rt_no:            jobCard.mpi_rt_no ?? "",
+      punching_details:     jobCard.punching_details ?? "",
     },
   })
 
@@ -85,6 +87,7 @@ export function AdvancedDetailsSection({
       regularization:       jobCard.regularization ?? "",
       ring_heat_no:         jobCard.ring_heat_no ?? "",
       mpi_rt_no:            jobCard.mpi_rt_no ?? "",
+      punching_details:     jobCard.punching_details ?? "",
     })
     setEditOpen(true)
   }
@@ -147,6 +150,7 @@ export function AdvancedDetailsSection({
                 <Row label="Regularization"      value={jobCard.regularization} />
                 <Row label="Ring Heat No."       value={jobCard.ring_heat_no} />
                 <Row label="MPI / RT No."        value={jobCard.mpi_rt_no} />
+                <Row label="Punching Details"    value={jobCard.punching_details} />
               </>
             ) : (
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -178,6 +182,7 @@ export function AdvancedDetailsSection({
               <FormField label="Regularization"     name="regularization"       register={register} />
               <FormField label="Ring Heat No."      name="ring_heat_no"         register={register} />
               <FormField label="MPI / RT No."       name="mpi_rt_no"            register={register} />
+              <FormField label="Punching Details"   name="punching_details"     register={register} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>

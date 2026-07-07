@@ -82,6 +82,7 @@ export interface Database {
           production_checked_by: string | null; production_checked_date: string | null;
           qc_checked_by: string | null; qc_checked_date: string | null;
           stores_checked_by: string | null; stores_checked_date: string | null;
+          punching_details: string | null;
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -97,6 +98,7 @@ export interface Database {
           production_checked_by?: string | null; production_checked_date?: string | null;
           qc_checked_by?: string | null; qc_checked_date?: string | null;
           stores_checked_by?: string | null; stores_checked_date?: string | null;
+          punching_details?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];
@@ -170,6 +172,9 @@ export interface Database {
           dimension_status: "draft" | "approved" | "rejected" | "submitted"; result_status: "accepted" | "rejected" | "hold" | null; generated_pdf_path: string | null; submitted_to_customer: boolean; submitted_at: string | null; approved_at: string | null; rejection_reason: string | null;
           // Phase 7 canonical dimension rows
           dimensions: Record<string, unknown>[] | null;
+          // Machining details
+          machine_name: string | null; operator: string | null; drawing_size: string | null;
+          weld_deposit_thickness_before: string | null; weld_deposit_thickness_after: string | null;
         };
         Insert: {
           id?: string; job_card_id: string;
@@ -178,6 +183,8 @@ export interface Database {
           visual_satisfactory?: boolean | null; gauge_used?: string | null; approved_by?: string | null;
           dimension_status?: "draft" | "approved" | "rejected" | "submitted"; result_status?: "accepted" | "rejected" | "hold" | null; generated_pdf_path?: string | null; submitted_to_customer?: boolean; submitted_at?: string | null; approved_at?: string | null; rejection_reason?: string | null;
           dimensions?: Record<string, unknown>[] | null;
+          machine_name?: string | null; operator?: string | null; drawing_size?: string | null;
+          weld_deposit_thickness_before?: string | null; weld_deposit_thickness_after?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["dimension_reports"]["Insert"]>;
         Relationships: [
@@ -185,14 +192,14 @@ export interface Database {
         ];
       };
       process_executions: {
-        Row: { id: string; job_card_id: string; process_type: ProcessType; welder_name: string | null; amps_required: string | null; volts_required: string | null; amps_actual: number | null; volts_actual: number | null; travel_speed: number | null; gas_flow_rate: number | null; pre_heat_temp: number | null; inter_pass_temp: number | null; weld_height: number | null; polarity: string | null; consumable_batch: string | null; notes: string | null; assigned_to: string | null; started_at: string | null; completed_at: string | null; status: ExecutionStatus; consumable_master_id: string | null; weld_date: string | null; post_heat_temp: number | null; consumable_feed_rate: number | null; weld_metal: string | null };
-        Insert: { id?: string; job_card_id: string; process_type: ProcessType; welder_name?: string | null; amps_required?: string | null; volts_required?: string | null; amps_actual?: number | null; volts_actual?: number | null; travel_speed?: number | null; gas_flow_rate?: number | null; pre_heat_temp?: number | null; inter_pass_temp?: number | null; weld_height?: number | null; polarity?: string | null; consumable_batch?: string | null; notes?: string | null; assigned_to?: string | null; started_at?: string | null; completed_at?: string | null; status?: ExecutionStatus; consumable_master_id?: string | null; weld_date?: string | null; post_heat_temp?: number | null; consumable_feed_rate?: number | null; weld_metal?: string | null };
+        Row: { id: string; job_card_id: string; process_type: ProcessType; welder_name: string | null; amps_required: string | null; volts_required: string | null; amps_actual: number | null; volts_actual: number | null; travel_speed: number | null; gas_flow_rate: number | null; pre_heat_temp: number | null; inter_pass_temp: number | null; weld_height: number | null; polarity: string | null; consumable_batch: string | null; notes: string | null; assigned_to: string | null; started_at: string | null; completed_at: string | null; status: ExecutionStatus; consumable_master_id: string | null; weld_date: string | null; post_heat_temp: number | null; consumable_feed_rate: number | null; weld_metal: string | null; weld_qty_actual: number | null; welder_id: string | null };
+        Insert: { id?: string; job_card_id: string; process_type: ProcessType; welder_name?: string | null; amps_required?: string | null; volts_required?: string | null; amps_actual?: number | null; volts_actual?: number | null; travel_speed?: number | null; gas_flow_rate?: number | null; pre_heat_temp?: number | null; inter_pass_temp?: number | null; weld_height?: number | null; polarity?: string | null; consumable_batch?: string | null; notes?: string | null; assigned_to?: string | null; started_at?: string | null; completed_at?: string | null; status?: ExecutionStatus; consumable_master_id?: string | null; weld_date?: string | null; post_heat_temp?: number | null; consumable_feed_rate?: number | null; weld_metal?: string | null; weld_qty_actual?: number | null; welder_id?: string | null };
         Update: Partial<Database["public"]["Tables"]["process_executions"]["Insert"]>;
         Relationships: [];
       };
       pwht_runs: {
-        Row: { id: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url: string | null; created_by: string | null; created_at: string; unloading_temp: number | null; cooling_method: CoolingMethod | null; pwht_result: "pass" | "fail" | null; storage_path: string | null; approval_status: PwhtApprovalStatus; approved_by: string | null; approved_at: string | null; rejected_by: string | null; rejected_at: string | null; rejection_reason: string | null; submitted_by: string | null; submitted_at: string | null; submitted_to_customer: boolean; submitted_to_customer_at: string | null; component_identification: string | null; wps_number: string | null; cycle_start: string | null; cycle_end: string | null; rate_of_cooling: number | null; notes: string | null };
-        Insert: { id?: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url?: string | null; created_by?: string | null; created_at?: string; unloading_temp?: number | null; cooling_method?: CoolingMethod | null; pwht_result?: "pass" | "fail" | null; storage_path?: string | null; approval_status?: PwhtApprovalStatus; approved_by?: string | null; approved_at?: string | null; rejected_by?: string | null; rejected_at?: string | null; rejection_reason?: string | null; submitted_by?: string | null; submitted_at?: string | null; submitted_to_customer?: boolean; submitted_to_customer_at?: string | null; component_identification?: string | null; wps_number?: string | null; cycle_start?: string | null; cycle_end?: string | null; rate_of_cooling?: number | null; notes?: string | null };
+        Row: { id: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url: string | null; created_by: string | null; created_at: string; unloading_temp: number | null; cooling_method: CoolingMethod | null; pwht_result: "pass" | "fail" | null; storage_path: string | null; approval_status: PwhtApprovalStatus; approved_by: string | null; approved_at: string | null; rejected_by: string | null; rejected_at: string | null; rejection_reason: string | null; submitted_by: string | null; submitted_at: string | null; submitted_to_customer: boolean; submitted_to_customer_at: string | null; component_identification: string | null; wps_number: string | null; cycle_start: string | null; cycle_end: string | null; rate_of_cooling: number | null; notes: string | null; process_name: string | null; loading_time: number | null; unloading_time: number | null };
+        Insert: { id?: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url?: string | null; created_by?: string | null; created_at?: string; unloading_temp?: number | null; cooling_method?: CoolingMethod | null; pwht_result?: "pass" | "fail" | null; storage_path?: string | null; approval_status?: PwhtApprovalStatus; approved_by?: string | null; approved_at?: string | null; rejected_by?: string | null; rejected_at?: string | null; rejection_reason?: string | null; submitted_by?: string | null; submitted_at?: string | null; submitted_to_customer?: boolean; submitted_to_customer_at?: string | null; component_identification?: string | null; wps_number?: string | null; cycle_start?: string | null; cycle_end?: string | null; rate_of_cooling?: number | null; notes?: string | null; process_name?: string | null; loading_time?: number | null; unloading_time?: number | null };
         Update: Partial<Database["public"]["Tables"]["pwht_runs"]["Insert"]>;
         Relationships: [];
       };
@@ -342,6 +349,10 @@ export interface Database {
           chemical_3_id: string | null; chemical_4_id: string | null;
           report_number: string | null; inspected_by: string | null; inspection_date: string | null;
           notes: string | null; created_by: string | null; created_at: string;
+          test_coupon_number: string | null; deposit_thickness: string | null;
+          hardness_requirement: string | null; nde_number: string | null;
+          duration: string | null; observer: string | null;
+          chemicals_used_json: Record<string, unknown>[] | null;
         };
         Insert: {
           id?: string; job_card_id: string; nde_type: NdeType;
@@ -357,10 +368,32 @@ export interface Database {
           chemical_3_id?: string | null; chemical_4_id?: string | null;
           report_number?: string | null; inspected_by?: string | null; inspection_date?: string | null;
           notes?: string | null; created_by?: string | null; created_at?: string;
+          test_coupon_number?: string | null; deposit_thickness?: string | null;
+          hardness_requirement?: string | null; nde_number?: string | null;
+          duration?: string | null; observer?: string | null;
+          chemicals_used_json?: Record<string, unknown>[] | null;
         };
         Update: Partial<Database["public"]["Tables"]["nde_records"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "nde_records_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
+      };
+      air_test_records: {
+        Row: {
+          id: string; job_card_id: string;
+          tester_name: string | null; pressure: string | null; duration: string | null;
+          result: "pending" | "pass" | "fail";
+          notes: string | null; created_by: string | null; created_at: string;
+        };
+        Insert: {
+          id?: string; job_card_id: string;
+          tester_name?: string | null; pressure?: string | null; duration?: string | null;
+          result?: "pending" | "pass" | "fail";
+          notes?: string | null; created_by?: string | null; created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["air_test_records"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "air_test_records_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
         ];
       };
       overlay_welding_reports: {
@@ -582,6 +615,7 @@ export type ConsumableMaster = Database["public"]["Tables"]["consumable_master"]
 export type ChemicalMaster = Database["public"]["Tables"]["chemical_master"]["Row"];
 export type InstrumentMaster = Database["public"]["Tables"]["instrument_master"]["Row"];
 export type NdeRecord = Database["public"]["Tables"]["nde_records"]["Row"];
+export type AirTestRecord = Database["public"]["Tables"]["air_test_records"]["Row"];
 export type Document = Database["public"]["Tables"]["documents"]["Row"];
 export type PmiReport = Database["public"]["Tables"]["pmi_reports"]["Row"];
 

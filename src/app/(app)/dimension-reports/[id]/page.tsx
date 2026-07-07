@@ -173,6 +173,20 @@ export default async function DimensionReportDetailPage({
             </dl>
           </CardContent>
         </Card>
+
+        {/* Machining info */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">Machining Details</CardTitle></CardHeader>
+          <CardContent>
+            <dl>
+              <Row label="Machine Name"    value={r.machine_name} />
+              <Row label="Operator"        value={r.operator} />
+              <Row label="Drawing Size"    value={r.drawing_size} />
+              <Row label="Deposit Thk. — Before" value={r.weld_deposit_thickness_before} />
+              <Row label="Deposit Thk. — After"  value={r.weld_deposit_thickness_after} />
+            </dl>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dimension Table */}

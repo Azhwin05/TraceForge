@@ -98,6 +98,9 @@ export async function updatePwhtRunDetails(
       cycle_end:                parsed.data.cycle_end || null,
       rate_of_cooling:          parsed.data.rate_of_cooling ?? null,
       notes:                    parsed.data.notes || null,
+      process_name:             parsed.data.process_name || null,
+      loading_time:             parsed.data.loading_time ?? null,
+      unloading_time:           parsed.data.unloading_time ?? null,
     })
     .eq("id", runId)
 
