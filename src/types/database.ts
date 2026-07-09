@@ -283,6 +283,15 @@ export interface Database {
           revision: string; effective_date: string | null;
           status: WpsMasterStatus; notes: string | null;
           created_by: string | null; created_at: string; updated_at: string;
+          date_of_welding: string | null; preheat_other: string | null;
+          pwht_cooling_method: string | null; pwht_rate_of_heating: string | null;
+          pwht_loading_temp: string | null; pwht_unloading_temp: string | null;
+          joint_json: Record<string, unknown> | null;
+          base_metal_json: Record<string, unknown> | null;
+          filler_metal_json: Record<string, unknown> | null;
+          weld_passes_json: WeldPassRow[] | null;
+          tensile_tests_json: TensileTestRow[] | null;
+          weld_progression: string | null;
         };
         Insert: {
           id?: string; wps_no: string; pqr_no?: string | null;
@@ -299,6 +308,15 @@ export interface Database {
           revision?: string; effective_date?: string | null;
           status?: WpsMasterStatus; notes?: string | null;
           created_by?: string | null; created_at?: string; updated_at?: string;
+          date_of_welding?: string | null; preheat_other?: string | null;
+          pwht_cooling_method?: string | null; pwht_rate_of_heating?: string | null;
+          pwht_loading_temp?: string | null; pwht_unloading_temp?: string | null;
+          joint_json?: Record<string, unknown> | null;
+          base_metal_json?: Record<string, unknown> | null;
+          filler_metal_json?: Record<string, unknown> | null;
+          weld_passes_json?: WeldPassRow[] | null;
+          tensile_tests_json?: TensileTestRow[] | null;
+          weld_progression?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["wps_master"]["Insert"]>;
         Relationships: [];
@@ -713,6 +731,29 @@ export type DimensionRow = {
   actual_value_3:     string
   pass_fail:          "pass" | "fail" | "na"
   remarks:            string
+}
+
+// ── WPS Master — per-pass weld parameters (QW-409/410) and tensile tests (QW-150) ──
+export type WeldPassRow = {
+  pass_label?:            string | null   // e.g. "Root Pass", "Subsequent Pass/Layer"
+  process?:                string | null   // e.g. SMAW
+  filler_classification?:  string | null   // e.g. E8018-B2
+  filler_diameter?:        string | null   // e.g. 3.15
+  current_type_polarity?:  string | null   // e.g. DCRP
+  amps_range?:             string | null
+  volts_range?:            string | null
+  travel_speed_range?:     string | null
+  heat_input?:             string | null
+}
+
+export type TensileTestRow = {
+  specimen_no?:            string | null
+  width?:                  string | null
+  thickness?:              string | null
+  area?:                   string | null
+  ultimate_load?:          string | null
+  ultimate_stress?:        string | null
+  failure_type_location?:  string | null
 }
 
 // ── Phase 8 — Overlay Welding Report ────────────────────────────────────────

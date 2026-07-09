@@ -7,7 +7,7 @@ import { WpsApproveActions } from "@/components/master-data/wps-approve-actions"
 import { DocumentCard } from "@/components/documents/document-card"
 import { FileUpload } from "@/components/documents/file-upload"
 import { cn } from "@/lib/utils"
-import type { WpsMaster, WpsMasterStatus, UserRole, Document } from "@/types/database"
+import type { WpsMaster, WpsMasterStatus, UserRole, Document, WeldPassRow, TensileTestRow } from "@/types/database"
 
 export const metadata = { title: "WPS Detail — ValveTrack" }
 export const revalidate = 30
@@ -35,6 +35,56 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  )
+}
+
+const PASS_COLS: { key: keyof WeldPassRow; label: string }[] = [
+  { key: "pass_label",           label: "Weld Pass" },
+  { key: "process",              label: "Process" },
+  { key: "filler_classification", label: "Filler Classification" },
+  { key: "filler_diameter",       label: "Diameter" },
+  { key: "current_type_polarity", label: "Current Type & Polarity" },
+  { key: "amps_range",            label: "Amps (Range)" },
+  { key: "volts_range",           label: "Volts (Range)" },
+  { key: "travel_speed_range",    label: "Travel Speed (Range)" },
+  { key: "heat_input",            label: "Heat Input" },
+]
+
+const TENSILE_COLS: { key: keyof TensileTestRow; label: string }[] = [
+  { key: "specimen_no",           label: "Specimen No." },
+  { key: "width",                 label: "Width (mm)" },
+  { key: "thickness",             label: "Thickness (mm)" },
+  { key: "area",                  label: "Area (mm²)" },
+  { key: "ultimate_load",         label: "Ultimate Load (KN)" },
+  { key: "ultimate_stress",       label: "Ultimate Stress (MPa)" },
+  { key: "failure_type_location", label: "Type of Failure & Location" },
+]
+
+function DataTable<T extends Record<string, unknown>>({
+  columns, rows,
+}: { columns: { key: keyof T; label: string }[]; rows: T[] }) {
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No data recorded.</p>
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-xs">
+        <thead>
+          <tr className="bg-muted/70">
+            {columns.map((c) => (
+              <th key={String(c.key)} className="border border-border px-2 py-1.5 text-left font-medium">{c.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              {columns.map((c) => (
+                <td key={String(c.key)} className="border border-border px-2 py-1.5">{(row[c.key] as string) || "—"}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -69,9 +119,14 @@ export default async function WpsMasterDetailPage({
   const canApprove = userRole === "admin" && record.status === "draft"
   const canSupersede = userRole === "admin" && record.status === "approved"
 
-  const gas  = (record.gas_json  ?? {}) as Record<string, string>
-  const elec = (record.electrical_params_json ?? {}) as Record<string, string>
-  const tech = (record.technique_json ?? {}) as Record<string, string>
+  const gas    = (record.gas_json               ?? {}) as Record<string, string>
+  const elec   = (record.electrical_params_json ?? {}) as Record<string, string>
+  const tech   = (record.technique_json         ?? {}) as Record<string, string>
+  const joint  = (record.joint_json             ?? {}) as Record<string, string>
+  const base   = (record.base_metal_json        ?? {}) as Record<string, string>
+  const filler = (record.filler_metal_json      ?? {}) as Record<string, string>
+  const weldPasses   = record.weld_passes_json   ?? []
+  const tensileTests = record.tensile_tests_json ?? []
 
   const latestDoc = ((docs ?? []) as Document[])[0] ?? null
 
@@ -148,27 +203,66 @@ export default async function WpsMasterDetailPage({
               })
             : null}
         />
+        <Row label="Date of Welding"
+          value={record.date_of_welding
+            ? new Date(record.date_of_welding).toLocaleDateString("en-IN", {
+                day: "numeric", month: "short", year: "numeric",
+              })
+            : null}
+        />
         {record.scope && <Row label="Scope" value={record.scope} />}
       </Section>
 
-      {/* Materials */}
-      <Section title="Materials & Joint">
-        <Row label="Joint Design"     value={record.joint_design} />
-        <Row label="Position"         value={record.position} />
-        <Row label="Base Material"    value={record.base_material} />
-        <Row label="Filler Material"  value={record.filler_material} />
-        <Row label="Filler AWS Class" value={record.filler_aws_class} />
-        <Row label="Filler Size"      value={record.filler_size} />
+      {/* Joints (QW-402) */}
+      <Section title="Joints (QW-402)">
+        <Row label="Groove Type"     value={record.joint_design} />
+        <Row label="Root Gap"        value={joint.root_gap} />
+        <Row label="Root Face"       value={joint.root_face} />
+        <Row label="Groove Angle"    value={joint.groove_angle} />
+        <Row label="Groove Length"   value={joint.groove_length} />
+        <Row label="Groove Width"    value={joint.groove_width} />
+        <Row label="Backing"         value={joint.backing} />
+        <Row label="Retainer"        value={joint.retainer} />
       </Section>
 
-      {/* Temperature */}
-      <Section title="Temperature Parameters">
-        <Row label="Preheat Min"   value={record.preheat_min != null ? `${record.preheat_min} °C` : null} />
-        <Row label="Interpass Max" value={record.interpass_max != null ? `${record.interpass_max} °C` : null} />
+      {/* Base Metals (QW-403) */}
+      <Section title="Base Metals (QW-403)">
+        <Row label="Material Specification"     value={base.material_spec} />
+        <Row label="Type or Grade"               value={base.type_grade} />
+        <Row label="P.No."                       value={base.p_no} />
+        <Row label="Heat No."                    value={base.heat_no} />
+        <Row label="Thickness of Test Coupon"    value={base.test_coupon_thickness} />
+        <Row label="Diameter of Test Coupon"     value={base.test_coupon_diameter} />
+        <Row label="Base Material (summary)"     value={record.base_material} />
       </Section>
 
-      {/* PWHT */}
-      <Section title="PWHT">
+      {/* Filler Metals (QW-404) */}
+      <Section title="Filler Metals (QW-404)">
+        <Row label="SFA Specification"              value={filler.sfa_spec} />
+        <Row label="AWS Classification"              value={record.filler_aws_class} />
+        <Row label="Filler Metal F.No."              value={filler.f_no} />
+        <Row label="Weld Metal Analysis A.No."       value={filler.a_no} />
+        <Row label="Size of Filler Metal"            value={record.filler_size} />
+        <Row label="Filler Metal / Powder Feed Rate" value={filler.feed_rate} />
+        <Row label="Weld Metal Thickness"            value={filler.weld_metal_thickness} />
+        <Row label="Filler Material (summary)"       value={record.filler_material} />
+      </Section>
+
+      {/* Position (QW-405) */}
+      <Section title="Position (QW-405)">
+        <Row label="Position of Groove" value={record.position} />
+        <Row label="Weld Progression"   value={record.weld_progression} />
+      </Section>
+
+      {/* Preheat (QW-406) */}
+      <Section title="Preheat (QW-406)">
+        <Row label="Preheat Temperature"   value={record.preheat_min != null ? `${record.preheat_min} °C` : null} />
+        <Row label="Interpass Temperature" value={record.interpass_max != null ? `${record.interpass_max} °C` : null} />
+        <Row label="Others"                value={record.preheat_other} />
+      </Section>
+
+      {/* PWHT (QW-407) */}
+      <Section title="Post Weld Heat Treatment (QW-407)">
         <Row label="PWHT Required" value={record.pwht_required ? "Yes" : "No"} />
         {record.pwht_required && (
           <>
@@ -180,44 +274,84 @@ export default async function WpsMasterDetailPage({
                   : null
               }
             />
-            <Row label="Time Range" value={record.pwht_time_range} />
+            <Row label="Time Range"             value={record.pwht_time_range} />
+            <Row label="Cooling"                 value={record.pwht_cooling_method} />
+            <Row label="Rate of Heating/Cooling" value={record.pwht_rate_of_heating} />
+            <Row label="Loading Temperature"     value={record.pwht_loading_temp} />
+            <Row label="Unloading Temperature"   value={record.pwht_unloading_temp} />
           </>
         )}
       </Section>
 
-      {/* Electrical */}
-      {(elec.polarity || elec.current_range || elec.voltage_range || elec.travel_speed || elec.heat_input) && (
-        <Section title="Electrical Parameters">
-          {elec.polarity       && <Row label="Polarity"       value={elec.polarity} />}
-          {elec.current_range  && <Row label="Current Range"  value={`${elec.current_range} A`} />}
-          {elec.voltage_range  && <Row label="Voltage Range"  value={`${elec.voltage_range} V`} />}
-          {elec.travel_speed   && <Row label="Travel Speed"   value={`${elec.travel_speed} mm/min`} />}
-          {elec.heat_input     && <Row label="Heat Input"     value={`${elec.heat_input} kJ/mm`} />}
+      {/* Gas (QW-408) */}
+      {(gas.shielding || gas.trailing || gas.backing || gas.composition || gas.flow_rate) && (
+        <Section title="Gas (QW-408)">
+          {gas.shielding   && <Row label="Shielding Gas"           value={gas.shielding} />}
+          {gas.trailing    && <Row label="Trailing Gas"            value={gas.trailing} />}
+          {gas.backing     && <Row label="Backing Gas"             value={gas.backing} />}
+          {gas.composition && <Row label="% Composition / Mixture" value={gas.composition} />}
+          {gas.flow_rate   && <Row label="Flow Rate (lpm)"         value={gas.flow_rate} />}
         </Section>
       )}
 
-      {/* Gas */}
-      {(gas.shielding || gas.backing) && (
-        <Section title="Gas">
-          {gas.shielding && <Row label="Shielding Gas" value={gas.shielding} />}
-          {gas.backing   && <Row label="Backing Gas"   value={gas.backing} />}
+      {/* Electrical Characteristics (QW-409) */}
+      {(elec.current_type || elec.polarity || elec.current_range || elec.voltage_range ||
+        elec.travel_speed || elec.heat_input || elec.tungsten_electrode_size) && (
+        <Section title="Electrical Characteristics (QW-409)">
+          {elec.current_type            && <Row label="Current (AC or DC)"       value={elec.current_type} />}
+          {elec.polarity                && <Row label="Polarity"                 value={elec.polarity} />}
+          {elec.current_range           && <Row label="Amps (Range)"             value={`${elec.current_range} A`} />}
+          {elec.voltage_range           && <Row label="Volts (Range)"            value={`${elec.voltage_range} V`} />}
+          {elec.tungsten_electrode_size && <Row label="Tungsten Electrode Size"  value={elec.tungsten_electrode_size} />}
+          {elec.travel_speed            && <Row label="Travel Speed"             value={`${elec.travel_speed} mm/min`} />}
+          {elec.heat_input              && <Row label="Heat Input"               value={`${elec.heat_input} kJ/mm`} />}
         </Section>
       )}
 
-      {/* Technique */}
-      {(tech.bead_type || tech.oscillation || tech.pass_type || tech.back_gouging) && (
-        <Section title="Technique">
-          {tech.bead_type    && <Row label="Bead Type"    value={tech.bead_type} />}
-          {tech.oscillation  && <Row label="Oscillation"  value={tech.oscillation} />}
-          {tech.pass_type    && <Row label="Pass Type"    value={tech.pass_type} />}
-          {tech.back_gouging && <Row label="Back Gouging" value={tech.back_gouging} />}
+      {/* Per-Pass Weld Parameters (QW-409/410) */}
+      {weldPasses.length > 0 && (
+        <Section title="Weld Pass Parameters">
+          <DataTable columns={PASS_COLS} rows={weldPasses} />
+        </Section>
+      )}
+
+      {/* Technique (QW-410) */}
+      {(tech.bead_type || tech.oscillation || tech.pass_type || tech.multi_single_layer ||
+        tech.multi_single_electrode || tech.back_gouging || tech.contact_tube_distance ||
+        tech.orifice_gas_cup_size || tech.cleaning_method || tech.electrode_spacing ||
+        tech.change_of_process || tech.peening || tech.transfer_mode || tech.torch_orifice_dia ||
+        tech.filler_metal_delivery || tech.use_of_thermal_process) && (
+        <Section title="Technique (QW-410)">
+          {tech.bead_type              && <Row label="String or Weave Bead"          value={tech.bead_type} />}
+          {tech.oscillation            && <Row label="Oscillation"                    value={tech.oscillation} />}
+          {tech.pass_type              && <Row label="Multi/Single Pass per Side"      value={tech.pass_type} />}
+          {tech.multi_single_layer     && <Row label="Multi/Single Layer"              value={tech.multi_single_layer} />}
+          {tech.multi_single_electrode && <Row label="Multi/Single Electrode"          value={tech.multi_single_electrode} />}
+          {tech.contact_tube_distance  && <Row label="Contact Tube to Work Distance"    value={tech.contact_tube_distance} />}
+          {tech.orifice_gas_cup_size   && <Row label="Orifice, Nozzle or Gas Cup Size"  value={tech.orifice_gas_cup_size} />}
+          {tech.cleaning_method        && <Row label="Initial & Interpass Cleaning"    value={tech.cleaning_method} />}
+          {tech.back_gouging           && <Row label="Method of Back Gouging"          value={tech.back_gouging} />}
+          {tech.electrode_spacing      && <Row label="Electrode Spacing"               value={tech.electrode_spacing} />}
+          {tech.change_of_process      && <Row label="Change of Process"               value={tech.change_of_process} />}
+          {tech.peening                && <Row label="Peening"                        value={tech.peening} />}
+          {tech.transfer_mode          && <Row label="Transfer Mode"                   value={tech.transfer_mode} />}
+          {tech.torch_orifice_dia      && <Row label="Torch Orifice Dia."              value={tech.torch_orifice_dia} />}
+          {tech.filler_metal_delivery  && <Row label="Filler Metal Delivery"           value={tech.filler_metal_delivery} />}
+          {tech.use_of_thermal_process && <Row label="Use of Thermal Process"          value={tech.use_of_thermal_process} />}
+        </Section>
+      )}
+
+      {/* Tensile Test Results (QW-150) */}
+      {tensileTests.length > 0 && (
+        <Section title="Tensile Test Results (QW-150)">
+          <DataTable columns={TENSILE_COLS} rows={tensileTests} />
         </Section>
       )}
 
       {/* Approval */}
       <Section title="Approval">
-        <Row label="Approved By" value={record.approved_by} />
-        <Row label="Reviewed By" value={record.reviewed_by} />
+        <Row label="Prepared & Approved By" value={record.approved_by} />
+        <Row label="Reviewed By"            value={record.reviewed_by} />
         <Row label="Status"      value={badge.label} />
         <Row
           label="Created"

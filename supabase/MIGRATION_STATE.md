@@ -31,9 +31,43 @@ possible in this pass (`supabase login` needs an interactive browser flow) — s
 | 20260702135246 | apply_pmi_dimension_extend_columns |
 | 20260702154029 | remove_all_oes_objects |
 | 20260709073258 | machines_master (local file: 0020_machines_master.sql) |
+| 20260709074722 | process_operations_routing (local file: 0021_process_operations_routing.sql) |
+| 20260709082734 | operation_sequence_gate (local file: 0022_operation_sequence_gate.sql) |
+| 20260709083400 | job_card_due_date (local file: 0023_job_card_due_date.sql) |
+| 20260709132133 | fix_engineer_process_execution_update_rls (local file: 0024_fix_engineer_process_execution_update_rls.sql) |
+| 20260709132147 | job_card_full_capture_fields (local file: 0025_job_card_full_capture_fields.sql) |
 
-**22 migrations applied remotely.** 8 legacy + `0020_machines_master.sql` have a
-corresponding local file (see below).
+**27 migrations applied remotely.** 8 legacy + all 6 of `0020`–`0025` have a
+corresponding local file (see below). **2026-07-09 reconciliation note:** `0024` and
+`0025` were originally applied by hand via the SQL Editor in a separate session (their
+DDL was live and verified correct — RLS policy fix + 10 additive columns on
+`job_cards` — but had no entry in the remote migration history). Both were idempotent
+(`drop policy if exists` / `add column if not exists`), so they were safely re-run via
+`apply_migration` to register them; no schema change resulted, only the tracking gap
+closed.
+
+| 20260709132308 | index_process_executions_machine_id (local file: 0026_index_process_executions_machine_id.sql) |
+
+**28 migrations applied remotely.** Added during the Phase 7 QA sweep — the
+performance advisor flagged `process_executions.machine_id` as an unindexed FK
+(INFO level); indexed it since it's joined on every job card load and PDF render.
+
+## WPS Master — full PQR/WPS field capture (2026-07-09)
+
+Client sent a paper PQR/WPS (WPS/RE/301, ASME IX QW-402–QW-410 + QW-150 tensile
+test) and asked that the WPS module capture every field. Added:
+
+| Local file | Remote name | Notes |
+|---|---|---|
+| `0027_wps_master_full_pqr_capture.sql` | wps_master_full_pqr_capture | Joint/base-metal/filler-metal JSONB blobs, PWHT cooling/loading/unloading, per-pass table (weld_passes_json), tensile test table (tensile_tests_json), date_of_welding, preheat_other. Additive. |
+| (comment-only fix, no schema change) | wps_master_weld_passes_comment_fix | Corrected a column comment to include amps_range. |
+| `0028_wps_master_weld_progression.sql` | wps_master_weld_progression | weld_progression column (missed in 0027 — QW-405 has both "Position of Groove" and "Weld Progression"). Additive. |
+
+Verified live: inserted a WPS record transcribed field-for-field from the paper
+document (joint geometry, base metal spec, filler metal F-No/A-No, all 4 per-pass
+rows, both tensile specimens, weld_progression) and confirmed round-trip via
+PostgREST — all data persisted and read back correctly. Row deleted after
+verification (test data, not a real WPS record).
 
 ## Process Flow enterprise update — new migrations (2026-07-09, applied + committed)
 
