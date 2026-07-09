@@ -7,7 +7,7 @@ import { STORAGE_BUCKET } from "@/lib/documents/storage-utils"
 import { isValidUUID, sanitizeError, isValidOrigin } from "@/lib/security"
 import { JobCardPdfTemplate } from "@/components/job-cards/job-card-pdf-template"
 import type {
-  JobCard, Client, ProcessExecution, NdeRecord, AirTestRecord,
+  JobCard, Client, ProcessExecutionWithConsumable, NdeRecord, AirTestRecord,
   DimensionReport, Dispatch,
 } from "@/types/database"
 
@@ -50,7 +50,7 @@ export async function POST(
     { data: pwhtRunJobs },
   ] = await Promise.all([
     supabase.from("job_cards").select("*, client:clients(*)").eq("id", id).single(),
-    supabase.from("process_executions").select("*").eq("job_card_id", id).order("started_at", { ascending: true }),
+    supabase.from("process_executions").select("*, consumable:consumable_master(id, brand, product_name, aws_class, size, batch_no, manufacturing_date, expiry_date), machine:machines(id, machine_code, name)").eq("job_card_id", id).order("sequence_no", { ascending: true, nullsFirst: false }).order("started_at", { ascending: true }),
     supabase.from("nde_records").select("*").eq("job_card_id", id).order("created_at", { ascending: true }),
     supabase.from("air_test_records").select("*").eq("job_card_id", id).order("created_at", { ascending: true }),
     supabase.from("dimension_reports").select("*").eq("job_card_id", id).order("created_at", { ascending: true }),
@@ -75,7 +75,7 @@ export async function POST(
   const element = createElement(JobCardPdfTemplate, {
     jobCard: typedJobCard,
     client: typedJobCard.client,
-    executions: (executions ?? []) as ProcessExecution[],
+    executions: (executions ?? []) as ProcessExecutionWithConsumable[],
     ndeRecords: (ndeRecords ?? []) as NdeRecord[],
     airTests: (airTests ?? []) as AirTestRecord[],
     dimensionReports: (dimensionReports ?? []) as DimensionReport[],

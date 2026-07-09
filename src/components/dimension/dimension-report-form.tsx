@@ -157,7 +157,7 @@ export function DimensionReportForm({
               {errors.report_number && <p className="text-xs text-destructive">{errors.report_number.message}</p>}
             </div>
             <div className="space-y-1">
-              <Lbl>Report Date *</Lbl>
+              <Lbl>Inspection Date *</Lbl>
               <Input type="date" {...register("report_date")} />
               {errors.report_date && <p className="text-xs text-destructive">{errors.report_date.message}</p>}
             </div>
@@ -280,7 +280,7 @@ export function DimensionReportForm({
               />
             </div>
             <div className="space-y-1">
-              <Lbl>Inspected By</Lbl>
+              <Lbl>Inspector Name</Lbl>
               <Input {...register("inspected_by")} />
             </div>
             <div className="space-y-1">
@@ -366,14 +366,14 @@ export function DimensionReportForm({
               <thead>
                 <tr className="bg-muted/70">
                   <th className="border border-border px-2 py-1.5 text-left font-medium w-6">#</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium min-w-[140px]">Dimension / Location *</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium w-24">Required *</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium min-w-[140px]">Characteristic *</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium w-24">Nominal Dimension *</th>
                   <th className="border border-border px-2 py-1.5 text-left font-medium w-24">Tolerance</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual 1</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual 2</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual 3</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Pass/Fail</th>
-                  <th className="border border-border px-2 py-1.5 text-left font-medium min-w-[100px]">Remarks</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual Meas. 1</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual Meas. 2</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Actual Meas. 3</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium w-20">Pass/Fail Status</th>
+                  <th className="border border-border px-2 py-1.5 text-left font-medium min-w-[100px]">Inspection Remarks</th>
                   <th className="border border-border px-2 py-1.5 w-8"></th>
                 </tr>
               </thead>

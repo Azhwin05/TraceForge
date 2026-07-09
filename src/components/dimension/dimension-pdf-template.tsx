@@ -136,13 +136,13 @@ export function DimensionPdfTemplate({ report }: { report: DimensionReport }) {
           {/* Table header */}
           <View style={S.tHead}>
             <Text style={[S.tHeadCell, S.cNo]}>S.No</Text>
-            <Text style={[S.tHeadCell, S.cName]}>Dimension / Location</Text>
-            <Text style={[S.tHeadCell, S.cReqd]}>Required</Text>
+            <Text style={[S.tHeadCell, S.cName]}>Characteristic</Text>
+            <Text style={[S.tHeadCell, S.cReqd]}>Nominal</Text>
             <Text style={[S.tHeadCell, S.cTol]}>Tolerance</Text>
             <Text style={[S.tHeadCell, S.cAct]}>Actual 1</Text>
             <Text style={[S.tHeadCell, S.cAct]}>Actual 2</Text>
             <Text style={[S.tHeadCell, S.cAct]}>Actual 3</Text>
-            <Text style={[S.tHeadCell, S.cPF]}>Result</Text>
+            <Text style={[S.tHeadCell, S.cPF]}>Pass/Fail</Text>
             <Text style={[S.tHeadCell, S.cRem]}>Remarks</Text>
           </View>
           {dims.map((d, i) => {
@@ -185,7 +185,7 @@ export function DimensionPdfTemplate({ report }: { report: DimensionReport }) {
 
         {/* Inspected / approved by */}
         <View style={S.grid2}>
-          <Field label="Inspected By" value={report.inspected_by} />
+          <Field label="Inspector Name" value={report.inspected_by} />
           <Field label="Approved By"  value={report.approved_by ?? report.approved_by_name} />
         </View>
 

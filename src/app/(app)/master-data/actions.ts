@@ -3,18 +3,20 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 
-type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master"
+type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master" | "machines"
 
 const WRITE_ROLES: Record<TogglableTable, string[]> = {
   consumable_master: ["admin"],
   chemical_master:   ["admin", "qa"],
   instrument_master: ["admin", "qa"],
+  machines:          ["admin", "engineer"],
 }
 
 const TABLE_PATHS: Record<TogglableTable, string> = {
   consumable_master: "/master-data/consumables",
   chemical_master:   "/master-data/chemicals",
   instrument_master: "/master-data/instruments",
+  machines:          "/master-data/machines",
 }
 
 export async function toggleMasterItemActive(

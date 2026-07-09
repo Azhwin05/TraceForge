@@ -51,6 +51,7 @@ export async function createJobCard(
       quantity: data.quantity,
       process_type: data.process_type,
       received_date: data.received_date,
+      due_date: data.due_date || null,
       status: "created",
       created_by: user.id,
     })
@@ -59,9 +60,55 @@ export async function createJobCard(
 
   if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
 
+  // Seed the operation routing (Pre-Machining → Welding → … → Deburring) from the
+  // selected process types. Best-effort: a seeding failure must not fail creation —
+  // an engineer can regenerate the routing from the job card later.
+  const { error: seedError } = await supabase
+    .rpc("seed_process_operations", { p_job_card_id: jobCard.id })
+  if (seedError) console.error("[job-cards] routing seed failed:", seedError.message)
+
   revalidatePath("/job-cards")
   revalidatePath("/dashboard")
   return { id: jobCard.id }
+}
+
+// Set / update the production due date on a job card.
+export async function updateJobCardDueDate(
+  jobCardId: string,
+  dueDate: string | null
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin", "operator", "engineer"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ due_date: dueDate || null })
+    .eq("id", jobCardId)
+
+  if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
+
+  revalidatePath(`/job-cards/${jobCardId}`)
+  revalidatePath("/job-cards")
+  revalidatePath("/dashboard")
+  return {}
+}
+
+// Build (or complete) the operation routing for an existing job card.
+// Idempotent server-side: seed_process_operations no-ops if routing already exists.
+export async function generateRouting(
+  jobCardId: string
+): Promise<{ error?: string; created?: number }> {
+  const guard = await requireRole(["admin", "engineer"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { data, error } = await supabase
+    .rpc("seed_process_operations", { p_job_card_id: jobCardId })
+  if (error) return { error: sanitizeError(error) }
+
+  revalidatePath(`/job-cards/${jobCardId}`)
+  return { created: (data as number) ?? 0 }
 }
 
 export async function updateJobCardStatus(

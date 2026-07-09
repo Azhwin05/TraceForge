@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer"
 import type {
-  JobCard, Client, ProcessExecution, NdeRecord, AirTestRecord,
+  JobCard, Client, ProcessExecutionWithConsumable, NdeRecord, AirTestRecord,
   DimensionReport, Dispatch, OverlayChemicalEntry,
 } from "@/types/database"
 
@@ -58,6 +58,37 @@ const PROCESS_LABELS: Record<string, string> = {
   welding: "Welding", machining: "Machining", cladding: "Cladding", overlay: "Overlay",
 }
 
+// Inlined (not imported) so the standalone PDF renderer needs no path resolution.
+const OPERATION_LABELS: Record<string, string> = {
+  pre_machining: "Pre-Machining", welding: "Welding", final_machining: "Final Machining",
+  milling: "Milling", slitting: "Slitting", deburring: "Deburring",
+}
+const OP_STATUS_LABELS: Record<string, string> = {
+  assigned: "Assigned", in_progress: "In Progress", completed: "Completed", skipped: "Skipped",
+}
+const WELDING_FAMILY = ["welding", "cladding", "overlay"]
+
+type ExecRow = ProcessExecutionWithConsumable & {
+  machine?: { machine_code: string; name: string } | null
+}
+
+// A routed record whose operation is welding, or a legacy welding-family record.
+function isWeldingExec(e: ExecRow): boolean {
+  if (e.operation_type) return e.operation_type === "welding"
+  return WELDING_FAMILY.includes(e.process_type)
+}
+
+const OP_COLS = [
+  { label: "#",         width: 20 },
+  { label: "Operation", width: 90 },
+  { label: "Machine",   width: 75 },
+  { label: "Operator",  width: 80 },
+  { label: "Planned",   width: 45 },
+  { label: "Completed", width: 50 },
+  { label: "Rejected",  width: 45 },
+  { label: "Status",    width: 65 },
+]
+
 const CHEM_COLS = [
   { key: "chemical_type", label: "Type",         width: 55 },
   { key: "chemical_name", label: "Chemical",      width: 95 },
@@ -93,7 +124,7 @@ export function JobCardPdfTemplate({
 }: {
   jobCard: JobCard
   client: Client | null
-  executions: ProcessExecution[]
+  executions: ExecRow[]
   ndeRecords: NdeRecord[]
   airTests: AirTestRecord[]
   dimensionReports: DimensionReport[]
@@ -113,6 +144,7 @@ export function JobCardPdfTemplate({
         <View style={S.grid2}>
           <Field label="Job Card No." value={jobCard.jc_number} />
           <Field label="Received Date" value={fmtDate(jobCard.received_date)} />
+          <Field label="Due Date" value={fmtDate(jobCard.due_date)} />
           <Field label="Customer" value={client?.name} />
           <Field label="NBDN No." value={jobCard.nbdn_number} />
           <Field label="PO No." value={jobCard.po_number} />
@@ -121,6 +153,8 @@ export function JobCardPdfTemplate({
           <Field label="Part No." value={jobCard.part_number} />
           <Field label="Quantity" value={jobCard.quantity} />
           <Field label="Process" value={jobCard.process_type.map((t) => PROCESS_LABELS[t] ?? t).join(", ")} />
+          <Field label="Welding Process" value={jobCard.welding_process} />
+          <Field label="Ring" value={jobCard.ring} />
         </View>
         <Field label="Description" value={jobCard.description} full />
 
@@ -139,30 +173,85 @@ export function JobCardPdfTemplate({
           <Field label="Ring Heat No." value={jobCard.ring_heat_no} />
           <Field label="MPI / RT No." value={jobCard.mpi_rt_no} />
           <Field label="Punching Details" value={jobCard.punching_details} />
+          <Field label="Other Details" value={jobCard.other_details} />
         </View>
 
+        {/* Operations / Routing */}
+        {executions.some((e) => e.operation_type != null) && (
+          <>
+            <Text style={S.sectionHead}>Operations / Routing</Text>
+            <View style={S.table}>
+              <View style={S.tableHeader}>
+                {OP_COLS.map((c) => (
+                  <Text key={c.label} style={[S.thCell, { width: c.width }]}>{c.label}</Text>
+                ))}
+              </View>
+              {[...executions]
+                .filter((e) => e.operation_type != null)
+                .sort((a, b) => (a.sequence_no ?? 0) - (b.sequence_no ?? 0))
+                .map((e, i) => (
+                  <View key={e.id ?? i} style={i % 2 === 0 ? S.tableRow : S.tableRowAlt}>
+                    <Text style={[S.tdCell, { width: 20 }]}>{e.sequence_no ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 90 }]}>{OPERATION_LABELS[e.operation_type as string] ?? e.operation_type}</Text>
+                    <Text style={[S.tdCell, { width: 75 }]}>{e.machine?.machine_code ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 80 }]}>{e.welder_name ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 45 }]}>{e.planned_qty ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 50 }]}>{e.completed_qty ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 45 }]}>{e.rejected_qty ?? ""}</Text>
+                    <Text style={[S.tdCell, { width: 65 }]}>{OP_STATUS_LABELS[e.status] ?? e.status}</Text>
+                  </View>
+                ))}
+            </View>
+          </>
+        )}
+
         {/* Welding */}
-        {executions.length > 0 && (
+        {executions.some(isWeldingExec) && (
           <>
             <Text style={S.sectionHead}>Welding Details</Text>
-            {executions.map((e, i) => (
+            {executions.filter(isWeldingExec).map((e, i) => (
               <View key={e.id ?? i} style={{ marginBottom: 4 }}>
                 <Text style={S.subHead}>{PROCESS_LABELS[e.process_type] ?? e.process_type} — {e.welder_name ?? ""} {e.welder_id ? `(ID: ${e.welder_id})` : ""}</Text>
                 <View style={S.grid2}>
                   <Field label="Weld Date" value={fmtDate(e.weld_date)} />
                   <Field label="Weld Metal" value={e.weld_metal} />
                   <Field label="Weld Height" value={e.weld_height} />
-                  <Field label="Actual Qty" value={e.weld_qty_actual} />
-                  <Field label="Consumable Batch" value={e.consumable_batch} />
-                  <Field label="Feed Rate" value={e.consumable_feed_rate} />
-                  <Field label="Amps (Req/Act)" value={[e.amps_required, e.amps_actual].filter((v) => v != null && v !== "").join(" / ")} />
-                  <Field label="Volts (Req/Act)" value={[e.volts_required, e.volts_actual].filter((v) => v != null && v !== "").join(" / ")} />
-                  <Field label="Polarity" value={e.polarity} />
-                  <Field label="Travel Speed" value={e.travel_speed} />
-                  <Field label="Gas Flow Rate" value={e.gas_flow_rate} />
-                  <Field label="Pre-heat Temp" value={e.pre_heat_temp} />
-                  <Field label="Inter-pass Temp" value={e.inter_pass_temp} />
-                  <Field label="Post-heat Temp" value={e.post_heat_temp} />
+                  <Field label="Consumable Batch" value={e.consumable?.batch_no ?? e.consumable_batch} />
+                </View>
+                {e.consumable && (
+                  <View style={S.grid2}>
+                    <Field label="Consumable Brand" value={e.consumable.brand} />
+                    <Field label="Product Name" value={e.consumable.product_name} />
+                    <Field label="AWS Class" value={e.consumable.aws_class} />
+                    <Field label="Size" value={e.consumable.size} />
+                    <Field label="Mfg. Date" value={fmtDate(e.consumable.manufacturing_date)} />
+                    <Field label="Expiry Date" value={fmtDate(e.consumable.expiry_date)} />
+                  </View>
+                )}
+                <View style={S.table}>
+                  <View style={S.tableHeader}>
+                    <Text style={[S.thCell, { width: 130 }]}>Parameter</Text>
+                    <Text style={[S.thCell, { width: 120 }]}>As per WPS</Text>
+                    <Text style={[S.thCell, { width: 120 }]}>Actual</Text>
+                  </View>
+                  {[
+                    { label: "Weld Qty",       wps: e.weld_qty_planned,            act: e.weld_qty_actual },
+                    { label: "Pre-heat (°C)",  wps: e.pre_heat_temp_planned,       act: e.pre_heat_temp },
+                    { label: "Inter-pass (°C)",wps: e.inter_pass_temp_planned,     act: e.inter_pass_temp },
+                    { label: "Post-heat (°C)", wps: e.post_heat_temp_planned,      act: e.post_heat_temp },
+                    { label: "Amp",            wps: e.amps_required,               act: e.amps_actual },
+                    { label: "Volt",           wps: e.volts_required,              act: e.volts_actual },
+                    { label: "Travel Speed",   wps: e.travel_speed_planned,        act: e.travel_speed },
+                    { label: "Gas Flow Rate",  wps: e.gas_flow_rate_planned,       act: e.gas_flow_rate },
+                    { label: "Feed Rate",      wps: e.consumable_feed_rate_planned, act: e.consumable_feed_rate },
+                    { label: "Polarity",       wps: e.polarity_planned,            act: e.polarity },
+                  ].map((row, ri) => (
+                    <View key={row.label} style={ri % 2 === 0 ? S.tableRow : S.tableRowAlt}>
+                      <Text style={[S.tdCell, { width: 130 }]}>{row.label}</Text>
+                      <Text style={[S.tdCell, { width: 120 }]}>{row.wps ?? ""}</Text>
+                      <Text style={[S.tdCell, { width: 120 }]}>{row.act ?? ""}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
             ))}

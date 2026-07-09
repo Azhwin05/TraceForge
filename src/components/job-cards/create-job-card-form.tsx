@@ -182,6 +182,11 @@ export function CreateJobCardForm({ initialClients }: { initialClients: Client[]
                     <Input id="received_date" type="date" {...register("received_date")} aria-invalid={!!errors.received_date} />
                     {errors.received_date && <p className="text-xs text-destructive">{errors.received_date.message}</p>}
                   </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="due_date">Due Date</Label>
+                    <Input id="due_date" type="date" {...register("due_date")} aria-invalid={!!errors.due_date} />
+                    {errors.due_date && <p className="text-xs text-destructive">{errors.due_date.message}</p>}
+                  </div>
                 </div>
               </div>
             </div>

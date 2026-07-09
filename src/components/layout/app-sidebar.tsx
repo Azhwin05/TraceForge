@@ -13,6 +13,7 @@ import {
   FileText,
   FlaskConical,
   Gauge,
+  Cog,
   Package,
   Microscope,
   Ruler,
@@ -59,13 +60,14 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     heading: "Master Data",
-    // Only admin and qa manage master data
-    roles: ["admin", "qa"],
+    // admin + qa manage inspection/consumable masters; engineer manages machines
+    roles: ["admin", "qa", "engineer"],
     items: [
-      { href: "/master-data/wps",         label: "WPS Master",  icon: FileText     },
-      { href: "/master-data/consumables", label: "Consumables", icon: Package      },
-      { href: "/master-data/chemicals",   label: "Chemicals",   icon: FlaskConical },
-      { href: "/master-data/instruments", label: "Instruments", icon: Gauge        },
+      { href: "/master-data/wps",         label: "WPS Master",  icon: FileText,     roles: ["admin", "qa"] },
+      { href: "/master-data/consumables", label: "Consumables", icon: Package,      roles: ["admin", "qa"] },
+      { href: "/master-data/chemicals",   label: "Chemicals",   icon: FlaskConical, roles: ["admin", "qa"] },
+      { href: "/master-data/instruments", label: "Instruments", icon: Gauge,        roles: ["admin", "qa"] },
+      { href: "/master-data/machines",    label: "Machines",    icon: Cog,          roles: ["admin", "engineer"] },
     ],
   },
   {

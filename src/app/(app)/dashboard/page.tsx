@@ -1,6 +1,6 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import { Activity, Clock, FileSearch, Send, CheckCircle2 } from "lucide-react"
+import { Activity, Clock, FileSearch, Send, CheckCircle2, AlertTriangle } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/job-cards/status-badge"
@@ -46,6 +46,8 @@ export default async function DashboardPage() {
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 
   // All 7 queries fire in parallel — no sequential waterfalls
   const [
@@ -54,6 +56,7 @@ export default async function DashboardPage() {
     { count: awaitingReports },
     { count: dispatchedMonth },
     { count: closedMonth },
+    { count: overdueCount },
     { data: recentRaw },
     { data: blockedRaw },
   ] = await Promise.all([
@@ -88,6 +91,13 @@ export default async function DashboardPage() {
       .eq("status", "closed")
       .gte("updated_at", monthStart),
 
+    // stat 6: overdue (due date passed, still on the shop floor)
+    supabase
+      .from("job_cards")
+      .select("*", { count: "exact", head: true })
+      .lt("due_date", today)
+      .not("status", "in", "(dispatched,accounts_processing,closed)"),
+
     // recent 8 job cards for the list
     supabase
       .from("job_cards")
@@ -111,6 +121,7 @@ export default async function DashboardPage() {
 
   const stats = [
     { title: "Active Jobs",     value: totalActive ?? 0,     sub: "excl. closed", icon: STAT_ICONS[0], color: STAT_COLORS[0] },
+    { title: "Overdue",         value: overdueCount ?? 0,    sub: "past due date", icon: AlertTriangle, color: "text-red-600 bg-red-50" },
     { title: "In Process",      value: inProcess ?? 0,       sub: "in progress",  icon: STAT_ICONS[1], color: STAT_COLORS[1] },
     { title: "Reports Pending", value: awaitingReports ?? 0, sub: "awaiting QA",  icon: STAT_ICONS[2], color: STAT_COLORS[2] },
     { title: "Dispatched",      value: dispatchedMonth ?? 0, sub: "this month",   icon: STAT_ICONS[3], color: STAT_COLORS[3] },

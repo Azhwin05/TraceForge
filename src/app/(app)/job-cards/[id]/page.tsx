@@ -6,6 +6,7 @@ import { getSessionWithProfile } from "@/lib/auth"
 import { StatusBadge } from "@/components/job-cards/status-badge"
 import { StatusTimeline } from "@/components/job-cards/status-timeline"
 import { StatusActions } from "@/components/job-cards/status-actions"
+import { DueDateEditor } from "@/components/job-cards/due-date-editor"
 import { WpsSection } from "@/components/job-cards/wps-section"
 import { ProcessExecutionSection } from "@/components/job-cards/process-execution-section"
 import { DispatchSection } from "@/components/job-cards/dispatch-section"
@@ -26,7 +27,7 @@ import type {
   JobCard, JobCardDetail, UserRole, ProcessType, Document,
   WpsQualificationWithMaster, WpsMasterSummary,
   NdeRecord, ChemicalMaster, PwhtRunJobWithRun,
-  ConsumableMaster, DossierStatus, AirTestRecord,
+  ConsumableMaster, DossierStatus, AirTestRecord, Machine,
 } from "@/types/database"
 
 export const metadata = { title: "Job Card — ValveTrack" }
@@ -93,6 +94,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
     { data: dimensionReports },
     { data: overlayReports },
     { data: dossierRows },
+    { data: machines },
   ] = await Promise.all([
     supabase
       .from("job_cards")
@@ -166,6 +168,12 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
       .eq("job_card_id", id)
       .neq("status", "archived")
       .order("created_at", { ascending: false }),
+    supabase
+      .from("machines")
+      .select("*")
+      .eq("is_active", true)
+      .order("category")
+      .order("machine_code"),
   ])
 
   if (!jobCard) notFound()
@@ -288,6 +296,13 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
                 day: "numeric", month: "short", year: "numeric",
               })}
             />
+            <DueDateEditor
+              jobCardId={jc.id}
+              dueDate={jc.due_date}
+              createdAt={jc.created_at}
+              status={jc.status}
+              canEdit={["admin", "operator", "engineer"].includes(userRole)}
+            />
             <InfoRow
               label="Created"
               value={new Date(jc.created_at).toLocaleDateString("en-IN", {
@@ -333,6 +348,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         processTypes={jc.process_type as ProcessType[]}
         executions={jc.process_executions ?? []}
         consumables={(consumables ?? []) as ConsumableMaster[]}
+        machines={(machines ?? []) as Machine[]}
       />
 
       {/* NDE / LPT Section */}

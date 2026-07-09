@@ -30,8 +30,22 @@ possible in this pass (`supabase login` needs an interactive browser flow) — s
 | 20260702123745 | customer_portal_role_and_rls |
 | 20260702135246 | apply_pmi_dimension_extend_columns |
 | 20260702154029 | remove_all_oes_objects |
+| 20260709073258 | machines_master (local file: 0020_machines_master.sql) |
 
-**21 migrations applied remotely.** Only 8 have a corresponding local file (see below).
+**22 migrations applied remotely.** 8 legacy + `0020_machines_master.sql` have a
+corresponding local file (see below).
+
+## Process Flow enterprise update — new migrations (2026-07-09, applied + committed)
+
+These are applied via MCP `apply_migration` AND committed as local files (byte-for-byte),
+so reproducibility improves from here regardless of the 13 historical gaps below.
+
+| Local file | Remote name | Notes |
+|---|---|---|
+| `0020_machines_master.sql` | machines_master | Phase 1 — machine catalogue (welding/machining). Additive. |
+| `0021_process_operations_routing.sql` | process_operations_routing | Phase 2 — operation_type/sequence/machine/qty on process_executions + seed_process_operations(). Additive. |
+| `0022_operation_sequence_gate.sql` | operation_sequence_gate | Phase 3 — 'skipped' status + enforce_operation_sequence trigger (no-skip, admin override) + process_complete gate. Additive. |
+| `0023_job_card_due_date.sql` | job_card_due_date | Phase 4 — job_cards.due_date (production due date) for aging/overdue. Additive. |
 
 ## Local files that match remote (safe, verified by content + name)
 

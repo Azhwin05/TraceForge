@@ -33,19 +33,54 @@ export async function upsertProcessExecution(
 export async function updateProcessStatus(
   executionId: string,
   jobCardId: string,
-  status: "assigned" | "in_progress" | "completed"
+  status: "assigned" | "in_progress" | "completed" | "skipped",
+  overrideReason?: string
 ): Promise<{ error?: string }> {
   const guard = await requireRole(["admin", "engineer"])
   if (guard.error) return { error: guard.error }
-  const { supabase } = guard
+  const { supabase, role } = guard
+  const isAdmin = role === "admin"
+
+  // Skipping a step is an authorized bypass — admin only.
+  if (status === "skipped" && !isAdmin) {
+    return { error: "Only an administrator can skip an operation." }
+  }
+
+  // Sequential gate (mirrors the DB trigger) — give a readable message before the
+  // DB raises. Only relevant when advancing a routed operation forward.
+  if (status === "in_progress" || status === "completed") {
+    const { data: target } = await supabase
+      .from("process_executions")
+      .select("sequence_no, operation_type")
+      .eq("id", executionId)
+      .single()
+
+    if (target?.operation_type && target.sequence_no != null) {
+      const { data: earlier } = await supabase
+        .from("process_executions")
+        .select("operation_type, sequence_no, status")
+        .eq("job_card_id", jobCardId)
+        .not("sequence_no", "is", null)
+        .lt("sequence_no", target.sequence_no)
+        .not("status", "in", "(completed,skipped)")
+        .order("sequence_no", { ascending: true })
+
+      if (earlier && earlier.length > 0 && !isAdmin) {
+        const list = earlier.map((e) => `${e.operation_type} (#${e.sequence_no})`).join(", ")
+        return { error: `Complete earlier steps first: ${list}` }
+      }
+    }
+  }
 
   const update: {
-    status: "assigned" | "in_progress" | "completed"
+    status: "assigned" | "in_progress" | "completed" | "skipped"
     started_at?: string
     completed_at?: string
+    override_reason?: string
   } = { status }
   if (status === "in_progress") update.started_at = new Date().toISOString()
   if (status === "completed") update.completed_at = new Date().toISOString()
+  if (overrideReason) update.override_reason = overrideReason
 
   const { error } = await supabase
     .from("process_executions")

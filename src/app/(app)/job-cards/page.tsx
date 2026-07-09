@@ -34,7 +34,7 @@ export default async function JobCardsPage({
   let query = supabase
     .from("job_cards")
     .select(
-      "id, jc_number, nbdn_number, description, process_type, status, stage_entered_at, received_date, created_at, client:clients(id, name), creator:profiles!created_by(id, full_name)",
+      "id, jc_number, nbdn_number, description, process_type, status, stage_entered_at, received_date, due_date, created_at, client:clients(id, name), creator:profiles!created_by(id, full_name)",
       { count: "exact" }
     )
     .order("created_at", { ascending: false })

@@ -52,8 +52,8 @@ export function AdvancedDetailsSection({
     jobCard.product_group || jobCard.buyer || jobCard.material_code ||
     jobCard.valve_size_class || jobCard.valve_type_component ||
     jobCard.base_material || jobCard.overlay_material || jobCard.base_material_grade ||
-    jobCard.regularization || jobCard.ring_heat_no || jobCard.mpi_rt_no ||
-    jobCard.punching_details
+    jobCard.regularization || jobCard.ring || jobCard.ring_heat_no || jobCard.mpi_rt_no ||
+    jobCard.welding_process || jobCard.punching_details || jobCard.other_details
   )
 
   const { register, handleSubmit, reset } = useForm<AdvancedJobCardInput>({
@@ -68,9 +68,12 @@ export function AdvancedDetailsSection({
       overlay_material:     jobCard.overlay_material ?? "",
       base_material_grade:  jobCard.base_material_grade ?? "",
       regularization:       jobCard.regularization ?? "",
+      ring:                 jobCard.ring ?? "",
       ring_heat_no:         jobCard.ring_heat_no ?? "",
       mpi_rt_no:            jobCard.mpi_rt_no ?? "",
+      welding_process:      jobCard.welding_process ?? "",
       punching_details:     jobCard.punching_details ?? "",
+      other_details:        jobCard.other_details ?? "",
     },
   })
 
@@ -85,9 +88,12 @@ export function AdvancedDetailsSection({
       overlay_material:     jobCard.overlay_material ?? "",
       base_material_grade:  jobCard.base_material_grade ?? "",
       regularization:       jobCard.regularization ?? "",
+      ring:                 jobCard.ring ?? "",
       ring_heat_no:         jobCard.ring_heat_no ?? "",
       mpi_rt_no:            jobCard.mpi_rt_no ?? "",
+      welding_process:      jobCard.welding_process ?? "",
       punching_details:     jobCard.punching_details ?? "",
+      other_details:        jobCard.other_details ?? "",
     })
     setEditOpen(true)
   }
@@ -148,9 +154,12 @@ export function AdvancedDetailsSection({
                 <Row label="Overlay Material"    value={jobCard.overlay_material} />
                 <Row label="Base Mat. Grade"     value={jobCard.base_material_grade} />
                 <Row label="Regularization"      value={jobCard.regularization} />
+                <Row label="Welding Process"     value={jobCard.welding_process} />
+                <Row label="Ring"                value={jobCard.ring} />
                 <Row label="Ring Heat No."       value={jobCard.ring_heat_no} />
                 <Row label="MPI / RT No."        value={jobCard.mpi_rt_no} />
                 <Row label="Punching Details"    value={jobCard.punching_details} />
+                <Row label="Other Details"       value={jobCard.other_details} />
               </>
             ) : (
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -180,9 +189,12 @@ export function AdvancedDetailsSection({
               <FormField label="Overlay Material"   name="overlay_material"     register={register} />
               <FormField label="Base Mat. Grade"    name="base_material_grade"  register={register} />
               <FormField label="Regularization"     name="regularization"       register={register} />
+              <FormField label="Welding Process"    name="welding_process"      register={register} />
+              <FormField label="Ring"               name="ring"                 register={register} />
               <FormField label="Ring Heat No."      name="ring_heat_no"         register={register} />
               <FormField label="MPI / RT No."       name="mpi_rt_no"            register={register} />
               <FormField label="Punching Details"   name="punching_details"     register={register} />
+              <FormField label="Other Details"      name="other_details"        register={register} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>

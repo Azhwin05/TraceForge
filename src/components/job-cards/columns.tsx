@@ -5,6 +5,8 @@ import Link from "next/link"
 import { ArrowUpDown, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/job-cards/status-badge"
+import { cn } from "@/lib/utils"
+import { dueInfo, jobAging, DUE_LEVEL_STYLE } from "@/lib/job-aging"
 import type { JobCardWithRelations, ProcessType } from "@/types/database"
 
 function daysAgo(dateStr: string) {
@@ -113,6 +115,49 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
       <span className="text-sm text-muted-foreground">
         {new Date(getValue() as string).toLocaleDateString("en-IN")}
       </span>
+    ),
+  },
+  {
+    accessorKey: "due_date",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ml-2 h-auto py-1 font-medium"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Due Date <ArrowUpDown className="ml-1 h-3 w-3" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const info = dueInfo(row.original.due_date, row.original.status)
+      const style = DUE_LEVEL_STYLE[info.level]
+      return (
+        <div className="flex items-center gap-2">
+          <span className={cn("h-2 w-2 shrink-0 rounded-full", style.dot)} title={style.label} />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm">
+              {row.original.due_date ? new Date(row.original.due_date).toLocaleDateString("en-IN") : "—"}
+            </span>
+            {info.level === "overdue" && (
+              <span className="text-xs text-red-600">{info.overdueDays}d overdue</span>
+            )}
+            {info.level === "due_soon" && (
+              <span className="text-xs text-amber-600">
+                {info.daysToDue === 0 ? "Due today" : `Due in ${info.daysToDue}d`}
+              </span>
+            )}
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "created_at",
+    id: "aging",
+    header: "Aging",
+    cell: ({ row }) => (
+      <span className="text-sm text-muted-foreground">{jobAging(row.original.created_at)}d</span>
     ),
   },
 ]

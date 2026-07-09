@@ -143,7 +143,7 @@ export default async function DimensionReportDetailPage({
           <CardContent>
             <dl>
               <Row label="Report Number"   value={r.report_number} />
-              <Row label="Report Date"     value={fmtDate(r.report_date)} />
+              <Row label="Inspection Date" value={fmtDate(r.report_date)} />
               <Row label="Vendor"          value={r.vendor_name} />
               <Row label="Description"     value={r.description} />
               <Row label="Drawing Number"  value={r.drawing_number} />
@@ -164,7 +164,7 @@ export default async function DimensionReportDetailPage({
             <dl>
               <Row label="Gauge / Instrument" value={r.gauge_used ?? r.instrument_used} />
               <Row label="Visual Inspection"  value={r.visual_satisfactory === false ? "Not Satisfactory" : r.visual_satisfactory === true ? "Satisfactory" : undefined} />
-              <Row label="Inspected By"       value={r.inspected_by} />
+              <Row label="Inspector Name"     value={r.inspected_by} />
               <Row label="Approved By"        value={r.approved_by ?? r.approved_by_name} />
               <Row label="Approved At"        value={fmtDate(r.approved_at)} />
               {r.submitted_to_customer && (
@@ -199,14 +199,14 @@ export default async function DimensionReportDetailPage({
                 <thead>
                   <tr className="bg-muted/70">
                     <th className="border border-border px-2 py-1.5 text-left font-medium">#</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Dimension / Location</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Required</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Characteristic</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Nominal Dimension</th>
                     <th className="border border-border px-2 py-1.5 text-left font-medium">Tolerance</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual 1</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual 2</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual 3</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Result</th>
-                    <th className="border border-border px-2 py-1.5 text-left font-medium">Remarks</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual Meas. 1</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual Meas. 2</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Actual Meas. 3</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Pass/Fail Status</th>
+                    <th className="border border-border px-2 py-1.5 text-left font-medium">Inspection Remarks</th>
                   </tr>
                 </thead>
                 <tbody>

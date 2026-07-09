@@ -2,27 +2,42 @@ import { z } from "zod"
 
 export const processExecutionSchema = z.object({
   process_type:        z.enum(["welding", "machining", "cladding", "overlay"]),
+  // Operation routing (Phase 2)
+  operation_type:      z.enum(["pre_machining", "welding", "final_machining", "milling", "slitting", "deburring"]).optional(),
+  sequence_no:         z.number().int().optional(),
+  machine_id:          z.string().uuid().nullable().optional(),
+  planned_qty:         z.number().optional(),
+  completed_qty:       z.number().optional(),
+  rejected_qty:        z.number().optional(),
   welder_name:         z.string().optional(),
   welder_id:           z.string().optional(),
   weld_date:           z.string().optional(),
+  weld_qty_planned:    z.number().optional(),
   weld_qty_actual:     z.number().optional(),
   // Consumable
   consumable_master_id: z.string().uuid().nullable().optional(),
   consumable_batch:    z.string().optional(),
   weld_metal:          z.string().optional(),
+  consumable_feed_rate_planned: z.number().optional(),
   consumable_feed_rate: z.number().optional(),
   // Electrical parameters
   amps_required:       z.string().optional(),
   amps_actual:         z.number().optional(),
   volts_required:      z.string().optional(),
   volts_actual:        z.number().optional(),
+  polarity_planned:    z.string().optional(),
   polarity:            z.string().optional(),
   // Thermal
+  pre_heat_temp_planned:   z.number().optional(),
   pre_heat_temp:       z.number().optional(),
+  inter_pass_temp_planned: z.number().optional(),
   inter_pass_temp:     z.number().optional(),
+  post_heat_temp_planned:  z.number().optional(),
   post_heat_temp:      z.number().optional(),
   // Other
+  travel_speed_planned: z.number().optional(),
   travel_speed:        z.number().optional(),
+  gas_flow_rate_planned: z.number().optional(),
   gas_flow_rate:       z.number().optional(),
   weld_height:         z.number().optional(),
   notes:               z.string().optional(),

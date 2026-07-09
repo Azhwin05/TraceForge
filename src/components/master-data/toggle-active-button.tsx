@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { toggleMasterItemActive } from "@/app/(app)/master-data/actions"
 
-type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master"
+type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master" | "machines"
 
 interface Props {
   table: TogglableTable

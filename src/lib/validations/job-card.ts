@@ -13,6 +13,7 @@ export const createJobCardSchema = z.object({
     .array(z.enum(["welding", "machining", "cladding", "overlay"]))
     .min(1, "Select at least one process type"),
   received_date: z.string().min(1, "Received date is required"),
+  due_date: z.string().optional(),
 });
 
 export type CreateJobCardInput = z.infer<typeof createJobCardSchema>;
@@ -52,9 +53,12 @@ export const advancedJobCardSchema = z.object({
   overlay_material:      z.string().optional(),
   base_material_grade:   z.string().optional(),
   regularization:        z.string().optional(),
+  ring:                  z.string().optional(),
   ring_heat_no:          z.string().optional(),
   mpi_rt_no:             z.string().optional(),
+  welding_process:       z.string().optional(),
   punching_details:      z.string().optional(),
+  other_details:         z.string().optional(),
 });
 
 export type AdvancedJobCardInput = z.infer<typeof advancedJobCardSchema>;

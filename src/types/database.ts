@@ -19,7 +19,7 @@ export type ProcessType = "welding" | "machining" | "cladding" | "overlay";
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 export type GrnStatus = "pending" | "received" | "held";
 export type PaymentStatus = "pending" | "partial" | "received";
-export type ExecutionStatus = "assigned" | "in_progress" | "completed";
+export type ExecutionStatus = "assigned" | "in_progress" | "completed" | "skipped";
 export type PwhtJobStatus = "pending" | "passed" | "failed";
 export type PwhtApprovalStatus = "draft" | "submitted" | "approved" | "rejected";
 
@@ -28,6 +28,9 @@ export type WpsMasterStatus = "draft" | "approved" | "superseded";
 export type ConsumableType = "electrode" | "wire" | "flux" | "rod" | "other";
 export type ChemicalType = "penetrant" | "developer" | "cleaner" | "remover" | "other";
 export type InstrumentType = "pmi" | "dimensional" | "visual" | "hardness" | "nde" | "other";
+export type MachineCategory = "welding" | "machining";
+export type OperationType =
+  | "pre_machining" | "welding" | "final_machining" | "milling" | "slitting" | "deburring";
 export type NdeType = "lpt" | "mpi" | "rt" | "ut" | "vt" | "other";
 export type NdeResult = "pending" | "accepted" | "rejected";
 export type CoolingMethod = "air" | "furnace" | "controlled";
@@ -71,6 +74,7 @@ export interface Database {
           po_number: string | null; description: string;
           drawing_number: string | null; heat_number: string | null; part_number: string | null;
           quantity: number; process_type: ProcessType[]; received_date: string;
+          due_date: string | null;
           status: JobCardStatus; previous_status: JobCardStatus | null;
           stage_entered_at: string; created_by: string | null; created_at: string; updated_at: string;
           // Phase 6 — advanced details
@@ -83,12 +87,14 @@ export interface Database {
           qc_checked_by: string | null; qc_checked_date: string | null;
           stores_checked_by: string | null; stores_checked_date: string | null;
           punching_details: string | null;
+          welding_process: string | null; ring: string | null; other_details: string | null;
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
           po_number?: string | null; description: string;
           drawing_number?: string | null; heat_number?: string | null; part_number?: string | null;
           quantity?: number; process_type: ProcessType[]; received_date?: string;
+          due_date?: string | null;
           status?: JobCardStatus; previous_status?: JobCardStatus | null;
           stage_entered_at?: string; created_by?: string | null; created_at?: string; updated_at?: string;
           product_group?: string | null; buyer?: string | null; material_code?: string | null;
@@ -99,6 +105,7 @@ export interface Database {
           qc_checked_by?: string | null; qc_checked_date?: string | null;
           stores_checked_by?: string | null; stores_checked_date?: string | null;
           punching_details?: string | null;
+          welding_process?: string | null; ring?: string | null; other_details?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];
@@ -192,10 +199,13 @@ export interface Database {
         ];
       };
       process_executions: {
-        Row: { id: string; job_card_id: string; process_type: ProcessType; welder_name: string | null; amps_required: string | null; volts_required: string | null; amps_actual: number | null; volts_actual: number | null; travel_speed: number | null; gas_flow_rate: number | null; pre_heat_temp: number | null; inter_pass_temp: number | null; weld_height: number | null; polarity: string | null; consumable_batch: string | null; notes: string | null; assigned_to: string | null; started_at: string | null; completed_at: string | null; status: ExecutionStatus; consumable_master_id: string | null; weld_date: string | null; post_heat_temp: number | null; consumable_feed_rate: number | null; weld_metal: string | null; weld_qty_actual: number | null; welder_id: string | null };
-        Insert: { id?: string; job_card_id: string; process_type: ProcessType; welder_name?: string | null; amps_required?: string | null; volts_required?: string | null; amps_actual?: number | null; volts_actual?: number | null; travel_speed?: number | null; gas_flow_rate?: number | null; pre_heat_temp?: number | null; inter_pass_temp?: number | null; weld_height?: number | null; polarity?: string | null; consumable_batch?: string | null; notes?: string | null; assigned_to?: string | null; started_at?: string | null; completed_at?: string | null; status?: ExecutionStatus; consumable_master_id?: string | null; weld_date?: string | null; post_heat_temp?: number | null; consumable_feed_rate?: number | null; weld_metal?: string | null; weld_qty_actual?: number | null; welder_id?: string | null };
+        Row: { id: string; job_card_id: string; process_type: ProcessType; welder_name: string | null; amps_required: string | null; volts_required: string | null; amps_actual: number | null; volts_actual: number | null; travel_speed: number | null; gas_flow_rate: number | null; pre_heat_temp: number | null; inter_pass_temp: number | null; weld_height: number | null; polarity: string | null; consumable_batch: string | null; notes: string | null; assigned_to: string | null; started_at: string | null; completed_at: string | null; status: ExecutionStatus; consumable_master_id: string | null; weld_date: string | null; post_heat_temp: number | null; consumable_feed_rate: number | null; weld_metal: string | null; weld_qty_actual: number | null; welder_id: string | null; weld_qty_planned: number | null; pre_heat_temp_planned: number | null; inter_pass_temp_planned: number | null; post_heat_temp_planned: number | null; travel_speed_planned: number | null; gas_flow_rate_planned: number | null; consumable_feed_rate_planned: number | null; polarity_planned: string | null; operation_type: OperationType | null; sequence_no: number | null; machine_id: string | null; planned_qty: number | null; completed_qty: number | null; rejected_qty: number | null; override_by: string | null; override_reason: string | null };
+        Insert: { id?: string; job_card_id: string; process_type: ProcessType; welder_name?: string | null; amps_required?: string | null; volts_required?: string | null; amps_actual?: number | null; volts_actual?: number | null; travel_speed?: number | null; gas_flow_rate?: number | null; pre_heat_temp?: number | null; inter_pass_temp?: number | null; weld_height?: number | null; polarity?: string | null; consumable_batch?: string | null; notes?: string | null; assigned_to?: string | null; started_at?: string | null; completed_at?: string | null; status?: ExecutionStatus; consumable_master_id?: string | null; weld_date?: string | null; post_heat_temp?: number | null; consumable_feed_rate?: number | null; weld_metal?: string | null; weld_qty_actual?: number | null; welder_id?: string | null; weld_qty_planned?: number | null; pre_heat_temp_planned?: number | null; inter_pass_temp_planned?: number | null; post_heat_temp_planned?: number | null; travel_speed_planned?: number | null; gas_flow_rate_planned?: number | null; consumable_feed_rate_planned?: number | null; polarity_planned?: string | null; operation_type?: OperationType | null; sequence_no?: number | null; machine_id?: string | null; planned_qty?: number | null; completed_qty?: number | null; rejected_qty?: number | null; override_by?: string | null; override_reason?: string | null };
         Update: Partial<Database["public"]["Tables"]["process_executions"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          { foreignKeyName: "process_executions_consumable_master_id_fkey"; columns: ["consumable_master_id"]; isOneToOne: false; referencedRelation: "consumable_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "process_executions_machine_id_fkey"; columns: ["machine_id"]; isOneToOne: false; referencedRelation: "machines"; referencedColumns: ["id"] }
+        ];
       };
       pwht_runs: {
         Row: { id: string; chart_number: string; furnace_id: string; operator_name: string; loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number; date_of_cycle: string; doc_url: string | null; created_by: string | null; created_at: string; unloading_temp: number | null; cooling_method: CoolingMethod | null; pwht_result: "pass" | "fail" | null; storage_path: string | null; approval_status: PwhtApprovalStatus; approved_by: string | null; approved_at: string | null; rejected_by: string | null; rejected_at: string | null; rejection_reason: string | null; submitted_by: string | null; submitted_at: string | null; submitted_to_customer: boolean; submitted_to_customer_at: string | null; component_identification: string | null; wps_number: string | null; cycle_start: string | null; cycle_end: string | null; rate_of_cooling: number | null; notes: string | null; process_name: string | null; loading_time: number | null; unloading_time: number | null };
@@ -298,6 +308,20 @@ export interface Database {
           is_active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["consumable_master"]["Insert"]>;
+        Relationships: [];
+      };
+      machines: {
+        Row: {
+          id: string; machine_code: string; name: string; category: MachineCategory;
+          location: string | null; is_active: boolean; notes: string | null;
+          created_by: string | null; created_at: string; updated_at: string;
+        };
+        Insert: {
+          id?: string; machine_code: string; name: string; category: MachineCategory;
+          location?: string | null; is_active?: boolean; notes?: string | null;
+          created_by?: string | null; created_at?: string; updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["machines"]["Insert"]>;
         Relationships: [];
       };
       chemical_master: {
@@ -539,6 +563,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       generate_jc_number: { Args: Record<string, never>; Returns: string };
+      seed_process_operations: { Args: { p_job_card_id: string }; Returns: number };
       job_card_gate_blockers: {
         Args: { p_job_card_id: string; p_new_status: string };
         Returns: string[];
@@ -614,6 +639,7 @@ export type WpsMaster = Database["public"]["Tables"]["wps_master"]["Row"];
 export type ConsumableMaster = Database["public"]["Tables"]["consumable_master"]["Row"];
 export type ChemicalMaster = Database["public"]["Tables"]["chemical_master"]["Row"];
 export type InstrumentMaster = Database["public"]["Tables"]["instrument_master"]["Row"];
+export type Machine = Database["public"]["Tables"]["machines"]["Row"];
 export type NdeRecord = Database["public"]["Tables"]["nde_records"]["Row"];
 export type AirTestRecord = Database["public"]["Tables"]["air_test_records"]["Row"];
 export type Document = Database["public"]["Tables"]["documents"]["Row"];

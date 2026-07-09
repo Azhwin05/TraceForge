@@ -39,9 +39,12 @@ export async function upsertJobCardAdvancedDetails(
       overlay_material:     nullify(d.overlay_material),
       base_material_grade:  nullify(d.base_material_grade),
       regularization:       nullify(d.regularization),
+      ring:                 nullify(d.ring),
       ring_heat_no:         nullify(d.ring_heat_no),
       mpi_rt_no:            nullify(d.mpi_rt_no),
+      welding_process:      nullify(d.welding_process),
       punching_details:     nullify(d.punching_details),
+      other_details:        nullify(d.other_details),
     })
     .eq("id", jobCardId)
 
