@@ -82,12 +82,19 @@ export async function updateProcessStatus(
   if (status === "completed") update.completed_at = new Date().toISOString()
   if (overrideReason) update.override_reason = overrideReason
 
-  const { error } = await supabase
+  // Return the updated row so we can detect a 0-row update. RLS can silently
+  // filter an UPDATE (HTTP 200, no error, 0 rows), which would otherwise be
+  // reported to the user as a false success.
+  const { data: updated, error } = await supabase
     .from("process_executions")
     .update(update)
     .eq("id", executionId)
+    .select("id")
 
   if (error) return { error: error.message }
+  if (!updated || updated.length === 0) {
+    return { error: "Update was not applied — you may not have permission to change this operation." }
+  }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }
