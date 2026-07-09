@@ -88,6 +88,12 @@ export interface Database {
           stores_checked_by: string | null; stores_checked_date: string | null;
           punching_details: string | null;
           welding_process: string | null; ring: string | null; other_details: string | null;
+          // 0025 — full paper capture
+          wps_no: string | null;
+          consumable_brand: string | null; consumable_aws_class: string | null; consumable_size: string | null;
+          consumable_batch_no: string | null; consumable_mfg_date: string | null;
+          weld_deposit_thickness_before: string | null; weld_deposit_thickness_after: string | null;
+          despatch_dc_no: string | null; despatch_date: string | null;
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -106,6 +112,11 @@ export interface Database {
           stores_checked_by?: string | null; stores_checked_date?: string | null;
           punching_details?: string | null;
           welding_process?: string | null; ring?: string | null; other_details?: string | null;
+          wps_no?: string | null;
+          consumable_brand?: string | null; consumable_aws_class?: string | null; consumable_size?: string | null;
+          consumable_batch_no?: string | null; consumable_mfg_date?: string | null;
+          weld_deposit_thickness_before?: string | null; weld_deposit_thickness_after?: string | null;
+          despatch_dc_no?: string | null; despatch_date?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];

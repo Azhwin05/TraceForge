@@ -3,8 +3,95 @@
 import { revalidatePath } from "next/cache"
 import { requireAuth, requireRole } from "@/lib/auth"
 import { sanitizeError } from "@/lib/security"
-import type { CreateJobCardInput, CreateClientInput, CreateWpsInput } from "@/lib/validations/job-card"
+import type { CreateClientInput, CreateWpsInput, FullJobCardInput } from "@/lib/validations/job-card"
 import type { JobCardStatus, UserRole } from "@/types/database"
+
+// Map the full-form input to job_cards columns. Optional blanks become null.
+function jobCardColumns(data: FullJobCardInput) {
+  const s = (v: string | undefined) => (v && v.trim() ? v.trim() : null)
+  return {
+    client_id: data.client_id,
+    nbdn_number: data.nbdn_number,
+    description: data.description,
+    quantity: data.quantity,
+    process_type: data.process_type,
+    received_date: data.received_date,
+    po_number: s(data.po_number),
+    drawing_number: s(data.drawing_number),
+    heat_number: s(data.heat_number),
+    part_number: s(data.part_number),
+    due_date: s(data.due_date),
+    product_group: s(data.product_group),
+    buyer: s(data.buyer),
+    material_code: s(data.material_code),
+    valve_size_class: s(data.valve_size_class),
+    valve_type_component: s(data.valve_type_component),
+    base_material: s(data.base_material),
+    overlay_material: s(data.overlay_material),
+    base_material_grade: s(data.base_material_grade),
+    regularization: s(data.regularization),
+    wps_no: s(data.wps_no),
+    ring: s(data.ring),
+    ring_heat_no: s(data.ring_heat_no),
+    mpi_rt_no: s(data.mpi_rt_no),
+    welding_process: s(data.welding_process),
+    consumable_brand: s(data.consumable_brand),
+    consumable_aws_class: s(data.consumable_aws_class),
+    consumable_size: s(data.consumable_size),
+    consumable_batch_no: s(data.consumable_batch_no),
+    consumable_mfg_date: s(data.consumable_mfg_date),
+    weld_deposit_thickness_before: s(data.weld_deposit_thickness_before),
+    weld_deposit_thickness_after: s(data.weld_deposit_thickness_after),
+    punching_details: s(data.punching_details),
+    despatch_dc_no: s(data.despatch_dc_no),
+    despatch_date: s(data.despatch_date),
+    other_details: s(data.other_details),
+    production_checked_by: s(data.production_checked_by),
+    production_checked_date: s(data.production_checked_date),
+    qc_checked_by: s(data.qc_checked_by),
+    qc_checked_date: s(data.qc_checked_date),
+    stores_checked_by: s(data.stores_checked_by),
+    stores_checked_date: s(data.stores_checked_date),
+  }
+}
+
+// Welding details that live on the welding process_executions row.
+function weldingColumns(data: FullJobCardInput) {
+  const s = (v: string | undefined) => (v && v.trim() ? v.trim() : null)
+  const n = (v: number | undefined) => (v == null || Number.isNaN(v) ? null : v)
+  return {
+    welder_name: s(data.welder_name),
+    welder_id: s(data.welder_id),
+    weld_metal: s(data.weld_metal),
+    weld_height: n(data.weld_height),
+    weld_qty_planned: n(data.weld_qty_planned),
+    weld_qty_actual: n(data.weld_qty_actual),
+    weld_date: s(data.weld_date),
+    pre_heat_temp_planned: n(data.pre_heat_temp_planned),
+    pre_heat_temp: n(data.pre_heat_temp),
+    inter_pass_temp_planned: n(data.inter_pass_temp_planned),
+    inter_pass_temp: n(data.inter_pass_temp),
+    post_heat_temp_planned: n(data.post_heat_temp_planned),
+    post_heat_temp: n(data.post_heat_temp),
+    amps_required: s(data.amps_required),
+    amps_actual: n(data.amps_actual),
+    volts_required: s(data.volts_required),
+    volts_actual: n(data.volts_actual),
+    travel_speed_planned: n(data.travel_speed_planned),
+    travel_speed: n(data.travel_speed),
+    gas_flow_rate_planned: n(data.gas_flow_rate_planned),
+    gas_flow_rate: n(data.gas_flow_rate),
+    consumable_feed_rate_planned: n(data.consumable_feed_rate_planned),
+    consumable_feed_rate: n(data.consumable_feed_rate),
+    polarity_planned: s(data.polarity_planned),
+    polarity: s(data.polarity),
+  }
+}
+
+// True when the form carries at least one welding-detail value worth persisting.
+function hasWeldingData(w: ReturnType<typeof weldingColumns>): boolean {
+  return Object.values(w).some((v) => v !== null && v !== undefined)
+}
 
 // Roles allowed to move a job card TO each status
 const STATUS_ALLOWED_ROLES: Record<JobCardStatus, UserRole[]> = {
@@ -24,8 +111,33 @@ const STATUS_ALLOWED_ROLES: Record<JobCardStatus, UserRole[]> = {
   on_hold:              ["admin", "operator", "engineer", "qa", "accounts"],
 }
 
+// Write the welding-detail fields onto this job's welding operation row. Best-effort:
+// only runs when the form carried welding data and a welding operation exists.
+async function applyWeldingDetails(
+  supabase: NonNullable<Awaited<ReturnType<typeof requireRole>>["supabase"]>,
+  jobCardId: string,
+  data: FullJobCardInput
+) {
+  const welding = weldingColumns(data)
+  if (!hasWeldingData(welding)) return
+
+  // Prefer the routed welding operation; fall back to any welding-type execution row.
+  const { data: rows } = await supabase
+    .from("process_executions")
+    .select("id, operation_type, process_type")
+    .eq("job_card_id", jobCardId)
+    .or("operation_type.eq.welding,process_type.eq.welding")
+    .order("sequence_no", { ascending: true, nullsFirst: false })
+
+  const target = rows?.find((r) => r.operation_type === "welding") ?? rows?.[0]
+  if (!target) return
+
+  const { error } = await supabase.from("process_executions").update(welding).eq("id", target.id)
+  if (error) console.error("[job-cards] welding details update failed:", error.message)
+}
+
 export async function createJobCard(
-  data: CreateJobCardInput
+  data: FullJobCardInput
 ): Promise<{ error?: string; id?: string }> {
   const guard = await requireRole(["admin", "operator", "qa", "engineer", "accounts", "management"])
   if (guard.error) return { error: guard.error }
@@ -41,17 +153,7 @@ export async function createJobCard(
     .from("job_cards")
     .insert({
       jc_number: jcNumber,
-      client_id: data.client_id,
-      nbdn_number: data.nbdn_number,
-      po_number: data.po_number || null,
-      description: data.description,
-      drawing_number: data.drawing_number || null,
-      heat_number: data.heat_number || null,
-      part_number: data.part_number || null,
-      quantity: data.quantity,
-      process_type: data.process_type,
-      received_date: data.received_date,
-      due_date: data.due_date || null,
+      ...jobCardColumns(data),
       status: "created",
       created_by: user.id,
     })
@@ -67,9 +169,36 @@ export async function createJobCard(
     .rpc("seed_process_operations", { p_job_card_id: jobCard.id })
   if (seedError) console.error("[job-cards] routing seed failed:", seedError.message)
 
+  // Persist any welding details entered on the Job Card form.
+  await applyWeldingDetails(supabase, jobCard.id, data)
+
   revalidatePath("/job-cards")
   revalidatePath("/dashboard")
   return { id: jobCard.id }
+}
+
+// Update an existing Job Card from the same full form (header + welding + closing).
+export async function updateFullJobCard(
+  jobCardId: string,
+  data: FullJobCardInput
+): Promise<{ error?: string; id?: string }> {
+  const guard = await requireRole(["admin", "operator", "qa", "engineer"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update(jobCardColumns(data))
+    .eq("id", jobCardId)
+
+  if (error) { console.error("[job-cards]", error); return { error: sanitizeError(error) } }
+
+  await applyWeldingDetails(supabase, jobCardId, data)
+
+  revalidatePath(`/job-cards/${jobCardId}`)
+  revalidatePath("/job-cards")
+  revalidatePath("/dashboard")
+  return { id: jobCardId }
 }
 
 // Set / update the production due date on a job card.

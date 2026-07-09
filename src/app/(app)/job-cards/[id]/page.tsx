@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Calendar, User, Layers } from "lucide-react"
+import { ArrowLeft, Calendar, User, Layers, Pencil } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getSessionWithProfile } from "@/lib/auth"
 import { StatusBadge } from "@/components/job-cards/status-badge"
@@ -228,6 +228,14 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {["admin", "operator", "qa", "engineer"].includes(userRole) && (
+              <Link
+                href={`/job-cards/${jc.id}/edit`}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-sm font-medium hover:bg-muted"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Link>
+            )}
             <JobCardPdfButton jobCardId={jc.id} />
             <StatusActions
               jobCardId={jc.id}

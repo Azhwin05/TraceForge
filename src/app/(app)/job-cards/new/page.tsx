@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { CreateJobCardForm } from "@/components/job-cards/create-job-card-form"
+import { JobCardFullForm } from "@/components/job-cards/job-card-full-form"
 import type { Client } from "@/types/database"
 
 export const metadata = { title: "New Job Card — ValveTrack" }
@@ -15,7 +15,7 @@ export default async function NewJobCardPage() {
     .order("name")
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-5xl">
       <div className="mb-6">
         <Link
           href="/job-cards"
@@ -29,7 +29,7 @@ export default async function NewJobCardPage() {
         </p>
       </div>
 
-      <CreateJobCardForm initialClients={(clients ?? []) as Client[]} />
+      <JobCardFullForm initialClients={(clients ?? []) as Client[]} />
     </div>
   )
 }
