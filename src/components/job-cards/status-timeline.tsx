@@ -1,30 +1,22 @@
 import { cn } from "@/lib/utils"
 import type { JobCardStatus } from "@/types/database"
 
-const ORDERED_STATUSES: JobCardStatus[] = [
-  "created", "wps_pending", "wps_uploaded", "wps_approved",
-  "process_assigned", "in_process", "process_complete",
-  "reports_pending", "reports_complete",
-  "dispatch_ready", "dispatched",
-  "accounts_processing", "closed",
+// Each step maps to one or more underlying statuses. "Ready" (dispatch_ready)
+// and "Dispatched" are merged into a single "Dispatch" step.
+const STEPS: { label: string; statuses: JobCardStatus[] }[] = [
+  { label: "Created",         statuses: ["created"] },
+  { label: "WPS Pending",     statuses: ["wps_pending"] },
+  { label: "WPS Uploaded",    statuses: ["wps_uploaded"] },
+  { label: "WPS Approved",    statuses: ["wps_approved"] },
+  { label: "Assigned",        statuses: ["process_assigned"] },
+  { label: "In Process",      statuses: ["in_process"] },
+  { label: "Process Done",    statuses: ["process_complete"] },
+  { label: "Reports Pending", statuses: ["reports_pending"] },
+  { label: "Reports Done",    statuses: ["reports_complete"] },
+  { label: "Dispatch",        statuses: ["dispatch_ready", "dispatched"] },
+  { label: "Accounts",        statuses: ["accounts_processing"] },
+  { label: "Closed",          statuses: ["closed"] },
 ]
-
-const STATUS_LABELS: Record<JobCardStatus, string> = {
-  created: "Created",
-  wps_pending: "WPS Pending",
-  wps_uploaded: "WPS Uploaded",
-  wps_approved: "WPS Approved",
-  process_assigned: "Assigned",
-  in_process: "In Process",
-  process_complete: "Process Done",
-  reports_pending: "Reports Pending",
-  reports_complete: "Reports Done",
-  dispatch_ready: "Ready",
-  dispatched: "Dispatched",
-  accounts_processing: "Accounts",
-  closed: "Closed",
-  on_hold: "On Hold",
-}
 
 export function StatusTimeline({ status }: { status: JobCardStatus }) {
   if (status === "on_hold") {
@@ -36,18 +28,19 @@ export function StatusTimeline({ status }: { status: JobCardStatus }) {
     )
   }
 
-  const currentIndex = ORDERED_STATUSES.indexOf(status)
+  const currentIndex = STEPS.findIndex((step) => step.statuses.includes(status))
 
   return (
     <div className="w-full overflow-x-auto">
       <div className="flex items-center min-w-max">
-        {ORDERED_STATUSES.map((s, i) => {
+        {STEPS.map((step, i) => {
+          const s = step.label
           const isDone = i < currentIndex
           const isCurrent = i === currentIndex
           const isUpcoming = i > currentIndex
 
           return (
-            <div key={s} className="flex items-center">
+            <div key={step.label} className="flex items-center">
               <div className="flex flex-col items-center gap-1">
                 <div
                   className={cn(
@@ -67,10 +60,10 @@ export function StatusTimeline({ status }: { status: JobCardStatus }) {
                     isUpcoming && "text-muted-foreground/50"
                   )}
                 >
-                  {STATUS_LABELS[s]}
+                  {s}
                 </span>
               </div>
-              {i < ORDERED_STATUSES.length - 1 && (
+              {i < STEPS.length - 1 && (
                 <div
                   className={cn(
                     "h-0.5 w-8 mx-0.5 -mt-4 transition-colors",

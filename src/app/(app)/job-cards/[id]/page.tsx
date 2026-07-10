@@ -102,6 +102,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         *,
         client:clients(*),
         creator:profiles!created_by(id, full_name),
+        dispatch_validator:profiles!dispatch_validated_by(id, full_name),
         wps_qualifications(*, wps_master:wps_master(id,wps_no,pqr_no,welding_process,filler_material,filler_aws_class,filler_size,preheat_min,interpass_max,pwht_required,pwht_temp_min,pwht_temp_max,electrical_params_json,revision,status)),
         process_executions(*),
         dispatches(*),
@@ -427,6 +428,11 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         status={jc.status}
         userRole={userRole}
         dispatches={jc.dispatches ?? []}
+        validatedAt={jc.dispatch_validated_at ?? null}
+        validatedByName={
+          (jc as unknown as { dispatch_validator?: { full_name?: string | null } | null })
+            .dispatch_validator?.full_name ?? null
+        }
       />
 
       {/* Accounts Section */}

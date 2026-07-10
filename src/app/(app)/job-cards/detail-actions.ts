@@ -107,15 +107,19 @@ export async function createDispatch(
   if (guard.error) return { error: guard.error }
   const { supabase, user } = guard
 
-  // Gate: job must be in dispatch_ready status
+  // Gate: job must be in dispatch_ready status AND physically validated
   const { data: jc } = await supabase
     .from("job_cards")
-    .select("status")
+    .select("status, dispatch_validated_at")
     .eq("id", jobCardId)
     .single()
 
   if (jc?.status !== "dispatch_ready") {
     return { error: "Job card must be in dispatch_ready status before dispatching" }
+  }
+
+  if (!jc?.dispatch_validated_at) {
+    return { error: "Product must be physically verified (Ready to Dispatch) before dispatching" }
   }
 
   // Document gates — approved WPS / inspection reports / PWHT (if required).
@@ -150,6 +154,43 @@ export async function createDispatch(
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/job-cards")
   revalidatePath("/dashboard")
+  return {}
+}
+
+/**
+ * Physical dispatch validation — an Admin or QA user confirms they have
+ * inspected the finished product in real life and it is Ready to Dispatch.
+ * Toggling off clears the validation. Only allowed while in dispatch_ready.
+ */
+export async function validateDispatch(
+  jobCardId: string,
+  validated: boolean
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase, user } = guard
+
+  const { data: jc } = await supabase
+    .from("job_cards")
+    .select("status")
+    .eq("id", jobCardId)
+    .single()
+
+  if (jc?.status !== "dispatch_ready") {
+    return { error: "Job card must be in the Dispatch stage to validate" }
+  }
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({
+      dispatch_validated_by: validated ? user.id : null,
+      dispatch_validated_at: validated ? new Date().toISOString() : null,
+    })
+    .eq("id", jobCardId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }
 

@@ -21,9 +21,13 @@ export default async function JobCardsPage({
 }) {
   const { status, page: pageParam } = await searchParams
 
-  const activeStatus = VALID_STATUSES.includes(status as JobCardStatus)
-    ? (status as JobCardStatus)
-    : null
+  // "dispatch" is a combined filter covering both dispatch_ready and dispatched.
+  const isDispatchFilter = status === "dispatch"
+  const activeStatus: string | null = isDispatchFilter
+    ? "dispatch"
+    : VALID_STATUSES.includes(status as JobCardStatus)
+      ? (status as JobCardStatus)
+      : null
 
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1)
   const from = (page - 1) * PAGE_SIZE
@@ -40,8 +44,10 @@ export default async function JobCardsPage({
     .order("created_at", { ascending: false })
     .range(from, to)
 
-  if (activeStatus) {
-    query = query.eq("status", activeStatus)
+  if (isDispatchFilter) {
+    query = query.in("status", ["dispatch_ready", "dispatched"])
+  } else if (activeStatus) {
+    query = query.eq("status", activeStatus as JobCardStatus)
   }
 
   const [{ data, count }, { count: activeCount }] = await Promise.all([

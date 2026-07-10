@@ -6,7 +6,7 @@ import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lu
 import { buttonVariants } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { jobCardColumns } from "@/components/job-cards/columns"
-import type { JobCardWithRelations, JobCardStatus } from "@/types/database"
+import type { JobCardWithRelations } from "@/types/database"
 
 const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "All Statuses" },
@@ -19,8 +19,7 @@ const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
   { value: "process_complete", label: "Process Complete" },
   { value: "reports_pending", label: "Reports Pending" },
   { value: "reports_complete", label: "Reports Complete" },
-  { value: "dispatch_ready", label: "Dispatch Ready" },
-  { value: "dispatched", label: "Dispatched" },
+  { value: "dispatch", label: "Dispatch" },
   { value: "accounts_processing", label: "Accounts Processing" },
   { value: "closed", label: "Closed" },
   { value: "on_hold", label: "On Hold" },
@@ -38,7 +37,7 @@ export function JobCardsClient({
   jobCards: JobCardWithRelations[]
   totalCount: number
   activeCount: number
-  currentStatus: JobCardStatus | null
+  currentStatus: string | null
   page: number
   pageSize: number
   totalPages: number

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Truck } from "lucide-react"
+import { Truck, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentCard } from "@/components/documents/document-card"
 import { FileUpload } from "@/components/documents/file-upload"
 import { dispatchSchema, type DispatchInput } from "@/lib/validations/process-execution"
-import { createDispatch } from "@/app/(app)/job-cards/detail-actions"
+import { createDispatch, validateDispatch } from "@/app/(app)/job-cards/detail-actions"
 import type { Dispatch, JobCardStatus, UserRole } from "@/types/database"
 
 export function DispatchSection({
@@ -22,17 +22,35 @@ export function DispatchSection({
   status,
   userRole,
   dispatches,
+  validatedAt,
+  validatedByName,
 }: {
   jobCardId: string
   status: JobCardStatus
   userRole: UserRole
   dispatches: Dispatch[]
+  validatedAt?: string | null
+  validatedByName?: string | null
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  const canDispatch = ["admin"].includes(userRole) && status === "dispatch_ready"
+  const isValidated = !!validatedAt
+  const canValidate = ["admin", "qa"].includes(userRole) && status === "dispatch_ready"
+  const canDispatch = ["admin"].includes(userRole) && status === "dispatch_ready" && isValidated
   const hasDispatched = dispatches.length > 0
+
+  function handleValidate(next: boolean) {
+    startTransition(async () => {
+      const result = await validateDispatch(jobCardId, next)
+      if (result.error) {
+        toast.error("Validation failed", { description: result.error })
+      } else {
+        toast.success(next ? "Product verified — Ready to Dispatch" : "Validation cleared")
+        router.refresh()
+      }
+    })
+  }
 
   const { register, handleSubmit, formState: { errors } } = useForm<DispatchInput>({
     resolver: zodResolver(dispatchSchema),
@@ -64,6 +82,55 @@ export function DispatchSection({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Physical validation gate — Admin/QA verify the product in real life */}
+        {status === "dispatch_ready" && (
+          <div className="rounded-lg border border-border p-3 space-y-2">
+            {isValidated ? (
+              <div className="flex items-start gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-600 shrink-0" />
+                <div>
+                  <p className="font-medium text-green-700 dark:text-green-400">
+                    Ready to Dispatch — physically verified
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {validatedByName ? `By ${validatedByName}` : "Verified"}
+                    {validatedAt && ` · ${new Date(validatedAt).toLocaleDateString("en-IN", {
+                      day: "numeric", month: "short", year: "numeric",
+                    })}`}
+                  </p>
+                  {canValidate && (
+                    <Button
+                      size="xs"
+                      variant="ghost"
+                      className="mt-1 h-6 px-1 text-xs text-muted-foreground"
+                      disabled={isPending}
+                      onClick={() => handleValidate(false)}
+                    >
+                      Undo validation
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : canValidate ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start gap-2 text-sm">
+                  <ShieldCheck className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                  <p className="text-muted-foreground">
+                    Physically inspect the finished product, then mark it ready to dispatch.
+                  </p>
+                </div>
+                <Button size="sm" disabled={isPending} onClick={() => handleValidate(true)}>
+                  {isPending ? "Saving..." : "Mark Ready to Dispatch"}
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Awaiting physical verification by Admin or QA before dispatch.
+              </p>
+            )}
+          </div>
+        )}
+
         {hasDispatched && (
           <div className="space-y-2">
             {dispatches.map((d) => (
@@ -160,7 +227,7 @@ export function DispatchSection({
           </form>
         )}
 
-        {!hasDispatched && !canDispatch && (
+        {!hasDispatched && !canDispatch && status !== "dispatch_ready" && (
           <p className="text-sm text-muted-foreground">Dispatch details will appear here.</p>
         )}
       </CardContent>

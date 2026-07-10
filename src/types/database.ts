@@ -94,6 +94,8 @@ export interface Database {
           consumable_batch_no: string | null; consumable_mfg_date: string | null;
           weld_deposit_thickness_before: string | null; weld_deposit_thickness_after: string | null;
           despatch_dc_no: string | null; despatch_date: string | null;
+          // 0029 — physical dispatch validation gate
+          dispatch_validated_by: string | null; dispatch_validated_at: string | null;
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -117,6 +119,7 @@ export interface Database {
           consumable_batch_no?: string | null; consumable_mfg_date?: string | null;
           weld_deposit_thickness_before?: string | null; weld_deposit_thickness_after?: string | null;
           despatch_dc_no?: string | null; despatch_date?: string | null;
+          dispatch_validated_by?: string | null; dispatch_validated_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];
