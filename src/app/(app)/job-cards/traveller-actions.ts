@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
-import { advancedJobCardSchema, signOffSchema, linkWpsMasterSchema, type AdvancedJobCardInput, type SignOffInput } from "@/lib/validations/job-card"
+import { advancedJobCardSchema, signOffSchema, linkWpsMasterSchema, linkWpsMasterByCodeSchema, type AdvancedJobCardInput, type SignOffInput } from "@/lib/validations/job-card"
+import { renderAndStoreWpsPdf } from "@/lib/wps-pdf"
 import { ndeRecordSchema, type NdeRecordInput } from "@/lib/validations/nde-record"
 import { airTestSchema, type AirTestInput } from "@/lib/validations/air-test"
 import type { UserRole } from "@/types/database"
@@ -238,6 +239,91 @@ export async function linkWpsMaster(
   if (error) return { error: error.message }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// linkWpsMasterByCode — admin + qa
+// "Enter WPS Number" shortcut: looks up the approved WPS Master by wps_no,
+// generates a fresh PDF snapshot from its current data, and attaches both the
+// link and the PDF to the job's WPS qualification in one step. This is the
+// "code → complete filled WPS" flow — no manual file hunting required.
+// ─────────────────────────────────────────────────────────────────────────────
+export async function linkWpsMasterByCode(
+  qualificationId: string,
+  jobCardId: string,
+  raw: { wps_no: string },
+): Promise<{ error?: string; wpsNo?: string; revision?: string }> {
+  const guard = await requireRole(["admin", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase, user } = guard
+
+  const parsed = linkWpsMasterByCodeSchema.safeParse(raw)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Validation error" }
+  const wpsNo = parsed.data.wps_no
+
+  // Case-insensitive exact match, most recent approved record wins if there
+  // happen to be duplicates (there is no DB-level uniqueness on wps_no).
+  const { data: masters, error: lookupErr } = await supabase
+    .from("wps_master")
+    .select("id, wps_no, revision, status")
+    .ilike("wps_no", wpsNo)
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  if (lookupErr) return { error: lookupErr.message }
+  const master = (masters as { id: string; wps_no: string; revision: string }[] | null)?.[0]
+  if (!master) {
+    return { error: `No approved WPS Master found with number "${wpsNo}". Check the number and try again.` }
+  }
+
+  const pdfResult = await renderAndStoreWpsPdf(supabase, master.id)
+  if ("error" in pdfResult) return { error: `WPS found, but PDF generation failed: ${pdfResult.error}` }
+  const { storagePath, fileName } = pdfResult
+
+  // Demote any previously generated PDF attached to this qualification, then
+  // record the new one — same pattern as the job-card / wps-master generate routes.
+  await supabase
+    .from("documents")
+    .update({ is_latest: false, is_active: false })
+    .eq("entity_type", "wps_qualification")
+    .eq("entity_id", qualificationId)
+    .eq("document_category", "generated")
+    .eq("document_type", "wps_pdf")
+
+  const { error: docErr } = await supabase.from("documents").insert({
+    entity_type:       "wps_qualification",
+    entity_id:         qualificationId,
+    job_card_id:        jobCardId,
+    document_type:     "wps_pdf",
+    storage_path:      storagePath,
+    file_name:         fileName,
+    mime_type:         "application/pdf",
+    document_category: "generated",
+    document_name:     `WPS ${master.wps_no} ${master.revision}`,
+    source_module:     "wps_master_link",
+    is_latest:         true,
+    is_active:         true,
+    uploaded_by:       user.id,
+  })
+  if (docErr) return { error: `WPS PDF generated, but could not attach it: ${docErr.message}` }
+
+  // Link the master and sync the qualification's own display fields + storage_path
+  // (the same column the existing DocumentCard on the Job Card reads directly).
+  const { error: updateErr } = await supabase
+    .from("wps_qualifications")
+    .update({
+      wps_master_id: master.id,
+      wps_number:    master.wps_no,
+      revision:      master.revision,
+      storage_path:  storagePath,
+    })
+    .eq("id", qualificationId)
+
+  if (updateErr) return { error: updateErr.message }
+
+  revalidatePath(`/job-cards/${jobCardId}`)
+  return { wpsNo: master.wps_no, revision: master.revision }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

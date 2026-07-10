@@ -172,3 +172,9 @@ export const linkWpsMasterSchema = z.object({
 });
 
 export type LinkWpsMasterInput = z.infer<typeof linkWpsMasterSchema>;
+
+export const linkWpsMasterByCodeSchema = z.object({
+  wps_no: z.string().trim().min(1, "Enter a WPS number"),
+});
+
+export type LinkWpsMasterByCodeInput = z.infer<typeof linkWpsMasterByCodeSchema>;

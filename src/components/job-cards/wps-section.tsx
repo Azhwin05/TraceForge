@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { CheckCircle, XCircle, Upload, Link2, Unlink } from "lucide-react"
+import { CheckCircle, XCircle, Upload, Link2, Unlink, Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ import { DocumentCard } from "@/components/documents/document-card"
 import { FileUpload } from "@/components/documents/file-upload"
 import { createWpsSchema, type CreateWpsInput } from "@/lib/validations/job-card"
 import { submitWps, approveWps, rejectWps } from "@/app/(app)/job-cards/actions"
-import { linkWpsMaster, unlinkWpsMaster } from "@/app/(app)/job-cards/traveller-actions"
+import { linkWpsMaster, unlinkWpsMaster, linkWpsMasterByCode } from "@/app/(app)/job-cards/traveller-actions"
 import type { WpsQualificationWithMaster, WpsMasterSummary, JobCardStatus, UserRole } from "@/types/database"
 
 function WpsMasterPanel({ master }: { master: WpsMasterSummary }) {
@@ -117,6 +117,57 @@ function LinkMasterForm({
             <Unlink className="h-3 w-3 mr-1" /> Unlink
           </Button>
         )}
+      </div>
+    </div>
+  )
+}
+
+// "Enter WPS Number" shortcut — looks up the approved WPS Master by number,
+// generates its PDF fresh, and attaches both the link and the PDF in one step.
+function LinkMasterByCodeForm({
+  qualificationId,
+  jobCardId,
+  onDone,
+}: {
+  qualificationId: string
+  jobCardId: string
+  onDone: () => void
+}) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [wpsNo, setWpsNo] = useState("")
+
+  function handleFetch() {
+    if (!wpsNo.trim()) return
+    startTransition(async () => {
+      const result = await linkWpsMasterByCode(qualificationId, jobCardId, { wps_no: wpsNo })
+      if (result.error) {
+        toast.error("Could not attach WPS", { description: result.error })
+      } else {
+        toast.success(`WPS ${result.wpsNo} Rev. ${result.revision} attached`, {
+          description: "The complete filled WPS PDF has been generated and linked.",
+        })
+        setWpsNo("")
+        onDone()
+        router.refresh()
+      }
+    })
+  }
+
+  return (
+    <div className="rounded border border-dashed border-border p-3 space-y-2 mt-2">
+      <p className="text-xs font-medium text-muted-foreground">Enter WPS Number — auto-attach complete filled WPS</p>
+      <div className="flex gap-2 items-end">
+        <Input
+          placeholder="WPS/RE/301"
+          value={wpsNo}
+          onChange={(e) => setWpsNo(e.target.value)}
+          className="h-8 text-xs flex-1"
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleFetch() } }}
+        />
+        <Button size="xs" disabled={isPending || !wpsNo.trim()} onClick={handleFetch}>
+          <Sparkles className="h-3 w-3 mr-1" /> {isPending ? "Fetching…" : "Fetch & Attach"}
+        </Button>
       </div>
     </div>
   )
@@ -262,16 +313,25 @@ export function WpsSection({
                   )}
 
                   {/* Link / unlink master — admin or QA only */}
-                  {canLinkMaster && wpsMasters.length > 0 && (
+                  {canLinkMaster && (
                     <>
                       {linkOpenFor === wps.id ? (
-                        <LinkMasterForm
-                          qualificationId={wps.id}
-                          jobCardId={jobCardId}
-                          masters={wpsMasters}
-                          currentMasterId={wps.wps_master_id}
-                          onDone={() => setLinkOpenFor(null)}
-                        />
+                        <>
+                          <LinkMasterByCodeForm
+                            qualificationId={wps.id}
+                            jobCardId={jobCardId}
+                            onDone={() => setLinkOpenFor(null)}
+                          />
+                          {wpsMasters.length > 0 && (
+                            <LinkMasterForm
+                              qualificationId={wps.id}
+                              jobCardId={jobCardId}
+                              masters={wpsMasters}
+                              currentMasterId={wps.wps_master_id}
+                              onDone={() => setLinkOpenFor(null)}
+                            />
+                          )}
+                        </>
                       ) : (
                         <Button
                           size="xs"

@@ -4,6 +4,7 @@ import { ArrowLeft, Edit } from "lucide-react"
 import { requireAuth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WpsApproveActions } from "@/components/master-data/wps-approve-actions"
+import { WpsMasterPdfButton } from "@/components/master-data/wps-master-pdf-button"
 import { DocumentCard } from "@/components/documents/document-card"
 import { FileUpload } from "@/components/documents/file-upload"
 import { cn } from "@/lib/utils"
@@ -155,6 +156,7 @@ export default async function WpsMasterDetailPage({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <WpsMasterPdfButton wpsId={id} />
             {canEdit && (
               <Link
                 href={`/master-data/wps/${id}/edit`}
