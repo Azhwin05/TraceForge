@@ -1,9 +1,3 @@
-// AUTO-GENERATED from the live Supabase schema on 2026-07-02 via supabase gen types.
-// Reference only — the app imports from ./database.ts (hand-written contract).
-// Use this as source of truth when migrating off the hand-written file.
-// Includes unrelated oes_* tables (shared project) — ignore those for ValveTrack.
-/* eslint-disable */
-
 export type Json =
   | string
   | number
@@ -91,6 +85,57 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      air_test_records: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          duration: string | null
+          id: string
+          job_card_id: string
+          notes: string | null
+          pressure: string | null
+          result: string
+          tester_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          duration?: string | null
+          id?: string
+          job_card_id: string
+          notes?: string | null
+          pressure?: string | null
+          result?: string
+          tester_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          duration?: string | null
+          id?: string
+          job_card_id?: string
+          notes?: string | null
+          pressure?: string | null
+          result?: string
+          tester_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "air_test_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "air_test_records_job_card_id_fkey"
+            columns: ["job_card_id"]
+            isOneToOne: false
+            referencedRelation: "job_cards"
             referencedColumns: ["id"]
           },
         ]
@@ -186,9 +231,11 @@ export type Database = {
       }
       chemical_master: {
         Row: {
+          batch_no: string | null
           chemical_name: string
           created_at: string
           created_by: string | null
+          expiry_date: string | null
           id: string
           is_active: boolean
           manufacturer: string | null
@@ -197,9 +244,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          batch_no?: string | null
           chemical_name: string
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           is_active?: boolean
           manufacturer?: string | null
@@ -208,9 +257,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          batch_no?: string | null
           chemical_name?: string
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           is_active?: boolean
           manufacturer?: string | null
@@ -261,12 +312,15 @@ export type Database = {
       consumable_master: {
         Row: {
           aws_class: string | null
+          batch_no: string | null
           brand: string
           created_at: string
           created_by: string | null
+          expiry_date: string | null
           id: string
           is_active: boolean
           manufacturer: string | null
+          manufacturing_date: string | null
           notes: string | null
           product_name: string
           size: string | null
@@ -275,12 +329,15 @@ export type Database = {
         }
         Insert: {
           aws_class?: string | null
+          batch_no?: string | null
           brand: string
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           is_active?: boolean
           manufacturer?: string | null
+          manufacturing_date?: string | null
           notes?: string | null
           product_name: string
           size?: string | null
@@ -289,12 +346,15 @@ export type Database = {
         }
         Update: {
           aws_class?: string | null
+          batch_no?: string | null
           brand?: string
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           is_active?: boolean
           manufacturer?: string | null
+          manufacturing_date?: string | null
           notes?: string | null
           product_name?: string
           size?: string | null
@@ -467,64 +527,139 @@ export type Database = {
       }
       dimension_reports: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           approved_by_name: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           dimension_status: string
+          dimensions: Json | null
           doc_url: string | null
+          drawing_number: string | null
+          drawing_revision: string | null
+          drawing_size: string | null
+          gauge_used: string | null
+          generated_pdf_path: string | null
+          heat_number: string | null
           id: string
           inspected_by: string | null
           instrument_master_id: string | null
           instrument_used: string | null
           job_card_id: string
+          machine_name: string | null
+          material_code: string | null
+          mp_dp_number: string | null
+          operator: string | null
           overall_result: string
+          po_number: string | null
           rejection_reason: string | null
+          report_date: string | null
+          report_number: string | null
           required_dimensions: Json
+          result_status: string | null
+          sample_number: string | null
           sample_readings: Json
           storage_path: string | null
+          submitted_at: string | null
+          submitted_to_customer: boolean
           tolerances: Json | null
           updated_at: string
+          vendor_name: string | null
           visual_result: string | null
+          visual_satisfactory: boolean | null
+          weld_deposit_thickness_after: string | null
+          weld_deposit_thickness_before: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           approved_by_name?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           dimension_status?: string
+          dimensions?: Json | null
           doc_url?: string | null
+          drawing_number?: string | null
+          drawing_revision?: string | null
+          drawing_size?: string | null
+          gauge_used?: string | null
+          generated_pdf_path?: string | null
+          heat_number?: string | null
           id?: string
           inspected_by?: string | null
           instrument_master_id?: string | null
           instrument_used?: string | null
           job_card_id: string
+          machine_name?: string | null
+          material_code?: string | null
+          mp_dp_number?: string | null
+          operator?: string | null
           overall_result: string
+          po_number?: string | null
           rejection_reason?: string | null
+          report_date?: string | null
+          report_number?: string | null
           required_dimensions: Json
+          result_status?: string | null
+          sample_number?: string | null
           sample_readings: Json
           storage_path?: string | null
+          submitted_at?: string | null
+          submitted_to_customer?: boolean
           tolerances?: Json | null
           updated_at?: string
+          vendor_name?: string | null
           visual_result?: string | null
+          visual_satisfactory?: boolean | null
+          weld_deposit_thickness_after?: string | null
+          weld_deposit_thickness_before?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           approved_by_name?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           dimension_status?: string
+          dimensions?: Json | null
           doc_url?: string | null
+          drawing_number?: string | null
+          drawing_revision?: string | null
+          drawing_size?: string | null
+          gauge_used?: string | null
+          generated_pdf_path?: string | null
+          heat_number?: string | null
           id?: string
           inspected_by?: string | null
           instrument_master_id?: string | null
           instrument_used?: string | null
           job_card_id?: string
+          machine_name?: string | null
+          material_code?: string | null
+          mp_dp_number?: string | null
+          operator?: string | null
           overall_result?: string
+          po_number?: string | null
           rejection_reason?: string | null
+          report_date?: string | null
+          report_number?: string | null
           required_dimensions?: Json
+          result_status?: string | null
+          sample_number?: string | null
           sample_readings?: Json
           storage_path?: string | null
+          submitted_at?: string | null
+          submitted_to_customer?: boolean
           tolerances?: Json | null
           updated_at?: string
+          vendor_name?: string | null
           visual_result?: string | null
+          visual_satisfactory?: boolean | null
+          weld_deposit_thickness_after?: string | null
+          weld_deposit_thickness_before?: string | null
         }
         Relationships: [
           {
@@ -691,6 +826,164 @@ export type Database = {
           },
         ]
       }
+      grn: {
+        Row: {
+          generated_at: string
+          generated_by: string | null
+          grn_number: string
+          id: string
+          material_inward_id: string
+          remarks: string | null
+          status: string
+        }
+        Insert: {
+          generated_at?: string
+          generated_by?: string | null
+          grn_number: string
+          id?: string
+          material_inward_id: string
+          remarks?: string | null
+          status?: string
+        }
+        Update: {
+          generated_at?: string
+          generated_by?: string | null
+          grn_number?: string
+          id?: string
+          material_inward_id?: string
+          remarks?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grn_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_material_inward_id_fkey"
+            columns: ["material_inward_id"]
+            isOneToOne: true
+            referencedRelation: "material_inward"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grn_items: {
+        Row: {
+          accepted_qty: number
+          grn_id: string
+          id: string
+          item_id: string
+          quality_inspection_id: string
+          remarks: string | null
+          storage_location_id: string
+          unit_rate: number | null
+          uom: string
+        }
+        Insert: {
+          accepted_qty: number
+          grn_id: string
+          id?: string
+          item_id: string
+          quality_inspection_id: string
+          remarks?: string | null
+          storage_location_id: string
+          unit_rate?: number | null
+          uom: string
+        }
+        Update: {
+          accepted_qty?: number
+          grn_id?: string
+          id?: string
+          item_id?: string
+          quality_inspection_id?: string
+          remarks?: string | null
+          storage_location_id?: string
+          unit_rate?: number | null
+          uom?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grn_items_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "grn"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_quality_inspection_id_fkey"
+            columns: ["quality_inspection_id"]
+            isOneToOne: false
+            referencedRelation: "quality_inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_items_storage_location_id_fkey"
+            columns: ["storage_location_id"]
+            isOneToOne: false
+            referencedRelation: "storage_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incoming_inspections: {
+        Row: {
+          documents_ok: boolean
+          id: string
+          inspected_by: string | null
+          inspection_date: string
+          material_inward_id: string
+          packaging_ok: boolean
+          quantity_ok: boolean
+          remarks: string | null
+        }
+        Insert: {
+          documents_ok: boolean
+          id?: string
+          inspected_by?: string | null
+          inspection_date?: string
+          material_inward_id: string
+          packaging_ok: boolean
+          quantity_ok: boolean
+          remarks?: string | null
+        }
+        Update: {
+          documents_ok?: boolean
+          id?: string
+          inspected_by?: string | null
+          inspection_date?: string
+          material_inward_id?: string
+          packaging_ok?: boolean
+          quantity_ok?: boolean
+          remarks?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incoming_inspections_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_inspections_material_inward_id_fkey"
+            columns: ["material_inward_id"]
+            isOneToOne: true
+            referencedRelation: "material_inward"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instrument_master: {
         Row: {
           calibration_cert_url: string | null
@@ -744,66 +1037,221 @@ export type Database = {
           },
         ]
       }
+      item_master: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          hsn_code: string | null
+          id: string
+          is_active: boolean
+          item_code: string
+          item_name: string
+          min_stock_level: number
+          uom: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          hsn_code?: string | null
+          id?: string
+          is_active?: boolean
+          item_code: string
+          item_name: string
+          min_stock_level?: number
+          uom: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          hsn_code?: string | null
+          id?: string
+          is_active?: boolean
+          item_code?: string
+          item_name?: string
+          min_stock_level?: number
+          uom?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_master_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_cards: {
         Row: {
+          base_material: string | null
+          base_material_grade: string | null
+          buyer: string | null
           client_id: string
+          consumable_aws_class: string | null
+          consumable_batch_no: string | null
+          consumable_brand: string | null
+          consumable_mfg_date: string | null
+          consumable_size: string | null
           created_at: string
           created_by: string | null
           description: string
+          despatch_date: string | null
+          despatch_dc_no: string | null
+          dispatch_validated_at: string | null
+          dispatch_validated_by: string | null
           drawing_number: string | null
+          due_date: string | null
           heat_number: string | null
           id: string
           jc_number: string
+          material_code: string | null
+          mpi_rt_no: string | null
           nbdn_number: string
+          other_details: string | null
+          overlay_material: string | null
           part_number: string | null
           po_number: string | null
           previous_status: string | null
           process_type: string[]
+          product_group: string | null
+          production_checked_by: string | null
+          production_checked_date: string | null
+          punching_details: string | null
+          qc_checked_by: string | null
+          qc_checked_date: string | null
           quantity: number
           received_date: string
+          regularization: string | null
+          ring: string | null
+          ring_heat_no: string | null
           stage_entered_at: string
           status: string
+          stores_checked_by: string | null
+          stores_checked_date: string | null
           updated_at: string
+          valve_size_class: string | null
+          valve_type_component: string | null
+          weld_deposit_thickness_after: string | null
+          weld_deposit_thickness_before: string | null
+          welding_process: string | null
+          wps_no: string | null
         }
         Insert: {
+          base_material?: string | null
+          base_material_grade?: string | null
+          buyer?: string | null
           client_id: string
+          consumable_aws_class?: string | null
+          consumable_batch_no?: string | null
+          consumable_brand?: string | null
+          consumable_mfg_date?: string | null
+          consumable_size?: string | null
           created_at?: string
           created_by?: string | null
           description: string
+          despatch_date?: string | null
+          despatch_dc_no?: string | null
+          dispatch_validated_at?: string | null
+          dispatch_validated_by?: string | null
           drawing_number?: string | null
+          due_date?: string | null
           heat_number?: string | null
           id?: string
           jc_number: string
+          material_code?: string | null
+          mpi_rt_no?: string | null
           nbdn_number: string
+          other_details?: string | null
+          overlay_material?: string | null
           part_number?: string | null
           po_number?: string | null
           previous_status?: string | null
           process_type: string[]
+          product_group?: string | null
+          production_checked_by?: string | null
+          production_checked_date?: string | null
+          punching_details?: string | null
+          qc_checked_by?: string | null
+          qc_checked_date?: string | null
           quantity?: number
           received_date?: string
+          regularization?: string | null
+          ring?: string | null
+          ring_heat_no?: string | null
           stage_entered_at?: string
           status?: string
+          stores_checked_by?: string | null
+          stores_checked_date?: string | null
           updated_at?: string
+          valve_size_class?: string | null
+          valve_type_component?: string | null
+          weld_deposit_thickness_after?: string | null
+          weld_deposit_thickness_before?: string | null
+          welding_process?: string | null
+          wps_no?: string | null
         }
         Update: {
+          base_material?: string | null
+          base_material_grade?: string | null
+          buyer?: string | null
           client_id?: string
+          consumable_aws_class?: string | null
+          consumable_batch_no?: string | null
+          consumable_brand?: string | null
+          consumable_mfg_date?: string | null
+          consumable_size?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
+          despatch_date?: string | null
+          despatch_dc_no?: string | null
+          dispatch_validated_at?: string | null
+          dispatch_validated_by?: string | null
           drawing_number?: string | null
+          due_date?: string | null
           heat_number?: string | null
           id?: string
           jc_number?: string
+          material_code?: string | null
+          mpi_rt_no?: string | null
           nbdn_number?: string
+          other_details?: string | null
+          overlay_material?: string | null
           part_number?: string | null
           po_number?: string | null
           previous_status?: string | null
           process_type?: string[]
+          product_group?: string | null
+          production_checked_by?: string | null
+          production_checked_date?: string | null
+          punching_details?: string | null
+          qc_checked_by?: string | null
+          qc_checked_date?: string | null
           quantity?: number
           received_date?: string
+          regularization?: string | null
+          ring?: string | null
+          ring_heat_no?: string | null
           stage_entered_at?: string
           status?: string
+          stores_checked_by?: string | null
+          stores_checked_date?: string | null
           updated_at?: string
+          valve_size_class?: string | null
+          valve_type_component?: string | null
+          weld_deposit_thickness_after?: string | null
+          weld_deposit_thickness_before?: string | null
+          welding_process?: string | null
+          wps_no?: string | null
         }
         Relationships: [
           {
@@ -820,6 +1268,256 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "job_cards_dispatch_validated_by_fkey"
+            columns: ["dispatch_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machines: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          machine_code: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          machine_code: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          machine_code?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machines_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_inward: {
+        Row: {
+          created_at: string
+          dc_date: string
+          dc_number: string
+          id: string
+          po_number: string | null
+          received_by: string | null
+          remarks: string | null
+          status: string
+          supplier_id: string
+          updated_at: string
+          vehicle_no: string | null
+        }
+        Insert: {
+          created_at?: string
+          dc_date?: string
+          dc_number: string
+          id?: string
+          po_number?: string | null
+          received_by?: string | null
+          remarks?: string | null
+          status?: string
+          supplier_id: string
+          updated_at?: string
+          vehicle_no?: string | null
+        }
+        Update: {
+          created_at?: string
+          dc_date?: string
+          dc_number?: string
+          id?: string
+          po_number?: string | null
+          received_by?: string | null
+          remarks?: string | null
+          status?: string
+          supplier_id?: string
+          updated_at?: string
+          vehicle_no?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_inward_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_inward_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_inward_items: {
+        Row: {
+          dc_quantity: number
+          id: string
+          item_id: string
+          material_inward_id: string
+          remarks: string | null
+          uom: string
+        }
+        Insert: {
+          dc_quantity: number
+          id?: string
+          item_id: string
+          material_inward_id: string
+          remarks?: string | null
+          uom: string
+        }
+        Update: {
+          dc_quantity?: number
+          id?: string
+          item_id?: string
+          material_inward_id?: string
+          remarks?: string | null
+          uom?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_inward_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_inward_items_material_inward_id_fkey"
+            columns: ["material_inward_id"]
+            isOneToOne: false
+            referencedRelation: "material_inward"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_issue_items: {
+        Row: {
+          id: string
+          issued_qty: number
+          item_id: string
+          material_issue_id: string
+          remarks: string | null
+          storage_location_id: string
+          uom: string
+        }
+        Insert: {
+          id?: string
+          issued_qty: number
+          item_id: string
+          material_issue_id: string
+          remarks?: string | null
+          storage_location_id: string
+          uom: string
+        }
+        Update: {
+          id?: string
+          issued_qty?: number
+          item_id?: string
+          material_issue_id?: string
+          remarks?: string | null
+          storage_location_id?: string
+          uom?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_issue_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_issue_items_material_issue_id_fkey"
+            columns: ["material_issue_id"]
+            isOneToOne: false
+            referencedRelation: "material_issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_issue_items_storage_location_id_fkey"
+            columns: ["storage_location_id"]
+            isOneToOne: false
+            referencedRelation: "storage_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_issues: {
+        Row: {
+          id: string
+          issue_date: string
+          issue_number: string
+          issued_by: string | null
+          job_card_id: string | null
+          remarks: string | null
+          status: string
+        }
+        Insert: {
+          id?: string
+          issue_date?: string
+          issue_number: string
+          issued_by?: string | null
+          job_card_id?: string | null
+          remarks?: string | null
+          status?: string
+        }
+        Update: {
+          id?: string
+          issue_date?: string
+          issue_number?: string
+          issued_by?: string | null
+          job_card_id?: string | null
+          remarks?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_issues_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_issues_job_card_id_fkey"
+            columns: ["job_card_id"]
+            isOneToOne: false
+            referencedRelation: "job_cards"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nde_records: {
@@ -827,17 +1525,24 @@ export type Database = {
           chemical_1_id: string | null
           chemical_2_id: string | null
           chemical_3_id: string | null
+          chemical_4_id: string | null
+          chemicals_used_json: Json | null
           created_at: string
           created_by: string | null
+          deposit_thickness: string | null
           developer_application: string | null
           developer_dwell_time: number | null
+          duration: string | null
           evaluation: string | null
+          hardness_requirement: string | null
           id: string
           inspected_by: string | null
           inspection_date: string | null
           job_card_id: string
+          nde_number: string | null
           nde_type: string
           notes: string | null
+          observer: string | null
           penetrant_application: string | null
           penetrant_dwell_time: number | null
           penetrant_removal: string | null
@@ -848,23 +1553,31 @@ export type Database = {
           stage_of_test: string | null
           surface_condition: string | null
           temperature_of_part: number | null
+          test_coupon_number: string | null
           type_of_penetrant: string | null
         }
         Insert: {
           chemical_1_id?: string | null
           chemical_2_id?: string | null
           chemical_3_id?: string | null
+          chemical_4_id?: string | null
+          chemicals_used_json?: Json | null
           created_at?: string
           created_by?: string | null
+          deposit_thickness?: string | null
           developer_application?: string | null
           developer_dwell_time?: number | null
+          duration?: string | null
           evaluation?: string | null
+          hardness_requirement?: string | null
           id?: string
           inspected_by?: string | null
           inspection_date?: string | null
           job_card_id: string
+          nde_number?: string | null
           nde_type: string
           notes?: string | null
+          observer?: string | null
           penetrant_application?: string | null
           penetrant_dwell_time?: number | null
           penetrant_removal?: string | null
@@ -875,23 +1588,31 @@ export type Database = {
           stage_of_test?: string | null
           surface_condition?: string | null
           temperature_of_part?: number | null
+          test_coupon_number?: string | null
           type_of_penetrant?: string | null
         }
         Update: {
           chemical_1_id?: string | null
           chemical_2_id?: string | null
           chemical_3_id?: string | null
+          chemical_4_id?: string | null
+          chemicals_used_json?: Json | null
           created_at?: string
           created_by?: string | null
+          deposit_thickness?: string | null
           developer_application?: string | null
           developer_dwell_time?: number | null
+          duration?: string | null
           evaluation?: string | null
+          hardness_requirement?: string | null
           id?: string
           inspected_by?: string | null
           inspection_date?: string | null
           job_card_id?: string
+          nde_number?: string | null
           nde_type?: string
           notes?: string | null
+          observer?: string | null
           penetrant_application?: string | null
           penetrant_dwell_time?: number | null
           penetrant_removal?: string | null
@@ -902,6 +1623,7 @@ export type Database = {
           stage_of_test?: string | null
           surface_condition?: string | null
           temperature_of_part?: number | null
+          test_coupon_number?: string | null
           type_of_penetrant?: string | null
         }
         Relationships: [
@@ -927,6 +1649,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nde_records_chemical_4_id_fkey"
+            columns: ["chemical_4_id"]
+            isOneToOne: false
+            referencedRelation: "chemical_master"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nde_records_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -938,578 +1667,6 @@ export type Database = {
             columns: ["job_card_id"]
             isOneToOne: false
             referencedRelation: "job_cards"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_admin_remarks: {
-        Row: {
-          application_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          remark: string
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          remark: string
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          remark?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_admin_remarks_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_application_status_history: {
-        Row: {
-          application_id: string
-          changed_by: string | null
-          created_at: string
-          from_status: Database["public"]["Enums"]["oes_app_status"] | null
-          id: string
-          note: string | null
-          to_status: Database["public"]["Enums"]["oes_app_status"]
-        }
-        Insert: {
-          application_id: string
-          changed_by?: string | null
-          created_at?: string
-          from_status?: Database["public"]["Enums"]["oes_app_status"] | null
-          id?: string
-          note?: string | null
-          to_status: Database["public"]["Enums"]["oes_app_status"]
-        }
-        Update: {
-          application_id?: string
-          changed_by?: string | null
-          created_at?: string
-          from_status?: Database["public"]["Enums"]["oes_app_status"] | null
-          id?: string
-          note?: string | null
-          to_status?: Database["public"]["Enums"]["oes_app_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_application_status_history_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_applications: {
-        Row: {
-          applicant_name: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          primary_phone: string
-          reference_number: string
-          status: Database["public"]["Enums"]["oes_app_status"]
-          submitted_at: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          applicant_name: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          primary_phone: string
-          reference_number?: string
-          status?: Database["public"]["Enums"]["oes_app_status"]
-          submitted_at?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          applicant_name?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          primary_phone?: string
-          reference_number?: string
-          status?: Database["public"]["Enums"]["oes_app_status"]
-          submitted_at?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      oes_audit_logs: {
-        Row: {
-          action: string
-          actor_email: string | null
-          actor_id: string | null
-          created_at: string
-          details: Json | null
-          entity: string | null
-          entity_id: string | null
-          id: string
-        }
-        Insert: {
-          action: string
-          actor_email?: string | null
-          actor_id?: string | null
-          created_at?: string
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string
-        }
-        Update: {
-          action?: string
-          actor_email?: string | null
-          actor_id?: string | null
-          created_at?: string
-          details?: Json | null
-          entity?: string | null
-          entity_id?: string | null
-          id?: string
-        }
-        Relationships: []
-      }
-      oes_documents: {
-        Row: {
-          application_id: string
-          bucket: string
-          created_at: string
-          deleted_at: string | null
-          document_type: Database["public"]["Enums"]["oes_document_type"]
-          file_name: string | null
-          id: string
-          mime_type: string | null
-          path: string
-          size_bytes: number | null
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          bucket: string
-          created_at?: string
-          deleted_at?: string | null
-          document_type: Database["public"]["Enums"]["oes_document_type"]
-          file_name?: string | null
-          id?: string
-          mime_type?: string | null
-          path: string
-          size_bytes?: number | null
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          bucket?: string
-          created_at?: string
-          deleted_at?: string | null
-          document_type?: Database["public"]["Enums"]["oes_document_type"]
-          file_name?: string | null
-          id?: string
-          mime_type?: string | null
-          path?: string
-          size_bytes?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_documents_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_education_details: {
-        Row: {
-          application_id: string
-          course_duration: number | null
-          course_name: string | null
-          created_at: string
-          current_semester: number | null
-          current_year: number | null
-          has_scholarship: boolean
-          id: string
-          institution_name: string | null
-          institution_type:
-            | Database["public"]["Enums"]["oes_school_type"]
-            | null
-          scholarship_details: string | null
-          school_name: string | null
-          school_type: Database["public"]["Enums"]["oes_school_type"] | null
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          course_duration?: number | null
-          course_name?: string | null
-          created_at?: string
-          current_semester?: number | null
-          current_year?: number | null
-          has_scholarship?: boolean
-          id?: string
-          institution_name?: string | null
-          institution_type?:
-            | Database["public"]["Enums"]["oes_school_type"]
-            | null
-          scholarship_details?: string | null
-          school_name?: string | null
-          school_type?: Database["public"]["Enums"]["oes_school_type"] | null
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          course_duration?: number | null
-          course_name?: string | null
-          created_at?: string
-          current_semester?: number | null
-          current_year?: number | null
-          has_scholarship?: boolean
-          id?: string
-          institution_name?: string | null
-          institution_type?:
-            | Database["public"]["Enums"]["oes_school_type"]
-            | null
-          scholarship_details?: string | null
-          school_name?: string | null
-          school_type?: Database["public"]["Enums"]["oes_school_type"] | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_education_details_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_family_details: {
-        Row: {
-          annual_income: number | null
-          application_id: string
-          created_at: string
-          father_name: string | null
-          guardian_contact: string | null
-          guardian_name: string | null
-          guardian_occupation: string | null
-          id: string
-          mother_name: string | null
-          parent_status: Database["public"]["Enums"]["oes_parent_status"] | null
-          single_parent_reason:
-            | Database["public"]["Enums"]["oes_single_reason"]
-            | null
-          updated_at: string
-        }
-        Insert: {
-          annual_income?: number | null
-          application_id: string
-          created_at?: string
-          father_name?: string | null
-          guardian_contact?: string | null
-          guardian_name?: string | null
-          guardian_occupation?: string | null
-          id?: string
-          mother_name?: string | null
-          parent_status?:
-            | Database["public"]["Enums"]["oes_parent_status"]
-            | null
-          single_parent_reason?:
-            | Database["public"]["Enums"]["oes_single_reason"]
-            | null
-          updated_at?: string
-        }
-        Update: {
-          annual_income?: number | null
-          application_id?: string
-          created_at?: string
-          father_name?: string | null
-          guardian_contact?: string | null
-          guardian_name?: string | null
-          guardian_occupation?: string | null
-          id?: string
-          mother_name?: string | null
-          parent_status?:
-            | Database["public"]["Enums"]["oes_parent_status"]
-            | null
-          single_parent_reason?:
-            | Database["public"]["Enums"]["oes_single_reason"]
-            | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_family_details_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_impairment_details: {
-        Row: {
-          application_id: string
-          belongs_to: Database["public"]["Enums"]["oes_impairment_owner"] | null
-          created_at: string
-          description: string | null
-          has_impairment: boolean
-          id: string
-          impairment_type: string | null
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          belongs_to?:
-            | Database["public"]["Enums"]["oes_impairment_owner"]
-            | null
-          created_at?: string
-          description?: string | null
-          has_impairment?: boolean
-          id?: string
-          impairment_type?: string | null
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          belongs_to?:
-            | Database["public"]["Enums"]["oes_impairment_owner"]
-            | null
-          created_at?: string
-          description?: string | null
-          has_impairment?: boolean
-          id?: string
-          impairment_type?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_impairment_details_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_personal_details: {
-        Row: {
-          alt_contact_number: string | null
-          application_id: string
-          contact_number: string
-          created_at: string
-          district: string | null
-          dob: string | null
-          email: string | null
-          full_name: string
-          gender: Database["public"]["Enums"]["oes_gender"] | null
-          id: string
-          name_tamil: string | null
-          pincode: string | null
-          state: string | null
-          town: string | null
-          updated_at: string
-        }
-        Insert: {
-          alt_contact_number?: string | null
-          application_id: string
-          contact_number: string
-          created_at?: string
-          district?: string | null
-          dob?: string | null
-          email?: string | null
-          full_name: string
-          gender?: Database["public"]["Enums"]["oes_gender"] | null
-          id?: string
-          name_tamil?: string | null
-          pincode?: string | null
-          state?: string | null
-          town?: string | null
-          updated_at?: string
-        }
-        Update: {
-          alt_contact_number?: string | null
-          application_id?: string
-          contact_number?: string
-          created_at?: string
-          district?: string | null
-          dob?: string | null
-          email?: string | null
-          full_name?: string
-          gender?: Database["public"]["Enums"]["oes_gender"] | null
-          id?: string
-          name_tamil?: string | null
-          pincode?: string | null
-          state?: string | null
-          town?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_personal_details_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_profiles: {
-        Row: {
-          created_at: string
-          email: string
-          full_name: string | null
-          id: string
-          must_change_password: boolean
-          role: Database["public"]["Enums"]["oes_user_role"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          full_name?: string | null
-          id: string
-          must_change_password?: boolean
-          role?: Database["public"]["Enums"]["oes_user_role"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string | null
-          id?: string
-          must_change_password?: boolean
-          role?: Database["public"]["Enums"]["oes_user_role"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      oes_residence_details: {
-        Row: {
-          application_id: string
-          created_at: string
-          district: string | null
-          door_street: string | null
-          id: string
-          ownership_source:
-            | Database["public"]["Enums"]["oes_ownership_source"]
-            | null
-          pincode: string | null
-          residence_type:
-            | Database["public"]["Enums"]["oes_residence_type"]
-            | null
-          roof_type: Database["public"]["Enums"]["oes_roof_type"] | null
-          state: string | null
-          town: string | null
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          created_at?: string
-          district?: string | null
-          door_street?: string | null
-          id?: string
-          ownership_source?:
-            | Database["public"]["Enums"]["oes_ownership_source"]
-            | null
-          pincode?: string | null
-          residence_type?:
-            | Database["public"]["Enums"]["oes_residence_type"]
-            | null
-          roof_type?: Database["public"]["Enums"]["oes_roof_type"] | null
-          state?: string | null
-          town?: string | null
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          created_at?: string
-          district?: string | null
-          door_street?: string | null
-          id?: string
-          ownership_source?:
-            | Database["public"]["Enums"]["oes_ownership_source"]
-            | null
-          pincode?: string | null
-          residence_type?:
-            | Database["public"]["Enums"]["oes_residence_type"]
-            | null
-          roof_type?: Database["public"]["Enums"]["oes_roof_type"] | null
-          state?: string | null
-          town?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_residence_details_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      oes_siblings: {
-        Row: {
-          application_id: string
-          birth_order: Database["public"]["Enums"]["oes_sibling_order"] | null
-          created_at: string
-          details: string | null
-          id: string
-          name: string | null
-          occupation: Database["public"]["Enums"]["oes_sibling_status"] | null
-          updated_at: string
-        }
-        Insert: {
-          application_id: string
-          birth_order?: Database["public"]["Enums"]["oes_sibling_order"] | null
-          created_at?: string
-          details?: string | null
-          id?: string
-          name?: string | null
-          occupation?: Database["public"]["Enums"]["oes_sibling_status"] | null
-          updated_at?: string
-        }
-        Update: {
-          application_id?: string
-          birth_order?: Database["public"]["Enums"]["oes_sibling_order"] | null
-          created_at?: string
-          details?: string | null
-          id?: string
-          name?: string | null
-          occupation?: Database["public"]["Enums"]["oes_sibling_status"] | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "oes_siblings_application_id_fkey"
-            columns: ["application_id"]
-            isOneToOne: false
-            referencedRelation: "oes_applications"
             referencedColumns: ["id"]
           },
         ]
@@ -1720,55 +1877,115 @@ export type Database = {
       }
       pmi_reports: {
         Row: {
+          annotated_drawing_path: string | null
+          approved_at: string | null
+          approved_by_name: string | null
+          base_material: string | null
           calibration_due: string | null
           created_at: string
+          customer: string | null
           doc_url: string | null
+          drawing_number: string | null
+          generated_pdf_path: string | null
+          heat_no: string | null
           id: string
+          inspected_by: string | null
           instrument_master_id: string | null
           instrument_name: string | null
           instrument_serial: string | null
+          item_no: string | null
           job_card_id: string
+          order_number: string | null
+          overlay_material: string | null
           pmi_status: string
+          procedure_ref: string | null
+          quantity: string | null
           readings: Json
           rejection_reason: string | null
+          report_date: string | null
+          report_number: string | null
           result: string | null
           storage_path: string | null
+          submitted_at: string | null
+          submitted_to_customer: boolean
           updated_at: string
           uploaded_by: string | null
+          valve_size_class: string | null
+          valve_type_component: string | null
         }
         Insert: {
+          annotated_drawing_path?: string | null
+          approved_at?: string | null
+          approved_by_name?: string | null
+          base_material?: string | null
           calibration_due?: string | null
           created_at?: string
+          customer?: string | null
           doc_url?: string | null
+          drawing_number?: string | null
+          generated_pdf_path?: string | null
+          heat_no?: string | null
           id?: string
+          inspected_by?: string | null
           instrument_master_id?: string | null
           instrument_name?: string | null
           instrument_serial?: string | null
+          item_no?: string | null
           job_card_id: string
+          order_number?: string | null
+          overlay_material?: string | null
           pmi_status?: string
+          procedure_ref?: string | null
+          quantity?: string | null
           readings: Json
           rejection_reason?: string | null
+          report_date?: string | null
+          report_number?: string | null
           result?: string | null
           storage_path?: string | null
+          submitted_at?: string | null
+          submitted_to_customer?: boolean
           updated_at?: string
           uploaded_by?: string | null
+          valve_size_class?: string | null
+          valve_type_component?: string | null
         }
         Update: {
+          annotated_drawing_path?: string | null
+          approved_at?: string | null
+          approved_by_name?: string | null
+          base_material?: string | null
           calibration_due?: string | null
           created_at?: string
+          customer?: string | null
           doc_url?: string | null
+          drawing_number?: string | null
+          generated_pdf_path?: string | null
+          heat_no?: string | null
           id?: string
+          inspected_by?: string | null
           instrument_master_id?: string | null
           instrument_name?: string | null
           instrument_serial?: string | null
+          item_no?: string | null
           job_card_id?: string
+          order_number?: string | null
+          overlay_material?: string | null
           pmi_status?: string
+          procedure_ref?: string | null
+          quantity?: string | null
           readings?: Json
           rejection_reason?: string | null
+          report_date?: string | null
+          report_number?: string | null
           result?: string | null
           storage_path?: string | null
+          submitted_at?: string | null
+          submitted_to_customer?: boolean
           updated_at?: string
           uploaded_by?: string | null
+          valve_size_class?: string | null
+          valve_type_component?: string | null
         }
         Relationships: [
           {
@@ -1800,25 +2017,44 @@ export type Database = {
           amps_required: string | null
           assigned_to: string | null
           completed_at: string | null
+          completed_qty: number | null
           consumable_batch: string | null
           consumable_feed_rate: number | null
+          consumable_feed_rate_planned: number | null
           consumable_master_id: string | null
           gas_flow_rate: number | null
+          gas_flow_rate_planned: number | null
           id: string
           inter_pass_temp: number | null
+          inter_pass_temp_planned: number | null
           job_card_id: string
+          machine_id: string | null
           notes: string | null
+          operation_type: string | null
+          override_by: string | null
+          override_reason: string | null
+          planned_qty: number | null
           polarity: string | null
+          polarity_planned: string | null
           post_heat_temp: number | null
+          post_heat_temp_planned: number | null
           pre_heat_temp: number | null
+          pre_heat_temp_planned: number | null
           process_type: string
+          rejected_qty: number | null
+          sequence_no: number | null
           started_at: string | null
           status: string
           travel_speed: number | null
+          travel_speed_planned: number | null
           volts_actual: number | null
           volts_required: string | null
           weld_date: string | null
           weld_height: number | null
+          weld_metal: string | null
+          weld_qty_actual: number | null
+          weld_qty_planned: number | null
+          welder_id: string | null
           welder_name: string | null
         }
         Insert: {
@@ -1826,25 +2062,44 @@ export type Database = {
           amps_required?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          completed_qty?: number | null
           consumable_batch?: string | null
           consumable_feed_rate?: number | null
+          consumable_feed_rate_planned?: number | null
           consumable_master_id?: string | null
           gas_flow_rate?: number | null
+          gas_flow_rate_planned?: number | null
           id?: string
           inter_pass_temp?: number | null
+          inter_pass_temp_planned?: number | null
           job_card_id: string
+          machine_id?: string | null
           notes?: string | null
+          operation_type?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          planned_qty?: number | null
           polarity?: string | null
+          polarity_planned?: string | null
           post_heat_temp?: number | null
+          post_heat_temp_planned?: number | null
           pre_heat_temp?: number | null
+          pre_heat_temp_planned?: number | null
           process_type: string
+          rejected_qty?: number | null
+          sequence_no?: number | null
           started_at?: string | null
           status?: string
           travel_speed?: number | null
+          travel_speed_planned?: number | null
           volts_actual?: number | null
           volts_required?: string | null
           weld_date?: string | null
           weld_height?: number | null
+          weld_metal?: string | null
+          weld_qty_actual?: number | null
+          weld_qty_planned?: number | null
+          welder_id?: string | null
           welder_name?: string | null
         }
         Update: {
@@ -1852,25 +2107,44 @@ export type Database = {
           amps_required?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          completed_qty?: number | null
           consumable_batch?: string | null
           consumable_feed_rate?: number | null
+          consumable_feed_rate_planned?: number | null
           consumable_master_id?: string | null
           gas_flow_rate?: number | null
+          gas_flow_rate_planned?: number | null
           id?: string
           inter_pass_temp?: number | null
+          inter_pass_temp_planned?: number | null
           job_card_id?: string
+          machine_id?: string | null
           notes?: string | null
+          operation_type?: string | null
+          override_by?: string | null
+          override_reason?: string | null
+          planned_qty?: number | null
           polarity?: string | null
+          polarity_planned?: string | null
           post_heat_temp?: number | null
+          post_heat_temp_planned?: number | null
           pre_heat_temp?: number | null
+          pre_heat_temp_planned?: number | null
           process_type?: string
+          rejected_qty?: number | null
+          sequence_no?: number | null
           started_at?: string | null
           status?: string
           travel_speed?: number | null
+          travel_speed_planned?: number | null
           volts_actual?: number | null
           volts_required?: string | null
           weld_date?: string | null
           weld_height?: number | null
+          weld_metal?: string | null
+          weld_qty_actual?: number | null
+          weld_qty_planned?: number | null
+          welder_id?: string | null
           welder_name?: string | null
         }
         Relationships: [
@@ -1893,6 +2167,20 @@ export type Database = {
             columns: ["job_card_id"]
             isOneToOne: false
             referencedRelation: "job_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "process_executions_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "process_executions_override_by_fkey"
+            columns: ["override_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2039,8 +2327,10 @@ export type Database = {
           furnace_id: string
           id: string
           loading_temp: number | null
+          loading_time: number | null
           notes: string | null
           operator_name: string | null
+          process_name: string | null
           pwht_result: string | null
           rate_of_cooling: number | null
           rate_of_heating: number | null
@@ -2055,6 +2345,7 @@ export type Database = {
           submitted_to_customer: boolean
           submitted_to_customer_at: string | null
           unloading_temp: number | null
+          unloading_time: number | null
           wps_number: string | null
         }
         Insert: {
@@ -2073,8 +2364,10 @@ export type Database = {
           furnace_id: string
           id?: string
           loading_temp?: number | null
+          loading_time?: number | null
           notes?: string | null
           operator_name?: string | null
+          process_name?: string | null
           pwht_result?: string | null
           rate_of_cooling?: number | null
           rate_of_heating?: number | null
@@ -2089,6 +2382,7 @@ export type Database = {
           submitted_to_customer?: boolean
           submitted_to_customer_at?: string | null
           unloading_temp?: number | null
+          unloading_time?: number | null
           wps_number?: string | null
         }
         Update: {
@@ -2107,8 +2401,10 @@ export type Database = {
           furnace_id?: string
           id?: string
           loading_temp?: number | null
+          loading_time?: number | null
           notes?: string | null
           operator_name?: string | null
+          process_name?: string | null
           pwht_result?: string | null
           rate_of_cooling?: number | null
           rate_of_heating?: number | null
@@ -2123,6 +2419,7 @@ export type Database = {
           submitted_to_customer?: boolean
           submitted_to_customer_at?: string | null
           unloading_temp?: number | null
+          unloading_time?: number | null
           wps_number?: string | null
         }
         Relationships: [
@@ -2156,100 +2453,318 @@ export type Database = {
           },
         ]
       }
+      quality_inspections: {
+        Row: {
+          accepted_qty: number
+          id: string
+          inspected_by: string | null
+          inspection_date: string
+          material_inward_id: string
+          material_inward_item_id: string
+          rejected_qty: number
+          rejection_reason: string | null
+          remarks: string | null
+          result: string
+        }
+        Insert: {
+          accepted_qty?: number
+          id?: string
+          inspected_by?: string | null
+          inspection_date?: string
+          material_inward_id: string
+          material_inward_item_id: string
+          rejected_qty?: number
+          rejection_reason?: string | null
+          remarks?: string | null
+          result: string
+        }
+        Update: {
+          accepted_qty?: number
+          id?: string
+          inspected_by?: string | null
+          inspection_date?: string
+          material_inward_id?: string
+          material_inward_item_id?: string
+          rejected_qty?: number
+          rejection_reason?: string | null
+          remarks?: string | null
+          result?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_inspections_inspected_by_fkey"
+            columns: ["inspected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_inspections_material_inward_id_fkey"
+            columns: ["material_inward_id"]
+            isOneToOne: false
+            referencedRelation: "material_inward"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quality_inspections_material_inward_item_id_fkey"
+            columns: ["material_inward_item_id"]
+            isOneToOne: true
+            referencedRelation: "material_inward_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_ledger: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          qty: number
+          reference_id: string
+          reference_type: string
+          storage_location_id: string
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          qty: number
+          reference_id: string
+          reference_type: string
+          storage_location_id: string
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          qty?: number
+          reference_id?: string
+          reference_type?: string
+          storage_location_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_ledger_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_ledger_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_ledger_storage_location_id_fkey"
+            columns: ["storage_location_id"]
+            isOneToOne: false
+            referencedRelation: "storage_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_locations: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          gst_no: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gst_no?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gst_no?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       wps_master: {
         Row: {
           approved_by: string | null
           base_material: string | null
+          base_metal_json: Json | null
           created_at: string
           created_by: string | null
+          date_of_welding: string | null
           effective_date: string | null
           electrical_params_json: Json | null
           filler_aws_class: string | null
           filler_material: string | null
+          filler_metal_json: Json | null
           filler_size: string | null
           gas_json: Json | null
           id: string
           interpass_max: number | null
           joint_design: string | null
+          joint_json: Json | null
           notes: string | null
           position: string | null
           pqr_no: string | null
           preheat_min: number | null
+          preheat_other: string | null
+          pwht_cooling_method: string | null
+          pwht_loading_temp: string | null
+          pwht_rate_of_heating: string | null
           pwht_required: boolean
           pwht_temp_max: number | null
           pwht_temp_min: number | null
           pwht_time_range: string | null
+          pwht_unloading_temp: string | null
           reviewed_by: string | null
           revision: string
           scope: string | null
           status: string
           technique_json: Json | null
+          tensile_tests_json: Json | null
           type: string | null
           updated_at: string
+          weld_passes_json: Json | null
+          weld_progression: string | null
           welding_process: string | null
           wps_no: string
         }
         Insert: {
           approved_by?: string | null
           base_material?: string | null
+          base_metal_json?: Json | null
           created_at?: string
           created_by?: string | null
+          date_of_welding?: string | null
           effective_date?: string | null
           electrical_params_json?: Json | null
           filler_aws_class?: string | null
           filler_material?: string | null
+          filler_metal_json?: Json | null
           filler_size?: string | null
           gas_json?: Json | null
           id?: string
           interpass_max?: number | null
           joint_design?: string | null
+          joint_json?: Json | null
           notes?: string | null
           position?: string | null
           pqr_no?: string | null
           preheat_min?: number | null
+          preheat_other?: string | null
+          pwht_cooling_method?: string | null
+          pwht_loading_temp?: string | null
+          pwht_rate_of_heating?: string | null
           pwht_required?: boolean
           pwht_temp_max?: number | null
           pwht_temp_min?: number | null
           pwht_time_range?: string | null
+          pwht_unloading_temp?: string | null
           reviewed_by?: string | null
           revision?: string
           scope?: string | null
           status?: string
           technique_json?: Json | null
+          tensile_tests_json?: Json | null
           type?: string | null
           updated_at?: string
+          weld_passes_json?: Json | null
+          weld_progression?: string | null
           welding_process?: string | null
           wps_no: string
         }
         Update: {
           approved_by?: string | null
           base_material?: string | null
+          base_metal_json?: Json | null
           created_at?: string
           created_by?: string | null
+          date_of_welding?: string | null
           effective_date?: string | null
           electrical_params_json?: Json | null
           filler_aws_class?: string | null
           filler_material?: string | null
+          filler_metal_json?: Json | null
           filler_size?: string | null
           gas_json?: Json | null
           id?: string
           interpass_max?: number | null
           joint_design?: string | null
+          joint_json?: Json | null
           notes?: string | null
           position?: string | null
           pqr_no?: string | null
           preheat_min?: number | null
+          preheat_other?: string | null
+          pwht_cooling_method?: string | null
+          pwht_loading_temp?: string | null
+          pwht_rate_of_heating?: string | null
           pwht_required?: boolean
           pwht_temp_max?: number | null
           pwht_temp_min?: number | null
           pwht_time_range?: string | null
+          pwht_unloading_temp?: string | null
           reviewed_by?: string | null
           revision?: string
           scope?: string | null
           status?: string
           technique_json?: Json | null
+          tensile_tests_json?: Json | null
           type?: string | null
           updated_at?: string
+          weld_passes_json?: Json | null
+          weld_progression?: string | null
           welding_process?: string | null
           wps_no?: string
         }
@@ -2342,7 +2857,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      stock_balances: {
+        Row: {
+          balance_qty: number | null
+          item_id: string | null
+          storage_location_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_ledger_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "item_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_ledger_storage_location_id_fkey"
+            columns: ["storage_location_id"]
+            isOneToOne: false
+            referencedRelation: "storage_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_client_id: { Args: never; Returns: string }
@@ -2393,22 +2930,9 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string; p_payload?: Json }
         Returns: undefined
       }
-      oes_current_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["oes_user_role"]
-      }
-      oes_generate_reference: { Args: never; Returns: string }
-      oes_is_admin: { Args: never; Returns: boolean }
-      oes_is_staff: { Args: never; Returns: boolean }
-      oes_track_application: {
-        Args: { p_phone: string; p_reference: string }
-        Returns: {
-          applicant_name: string
-          latest_remark: string
-          reference_number: string
-          status: Database["public"]["Enums"]["oes_app_status"]
-          submitted_at: string
-        }[]
+      seed_process_operations: {
+        Args: { p_job_card_id: string }
+        Returns: number
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }

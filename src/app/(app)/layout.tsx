@@ -36,6 +36,7 @@ export default async function AppLayout({
           email={user.email ?? ""}
           fullName={profile.full_name ?? user.email ?? "User"}
           role={role}
+          alertCount={alertCount ?? 0}
         />
         <main className="flex-1 p-6">{children}</main>
       </div>

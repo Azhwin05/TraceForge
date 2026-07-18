@@ -23,6 +23,15 @@ export type ExecutionStatus = "assigned" | "in_progress" | "completed" | "skippe
 export type PwhtJobStatus = "pending" | "passed" | "failed";
 export type PwhtApprovalStatus = "draft" | "submitted" | "approved" | "rejected";
 
+// ── Inventory module enums ─────────────────────────────────────────────────
+export type ItemCategory = "raw_material" | "consumable" | "component" | "finished_part" | "other";
+export type MaterialInwardStatus =
+  | "pending_inspection" | "incoming_inspection_done" | "qc_accepted" | "qc_rejected" | "grn_generated";
+export type QualityInspectionResult = "accepted" | "rejected";
+export type GrnRecordStatus = "active" | "cancelled";
+export type MaterialIssueStatus = "issued" | "cancelled";
+export type StockTransactionType = "grn_in" | "issue_out" | "adjustment_in" | "adjustment_out";
+
 // ── Phase 1 new enums ──────────────────────────────────────────────────────
 export type WpsMasterStatus = "draft" | "approved" | "superseded";
 export type ConsumableType = "electrode" | "wire" | "flux" | "rod" | "other";
@@ -591,8 +600,112 @@ export interface Database {
           { foreignKeyName: "customer_dossier_documents_document_id_fkey"; columns: ["document_id"]; isOneToOne: false; referencedRelation: "documents"; referencedColumns: ["id"] }
         ];
       };
+
+      // ── Inventory module ───────────────────────────────────────────────
+      item_master: {
+        Row: { id: string; item_code: string; item_name: string; category: string; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; item_code: string; item_name: string; category: string; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["item_master"]["Insert"]>;
+        Relationships: [];
+      };
+      suppliers: {
+        Row: { id: string; name: string; contact_name: string | null; contact_phone: string | null; contact_email: string | null; address: string | null; gst_no: string | null; is_active: boolean; created_at: string };
+        Insert: { id?: string; name: string; contact_name?: string | null; contact_phone?: string | null; contact_email?: string | null; address?: string | null; gst_no?: string | null; is_active?: boolean; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
+        Relationships: [];
+      };
+      storage_locations: {
+        Row: { id: string; code: string; name: string; description: string | null; is_active: boolean; created_at: string };
+        Insert: { id?: string; code: string; name: string; description?: string | null; is_active?: boolean; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["storage_locations"]["Insert"]>;
+        Relationships: [];
+      };
+      material_inward: {
+        Row: { id: string; dc_number: string; dc_date: string; supplier_id: string; po_number: string | null; vehicle_no: string | null; remarks: string | null; status: string; received_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; dc_number: string; dc_date?: string; supplier_id: string; po_number?: string | null; vehicle_no?: string | null; remarks?: string | null; status?: string; received_by?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["material_inward"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "material_inward_supplier_id_fkey"; columns: ["supplier_id"]; isOneToOne: false; referencedRelation: "suppliers"; referencedColumns: ["id"] }
+        ];
+      };
+      material_inward_items: {
+        Row: { id: string; material_inward_id: string; item_id: string; dc_quantity: number; uom: string; remarks: string | null };
+        Insert: { id?: string; material_inward_id: string; item_id: string; dc_quantity: number; uom: string; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["material_inward_items"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "material_inward_items_material_inward_id_fkey"; columns: ["material_inward_id"]; isOneToOne: false; referencedRelation: "material_inward"; referencedColumns: ["id"] },
+          { foreignKeyName: "material_inward_items_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] }
+        ];
+      };
+      incoming_inspections: {
+        Row: { id: string; material_inward_id: string; inspected_by: string | null; inspection_date: string; quantity_ok: boolean; packaging_ok: boolean; documents_ok: boolean; remarks: string | null };
+        Insert: { id?: string; material_inward_id: string; inspected_by?: string | null; inspection_date?: string; quantity_ok: boolean; packaging_ok: boolean; documents_ok: boolean; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["incoming_inspections"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "incoming_inspections_material_inward_id_fkey"; columns: ["material_inward_id"]; isOneToOne: true; referencedRelation: "material_inward"; referencedColumns: ["id"] }
+        ];
+      };
+      quality_inspections: {
+        Row: { id: string; material_inward_id: string; material_inward_item_id: string; inspected_by: string | null; inspection_date: string; result: string; accepted_qty: number; rejected_qty: number; rejection_reason: string | null; remarks: string | null };
+        Insert: { id?: string; material_inward_id: string; material_inward_item_id: string; inspected_by?: string | null; inspection_date?: string; result: string; accepted_qty?: number; rejected_qty?: number; rejection_reason?: string | null; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["quality_inspections"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "quality_inspections_material_inward_id_fkey"; columns: ["material_inward_id"]; isOneToOne: false; referencedRelation: "material_inward"; referencedColumns: ["id"] },
+          { foreignKeyName: "quality_inspections_material_inward_item_id_fkey"; columns: ["material_inward_item_id"]; isOneToOne: true; referencedRelation: "material_inward_items"; referencedColumns: ["id"] }
+        ];
+      };
+      grn: {
+        Row: { id: string; grn_number: string; material_inward_id: string; generated_by: string | null; generated_at: string; status: string; remarks: string | null };
+        Insert: { id?: string; grn_number: string; material_inward_id: string; generated_by?: string | null; generated_at?: string; status?: string; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["grn"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "grn_material_inward_id_fkey"; columns: ["material_inward_id"]; isOneToOne: true; referencedRelation: "material_inward"; referencedColumns: ["id"] }
+        ];
+      };
+      grn_items: {
+        Row: { id: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate: number | null; remarks: string | null };
+        Insert: { id?: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate?: number | null; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["grn_items"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "grn_items_grn_id_fkey"; columns: ["grn_id"]; isOneToOne: false; referencedRelation: "grn"; referencedColumns: ["id"] },
+          { foreignKeyName: "grn_items_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "grn_items_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
+        ];
+      };
+      material_issues: {
+        Row: { id: string; issue_number: string; job_card_id: string | null; issued_by: string | null; issue_date: string; status: string; remarks: string | null };
+        Insert: { id?: string; issue_number: string; job_card_id?: string | null; issued_by?: string | null; issue_date?: string; status?: string; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["material_issues"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "material_issues_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
+      };
+      material_issue_items: {
+        Row: { id: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; uom: string; remarks: string | null };
+        Insert: { id?: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; uom: string; remarks?: string | null };
+        Update: Partial<Database["public"]["Tables"]["material_issue_items"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "material_issue_items_material_issue_id_fkey"; columns: ["material_issue_id"]; isOneToOne: false; referencedRelation: "material_issues"; referencedColumns: ["id"] },
+          { foreignKeyName: "material_issue_items_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "material_issue_items_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
+        ];
+      };
+      stock_ledger: {
+        Row: { id: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; reference_type: string; reference_id: string; created_by: string | null; created_at: string };
+        Insert: { id?: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; reference_type: string; reference_id: string; created_by?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["stock_ledger"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "stock_ledger_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "stock_ledger_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
+        ];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      stock_balances: {
+        Row: { item_id: string | null; storage_location_id: string | null; balance_qty: number | null };
+        Relationships: [];
+      };
+    };
     Functions: {
       generate_jc_number: { Args: Record<string, never>; Returns: string };
       seed_process_operations: { Args: { p_job_card_id: string }; Returns: number };
@@ -625,6 +738,8 @@ export interface Database {
         Args: { days_ahead?: number };
         Returns: unknown[];
       };
+      generate_grn_number: { Args: Record<string, never>; Returns: string };
+      generate_material_issue_number: { Args: Record<string, never>; Returns: string };
     };
     Enums: {
       user_role: UserRole;
@@ -779,3 +894,28 @@ export type DossierDocument = Database["public"]["Tables"]["customer_dossier_doc
 export type DossierWithDocuments = CustomerDossier & {
   customer_dossier_documents: (DossierDocument & { document: Document })[];
 };
+
+// ── Inventory module row types ────────────────────────────────────────────
+export type ItemMaster = Database["public"]["Tables"]["item_master"]["Row"];
+export type Supplier = Database["public"]["Tables"]["suppliers"]["Row"];
+export type StorageLocation = Database["public"]["Tables"]["storage_locations"]["Row"];
+export type MaterialInward = Database["public"]["Tables"]["material_inward"]["Row"];
+export type MaterialInwardItem = Database["public"]["Tables"]["material_inward_items"]["Row"];
+export type IncomingInspection = Database["public"]["Tables"]["incoming_inspections"]["Row"];
+export type QualityInspection = Database["public"]["Tables"]["quality_inspections"]["Row"];
+export type Grn = Database["public"]["Tables"]["grn"]["Row"];
+export type GrnItem = Database["public"]["Tables"]["grn_items"]["Row"];
+export type MaterialIssue = Database["public"]["Tables"]["material_issues"]["Row"];
+export type MaterialIssueItem = Database["public"]["Tables"]["material_issue_items"]["Row"];
+export type StockLedgerEntry = Database["public"]["Tables"]["stock_ledger"]["Row"];
+export type StockBalance = Database["public"]["Views"]["stock_balances"]["Row"];
+
+export type MaterialInwardWithSupplier = MaterialInward & { suppliers: Supplier };
+export type MaterialInwardItemWithItem = MaterialInwardItem & { item_master: ItemMaster };
+export type MaterialInwardDetail = MaterialInwardWithSupplier & {
+  material_inward_items: MaterialInwardItemWithItem[];
+  incoming_inspections: IncomingInspection[];
+  quality_inspections: QualityInspection[];
+  grn: Grn[];
+};
+export type StockBalanceWithItem = StockBalance & { item_master: ItemMaster; storage_locations: StorageLocation };

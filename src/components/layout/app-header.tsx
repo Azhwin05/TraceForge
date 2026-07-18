@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Breadcrumbs } from "./breadcrumbs";
 import { MobileNav } from "./mobile-nav";
 import { SignOutButton } from "./sign-out-button";
+import type { UserRole } from "@/types/database";
 
 function initials(name: string) {
   return name
@@ -26,15 +27,17 @@ export function AppHeader({
   email,
   fullName,
   role,
+  alertCount = 0,
 }: {
   email: string;
   fullName: string;
-  role: string;
+  role: UserRole;
+  alertCount?: number;
 }) {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 gap-4">
       <div className="flex items-center gap-3 min-w-0">
-        <MobileNav />
+        <MobileNav role={role} alertCount={alertCount} />
         <Breadcrumbs />
       </div>
 

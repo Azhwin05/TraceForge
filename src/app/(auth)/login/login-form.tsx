@@ -47,7 +47,7 @@ export function LoginForm() {
       });
       return false;
     }
-    const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+    const redirectTo = searchParams.get("redirectTo") || "/home";
     router.replace(redirectTo);
     router.refresh();
     return true;
