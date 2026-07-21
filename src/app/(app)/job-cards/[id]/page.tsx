@@ -18,6 +18,7 @@ import { AdvancedDetailsSection } from "@/components/job-cards/advanced-details-
 import { NdeLptSection } from "@/components/job-cards/nde-lpt-section"
 import { AirTestSection } from "@/components/job-cards/air-test-section"
 import { JobCardPdfButton } from "@/components/job-cards/job-card-pdf-button"
+import { DeleteJobCardButton } from "@/components/job-cards/delete-job-card-button"
 import { PwhtSummarySection } from "@/components/job-cards/pwht-summary-section"
 import { SignOffSection } from "@/components/job-cards/sign-off-section"
 import { JobCardDocumentsSection } from "@/components/job-cards/job-card-documents-section"
@@ -244,6 +245,9 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
               previousStatus={jc.previous_status}
               userRole={userRole}
             />
+            {userRole === "admin" && (
+              <DeleteJobCardButton jobCardId={jc.id} jcNumber={jc.jc_number} />
+            )}
           </div>
         </div>
       </div>

@@ -413,3 +413,53 @@ export async function rejectWps(
   revalidatePath("/job-cards")
   return {}
 }
+
+/**
+ * Permanently delete a job card and everything that cascades from it
+ * (process steps, WPS quals, NDE/air-test records, PWHT links, reports,
+ * dispatches, accounts). Admin only.
+ *
+ * Two relations do NOT cascade and would otherwise raise a raw FK error, so we
+ * pre-check them and return a readable reason instead:
+ *   - customer_dossiers (on delete restrict)
+ *   - material_issues   (no action — stock already issued against this job)
+ *
+ * The actual "undo for 10s, then delete" window is handled on the client; by
+ * the time this runs the user has chosen not to undo.
+ */
+export async function deleteJobCard(
+  jobCardId: string,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const [{ count: dossierCount }, { count: issueCount }] = await Promise.all([
+    supabase.from("customer_dossiers").select("*", { count: "exact", head: true }).eq("job_card_id", jobCardId),
+    supabase.from("material_issues").select("*", { count: "exact", head: true }).eq("job_card_id", jobCardId),
+  ])
+
+  if (dossierCount && dossierCount > 0) {
+    return { error: `Cannot delete: ${dossierCount} customer dossier(s) reference this job card. Archive them first.` }
+  }
+  if (issueCount && issueCount > 0) {
+    return { error: "Cannot delete: material has been issued to this job card. Cancel those issues first." }
+  }
+
+  // Admin RLS (job_cards_admin_all) permits the delete; child tables cascade.
+  // .select() lets us detect an RLS-filtered 0-row delete (HTTP 200, no error).
+  const { data: deleted, error } = await supabase
+    .from("job_cards")
+    .delete()
+    .eq("id", jobCardId)
+    .select("id")
+
+  if (error) { console.error("[job-cards] delete", error); return { error: sanitizeError(error) } }
+  if (!deleted || deleted.length === 0) {
+    return { error: "Delete was not applied — administrator permission is required." }
+  }
+
+  revalidatePath("/job-cards")
+  revalidatePath("/dashboard")
+  return {}
+}
