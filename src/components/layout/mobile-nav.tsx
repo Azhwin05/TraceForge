@@ -99,9 +99,10 @@ export function MobileNav({
                     )}
                     <div className="space-y-0.5">
                       {visibleItems.map(({ href, label, icon: Icon, badgeKey }) => {
+                        const isIndex = href === "/dashboard" || href === "/inventory"
                         const active =
                           pathname === href ||
-                          (href !== "/dashboard" && pathname.startsWith(href))
+                          (!isIndex && pathname.startsWith(href))
                         const showBadge = badgeKey === "alerts" && alertCount > 0
 
                         return (

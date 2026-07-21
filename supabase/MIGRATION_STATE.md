@@ -1,5 +1,28 @@
 # Migration State — source of truth
 
+## ⚠️ PENDING APPLICATION — Inventory valuation (2026-07-21)
+
+`0035_inventory_valuation_and_consumable_type.sql` and
+`0036_inventory_valuation_triggers.sql` are committed as local files but
+**NOT yet applied** to the live project `axwxpjbzdhaevoimagiz` — the Supabase
+MCP account available in that session had no permission on this project, and no
+CLI/DB password was available locally.
+
+**These must be applied (via the owning Supabase account's MCP `apply_migration`,
+or the SQL Editor) before the inventory value features work.** Until then the
+Inventory Dashboard, Stock Balances, and item detail pages degrade to empty /
+₹0 (the `balance_value` / `avg_unit_cost` / `consumable_type` columns don't exist
+remotely yet, so those selects return null rather than erroring). The inventory
+schema migrations `0030`–`0034` are already live (the module reads/writes fine).
+
+Apply `0035` first, then `0036`. Both are additive except: `0035` makes
+`grn_items.unit_rate` NOT NULL (backfills existing nulls to 0 first) and
+recreates the `stock_balances` view (re-grants SELECT to authenticated).
+
+---
+
+
+
 **Last reconciled: 2026-07-04**, against the live Supabase project `axwxpjbzdhaevoimagiz`
 via `list_migrations` / `list_tables` (Supabase MCP). CLI-based `supabase db pull` was not
 possible in this pass (`supabase login` needs an interactive browser flow) — see

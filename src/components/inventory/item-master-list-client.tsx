@@ -29,6 +29,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   other:          "Other",
 }
 
+const CONSUMABLE_TYPE_LABELS: Record<string, string> = {
+  powder: "Powder", rod: "Rod", wire: "Wire", other: "Other",
+}
+
 export function ItemMasterListClient({
   records,
   userRole,
@@ -143,6 +147,11 @@ export function ItemMasterListClient({
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span>{CATEGORY_LABELS[it.category] ?? it.category}</span>
+                  {it.consumable_type && (
+                    <span className="rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-700">
+                      {CONSUMABLE_TYPE_LABELS[it.consumable_type] ?? it.consumable_type}
+                    </span>
+                  )}
                   <span>UOM: {it.uom}</span>
                   {it.hsn_code && <span>HSN: {it.hsn_code}</span>}
                 </div>

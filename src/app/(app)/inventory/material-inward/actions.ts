@@ -155,7 +155,7 @@ export async function generateGrn(raw: GrnInput): Promise<{ error?: string; id?:
       accepted_qty:             item.accepted_qty,
       uom:                      item.uom,
       storage_location_id:      item.storage_location_id,
-      unit_rate:                item.unit_rate ?? null,
+      unit_rate:                item.unit_rate ?? 0,
       remarks:                  sanitize(item.remarks),
     })
     if (itemError) return { error: itemError.message }

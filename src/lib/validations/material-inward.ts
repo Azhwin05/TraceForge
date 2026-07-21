@@ -53,7 +53,10 @@ export const grnItemSchema = z.object({
   accepted_qty:              z.coerce.number().positive(),
   uom:                       z.string().min(1),
   storage_location_id:       z.string().uuid("Select a storage location"),
-  unit_rate:                 z.coerce.number().min(0).nullish(),
+  unit_rate:                 z.preprocess(
+                               (v) => (v === "" || v === null || v === undefined ? undefined : v),
+                               z.coerce.number({ error: "Rate is required" }).min(0, "Rate must be 0 or more"),
+                             ),
   remarks:                   z.string().nullish(),
 })
 

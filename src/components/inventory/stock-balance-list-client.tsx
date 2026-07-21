@@ -4,11 +4,14 @@ import { useState } from "react"
 import { Search, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { formatInr, formatQty } from "@/lib/format"
 
 type BalanceRow = {
   item_id: string
   storage_location_id: string
   balance_qty: number
+  balance_value: number
+  avg_unit_cost: number
   item_master: { item_code: string; item_name: string; category: string; uom: string; min_stock_level: number }
   storage_locations: { code: string; name: string }
 }
@@ -61,9 +64,15 @@ export function StockBalanceListClient({ balances }: { balances: BalanceRow[] })
                   </div>
                   <p className="text-xs text-muted-foreground">{b.storage_locations.code} — {b.storage_locations.name}</p>
                 </div>
-                <span className={cn("text-sm font-medium", belowMin && "text-orange-700")}>
-                  {b.balance_qty} {b.item_master.uom}
-                </span>
+                <div className="text-right">
+                  <span className={cn("text-sm font-medium", belowMin && "text-orange-700")}>
+                    {formatQty(b.balance_qty)} {b.item_master.uom}
+                  </span>
+                  <p className="text-xs text-muted-foreground tabular-nums">
+                    {formatInr(b.balance_value)}
+                    <span className="ml-1 opacity-70">@ {formatInr(b.avg_unit_cost)}</span>
+                  </p>
+                </div>
               </div>
             )
           })}

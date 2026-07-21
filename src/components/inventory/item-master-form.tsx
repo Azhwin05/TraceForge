@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import {
   itemMasterSchema,
   ITEM_CATEGORIES,
+  CONSUMABLE_TYPES,
   type ItemMasterInput,
 } from "@/lib/validations/item-master"
 import { createItemMaster, updateItemMaster } from "@/app/(app)/inventory/items/actions"
@@ -27,6 +28,7 @@ function itemToFormValues(it: ItemMaster): ItemMasterInput {
     item_code:        it.item_code,
     item_name:        it.item_name,
     category:         it.category as ItemMasterInput["category"],
+    consumable_type:  (it.consumable_type ?? undefined) as ItemMasterInput["consumable_type"],
     uom:              it.uom,
     hsn_code:         it.hsn_code ?? undefined,
     min_stock_level:  it.min_stock_level,
@@ -42,6 +44,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   other:          "Other",
 }
 
+const CONSUMABLE_TYPE_LABELS: Record<string, string> = {
+  powder: "Powder",
+  rod:    "Rod",
+  wire:   "Wire",
+  other:  "Other",
+}
+
 interface Props {
   mode: "create" | "edit"
   itemId?: string
@@ -53,7 +62,7 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
   const [serverError, setServerError] = useState<string | null>(null)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<any>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<any>({
     resolver: zodResolver(itemMasterSchema),
     defaultValues: {
       item_code: "",
@@ -64,6 +73,8 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
       ...defaultValues,
     },
   })
+
+  const isConsumable = watch("category") === "consumable"
 
   async function onSubmit(data: ItemMasterInput) {
     setServerError(null)
@@ -112,16 +123,38 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
             </Select>
             <FieldError message={errors.category?.message} />
           </div>
+          {isConsumable ? (
+            <div>
+              <Label htmlFor="consumable_type">Consumable Type <span className="text-destructive">*</span></Label>
+              <Select id="consumable_type" {...register("consumable_type")} className="mt-1">
+                <option value="">Select type…</option>
+                {CONSUMABLE_TYPES.map((t) => (
+                  <option key={t} value={t}>{CONSUMABLE_TYPE_LABELS[t]}</option>
+                ))}
+              </Select>
+              <FieldError message={errors.consumable_type?.message} />
+            </div>
+          ) : (
+            <div>
+              <Label htmlFor="hsn_code">HSN Code</Label>
+              <Input id="hsn_code" {...register("hsn_code")} className="mt-1" />
+            </div>
+          )}
           <div>
             <Label htmlFor="uom">Unit of Measure <span className="text-destructive">*</span></Label>
             <Input id="uom" {...register("uom")} className="mt-1" placeholder="e.g. kg, nos, m" />
             <FieldError message={errors.uom?.message} />
           </div>
-          <div>
-            <Label htmlFor="hsn_code">HSN Code</Label>
-            <Input id="hsn_code" {...register("hsn_code")} className="mt-1" />
-          </div>
         </div>
+
+        {isConsumable && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <Label htmlFor="hsn_code">HSN Code</Label>
+              <Input id="hsn_code" {...register("hsn_code")} className="mt-1" />
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>

@@ -29,9 +29,9 @@ const MODULES = [
     icon: ClipboardList,
   },
   {
-    href: "/inventory/material-inward",
+    href: "/inventory",
     label: "Inventory",
-    description: "Material inward, inspection, GRN, stock & issues",
+    description: "Stock value, material inward, inspection, GRN & issues",
     icon: Warehouse,
   },
 ]

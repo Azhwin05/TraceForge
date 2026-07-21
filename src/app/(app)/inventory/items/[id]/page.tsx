@@ -7,12 +7,18 @@ import { ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
 
+import { formatInr, formatQty } from "@/lib/format"
+
 const CATEGORY_LABELS: Record<string, string> = {
   raw_material:   "Raw Material",
   consumable:     "Consumable",
   component:      "Component",
   finished_part:  "Finished Part",
   other:          "Other",
+}
+
+const CONSUMABLE_TYPE_LABELS: Record<string, string> = {
+  powder: "Powder", rod: "Rod", wire: "Wire", other: "Other",
 }
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -43,12 +49,13 @@ export default async function ItemMasterDetailPage({
 
   const { data: balances } = await supabase
     .from("stock_balances")
-    .select("storage_location_id, balance_qty, storage_locations(code, name)")
+    .select("storage_location_id, balance_qty, balance_value, avg_unit_cost, storage_locations(code, name)")
     .eq("item_id", record.id)
 
   const canEdit = ["admin", "engineer"].includes(userRole)
   const canDeactivate = userRole === "admin"
   const totalBalance = (balances ?? []).reduce((sum, b) => sum + (b.balance_qty ?? 0), 0)
+  const totalValue = (balances ?? []).reduce((sum, b) => sum + (b.balance_value ?? 0), 0)
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
@@ -86,6 +93,9 @@ export default async function ItemMasterDetailPage({
           <Row label="Item Code"    value={record.item_code} />
           <Row label="Item Name"    value={record.item_name} />
           <Row label="Category"     value={CATEGORY_LABELS[record.category] ?? record.category} />
+          {record.consumable_type && (
+            <Row label="Consumable Type" value={CONSUMABLE_TYPE_LABELS[record.consumable_type] ?? record.consumable_type} />
+          )}
           <Row label="UOM"          value={record.uom} />
           <Row label="HSN Code"     value={record.hsn_code} />
           <Row label="Min Stock"    value={`${record.min_stock_level} ${record.uom}`} />
@@ -94,12 +104,19 @@ export default async function ItemMasterDetailPage({
       </div>
 
       <div className="rounded-lg border border-border p-5">
-        <h2 className="font-semibold mb-3">Current Stock ({totalBalance} {record.uom})</h2>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="font-semibold">Current Stock ({formatQty(totalBalance)} {record.uom})</h2>
+          <span className="text-sm font-semibold tabular-nums">{formatInr(totalValue)}</span>
+        </div>
         {balances && balances.length > 0 ? (
           <dl className="divide-y divide-border">
             {balances.map((b, i) => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              <Row key={i} label={(b as any).storage_locations?.name ?? "Unknown location"} value={`${b.balance_qty} ${record.uom}`} />
+              <Row
+                key={i}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                label={(b as any).storage_locations?.name ?? "Unknown location"}
+                value={`${formatQty(b.balance_qty ?? 0)} ${record.uom} · ${formatInr(b.balance_value ?? 0)} (@ ${formatInr(b.avg_unit_cost ?? 0)})`}
+              />
             ))}
           </dl>
         ) : (

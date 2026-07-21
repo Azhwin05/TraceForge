@@ -603,8 +603,8 @@ export interface Database {
 
       // ── Inventory module ───────────────────────────────────────────────
       item_master: {
-        Row: { id: string; item_code: string; item_name: string; category: string; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; created_by: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; item_code: string; item_name: string; category: string; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string };
+        Row: { id: string; item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; item_code: string; item_name: string; category: string; consumable_type?: string | null; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["item_master"]["Insert"]>;
         Relationships: [];
       };
@@ -663,8 +663,8 @@ export interface Database {
         ];
       };
       grn_items: {
-        Row: { id: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate: number | null; remarks: string | null };
-        Insert: { id?: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate?: number | null; remarks?: string | null };
+        Row: { id: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate: number; remarks: string | null };
+        Insert: { id?: string; grn_id: string; item_id: string; quality_inspection_id: string; accepted_qty: number; uom: string; storage_location_id: string; unit_rate?: number; remarks?: string | null };
         Update: Partial<Database["public"]["Tables"]["grn_items"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "grn_items_grn_id_fkey"; columns: ["grn_id"]; isOneToOne: false; referencedRelation: "grn"; referencedColumns: ["id"] },
@@ -691,8 +691,8 @@ export interface Database {
         ];
       };
       stock_ledger: {
-        Row: { id: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; reference_type: string; reference_id: string; created_by: string | null; created_at: string };
-        Insert: { id?: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; reference_type: string; reference_id: string; created_by?: string | null; created_at?: string };
+        Row: { id: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; unit_rate: number; reference_type: string; reference_id: string; created_by: string | null; created_at: string };
+        Insert: { id?: string; item_id: string; storage_location_id: string; transaction_type: string; qty: number; unit_rate?: number; reference_type: string; reference_id: string; created_by?: string | null; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["stock_ledger"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "stock_ledger_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
@@ -702,7 +702,7 @@ export interface Database {
     };
     Views: {
       stock_balances: {
-        Row: { item_id: string | null; storage_location_id: string | null; balance_qty: number | null };
+        Row: { item_id: string | null; storage_location_id: string | null; balance_qty: number | null; balance_value: number | null; avg_unit_cost: number | null };
         Relationships: [];
       };
     };

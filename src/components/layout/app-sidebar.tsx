@@ -26,6 +26,7 @@ import {
   Boxes,
   ArrowRightLeft,
   MapPin,
+  Wallet,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
@@ -133,10 +134,11 @@ export const MODULES: Module[] = [
     label: "Inventory",
     icon: Warehouse,
     pathPrefix: "/inventory",
-    defaultHref: "/inventory/material-inward",
+    defaultHref: "/inventory",
     groups: [
       {
         items: [
+          { href: "/inventory",                 label: "Dashboard",       icon: Wallet },
           { href: "/inventory/material-inward", label: "Material Inward", icon: Truck },
           { href: "/inventory/stock",           label: "Stock Balances",  icon: Warehouse },
           { href: "/inventory/material-issues", label: "Material Issues", icon: ArrowRightLeft },
@@ -236,8 +238,10 @@ export function AppSidebar({
               )}
               <div className="space-y-0.5">
                 {visibleItems.map(({ href, label, icon: Icon, badgeKey }) => {
+                  // Module index pages (/dashboard, /inventory) are prefixes of
+                  // their siblings, so match them exactly to avoid staying lit.
                   const active =
-                    href === "/dashboard"
+                    href === "/dashboard" || href === "/inventory"
                       ? pathname === href
                       : pathname === href || pathname.startsWith(href + "/")
                   const showBadge = badgeKey === "alerts" && alertCount > 0
