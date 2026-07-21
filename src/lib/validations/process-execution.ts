@@ -25,6 +25,9 @@ export const processExecutionSchema = z.object({
   amps_actual:         z.number().optional(),
   volts_required:      z.string().optional(),
   volts_actual:        z.number().optional(),
+  // Kept as plain strings here; the server action converts "" -> null before
+  // insert. The DB check constraint (polarity in DCRP/DCSP/AC) allows null but
+  // rejects an empty string, which otherwise blocks saving non-welding steps.
   polarity_planned:    z.string().optional(),
   polarity:            z.string().optional(),
   // Thermal

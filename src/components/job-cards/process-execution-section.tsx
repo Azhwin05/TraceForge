@@ -254,7 +254,14 @@ export function ProcessExecutionSection({
                         <AlertTriangle className="h-3 w-3" /> {expiryWarn.label}
                       </span>
                     )}
-                    {exec.override_reason && (
+                    {/*
+                      Only flag genuine, human-entered overrides. The sequence
+                      gate auto-stamps "Admin out-of-order override" whenever an
+                      admin completes a step before an earlier one — which happens
+                      routinely when recording an already-finished paper job card,
+                      so showing it there is just noise.
+                    */}
+                    {exec.override_reason && exec.override_reason !== "Admin out-of-order override" && (
                       <span
                         className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700"
                         title={exec.override_reason}

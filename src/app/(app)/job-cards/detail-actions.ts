@@ -13,16 +13,25 @@ export async function upsertProcessExecution(
   if (guard.error) return { error: guard.error }
   const { supabase } = guard
 
+  // The polarity columns have a CHECK (DCRP/DCSP/AC) that allows null but not
+  // an empty string. The form sends "" for the blank "—" option (and for
+  // non-welding steps that never show the field), so normalize "" -> null.
+  const payload = {
+    ...data,
+    polarity:         data.polarity && data.polarity.trim() ? data.polarity : null,
+    polarity_planned: data.polarity_planned && data.polarity_planned.trim() ? data.polarity_planned : null,
+  }
+
   if (executionId) {
     const { error } = await supabase
       .from("process_executions")
-      .update({ ...data })
+      .update(payload)
       .eq("id", executionId)
     if (error) return { error: error.message }
   } else {
     const { error } = await supabase
       .from("process_executions")
-      .insert({ ...data, job_card_id: jobCardId })
+      .insert({ ...payload, job_card_id: jobCardId })
     if (error) return { error: error.message }
   }
 

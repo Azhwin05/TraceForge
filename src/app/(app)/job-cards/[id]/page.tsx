@@ -132,8 +132,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
     supabase
       .from("pwht_run_jobs")
       .select("*, pwht_run:pwht_runs(*)")
-      .eq("job_card_id", id)
-      .order("created_at", { ascending: true }),
+      .eq("job_card_id", id),
     supabase
       .from("wps_master")
       .select("id,wps_no,pqr_no,welding_process,filler_material,filler_aws_class,filler_size,preheat_min,interpass_max,pwht_required,pwht_temp_min,pwht_temp_max,electrical_params_json,revision,status")
