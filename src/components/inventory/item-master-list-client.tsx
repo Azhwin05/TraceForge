@@ -6,6 +6,7 @@ import { Plus, Search, ChevronRight, AlertTriangle } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { ApprovalActions, ApprovalBadge } from "@/components/inventory/approval-actions"
 import type { ItemMaster, UserRole } from "@/types/database"
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
@@ -44,6 +45,8 @@ export function ItemMasterListClient({
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("active")
 
   const canCreate = ["admin", "engineer"].includes(userRole)
+  const isAdmin = userRole === "admin"
+  const pendingItems = records.filter((it) => it.approval_status === "pending")
 
   const filtered = records.filter((it) => {
     const matchActive =
@@ -80,6 +83,29 @@ export function ItemMasterListClient({
           </Link>
         )}
       </div>
+
+      {isAdmin && pendingItems.length > 0 && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+            {pendingItems.length} item{pendingItems.length > 1 ? "s" : ""} awaiting your approval
+          </h2>
+          <div className="divide-y divide-amber-200">
+            {pendingItems.map((it) => (
+              <div key={it.id} className="flex flex-wrap items-center justify-between gap-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{it.item_code} — {it.item_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {CATEGORY_LABELS[it.category] ?? it.category}
+                    {it.consumable_type ? ` · ${CONSUMABLE_TYPE_LABELS[it.consumable_type] ?? it.consumable_type}` : ""}
+                    {" · "}UOM {it.uom}
+                  </p>
+                </div>
+                <ApprovalActions kind="item" id={it.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-1 border-b border-border">
         {tabs.map(({ value, label }) => (
@@ -138,6 +164,7 @@ export function ItemMasterListClient({
                   <span className="text-muted-foreground">—</span>
                   <span>{it.item_name}</span>
                   <ActiveBadge isActive={it.is_active} />
+                  <ApprovalBadge status={it.approval_status} />
                   {it.min_stock_level > 0 && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
                       <AlertTriangle className="h-3 w-3" />

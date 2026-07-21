@@ -14,8 +14,8 @@ export default async function NewMaterialInwardPage() {
   }
 
   const [{ data: suppliers }, { data: items }] = await Promise.all([
-    supabase.from("suppliers").select("id, name").eq("is_active", true).order("name"),
-    supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).order("item_code"),
+    supabase.from("suppliers").select("id, name").eq("is_active", true).eq("approval_status", "approved").order("name"),
+    supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).eq("approval_status", "approved").order("item_code"),
   ])
 
   return (

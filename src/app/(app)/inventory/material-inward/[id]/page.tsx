@@ -74,8 +74,8 @@ export default async function MaterialInwardDetailPage({
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">DC {record.dc_number}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{record.suppliers?.name}</p>
+          <h1 className="text-2xl font-bold tracking-tight">{record.inward_number}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">DC {record.dc_number} · {record.suppliers?.name}</p>
         </div>
         <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium shrink-0", status.className)}>
           {status.label}

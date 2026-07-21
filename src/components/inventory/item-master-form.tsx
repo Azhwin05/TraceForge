@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
@@ -81,6 +82,7 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
     if (mode === "create") {
       const result = await createItemMaster(data)
       if (result.error) { setServerError(result.error); return }
+      if (result.pending) toast.info("Item submitted for admin approval")
       router.push(`/inventory/items/${result.id}`)
     } else {
       const result = await updateItemMaster(itemId!, data)

@@ -1,23 +1,21 @@
 # Migration State — source of truth
 
-## ⚠️ PENDING APPLICATION — Inventory valuation (2026-07-21)
+## Inventory valuation + Module-2 client changes (2026-07-21) — ALL LIVE
 
-`0035_inventory_valuation_and_consumable_type.sql` and
-`0036_inventory_valuation_triggers.sql` are committed as local files but
-**NOT yet applied** to the live project `axwxpjbzdhaevoimagiz` — the Supabase
-MCP account available in that session had no permission on this project, and no
-CLI/DB password was available locally.
-
-**These must be applied (via the owning Supabase account's MCP `apply_migration`,
-or the SQL Editor) before the inventory value features work.** Until then the
-Inventory Dashboard, Stock Balances, and item detail pages degrade to empty /
-₹0 (the `balance_value` / `avg_unit_cost` / `consumable_type` columns don't exist
-remotely yet, so those selects return null rather than erroring). The inventory
-schema migrations `0030`–`0034` are already live (the module reads/writes fine).
-
-Apply `0035` first, then `0036`. Both are additive except: `0035` makes
-`grn_items.unit_rate` NOT NULL (backfills existing nulls to 0 first) and
-recreates the `stock_balances` view (re-grants SELECT to authenticated).
+- `0035_inventory_valuation_and_consumable_type` and `0036_inventory_valuation_triggers`
+  were applied by the user via the SQL Editor (verified live: `balance_value`,
+  `avg_unit_cost`, `consumable_type`, `stock_ledger.unit_rate` all present). They are
+  **not** registered in the remote migration history (applied out-of-band), but the
+  schema is live and matches the local files.
+- `0037_item_supplier_approval`, `0038_material_issue_consumption`,
+  `0039_material_inward_number`, `0040_harden_new_function_grants` were applied AND
+  registered via the Supabase MCP `apply_migration` in the same session, so they show
+  in `list_migrations`. Local files match byte-for-byte.
+- Verified after apply: security advisor shows 0 ERROR (pre-existing WARNs only); the
+  two new functions were hardened (trigger fn not RPC-executable; generator
+  authenticated-only). Partial-consumption return-to-stock trigger tested with an
+  isolated fixture (issue 100 → confirm 70 → 30 returned; balance 30 / ₹300) then
+  cleaned up.
 
 ---
 

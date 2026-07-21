@@ -40,6 +40,7 @@ export function MaterialIssueForm({
     resolver: zodResolver(materialIssueSchema),
     defaultValues: {
       job_card_id: "",
+      issued_to: "",
       items: [{ item_id: "", storage_location_id: "", issued_qty: "", uom: "" }],
     },
   })
@@ -68,14 +69,20 @@ export function MaterialIssueForm({
 
       <div className="rounded-lg border border-border p-5 space-y-4">
         <h2 className="font-semibold">Issue Details</h2>
-        <div>
-          <Label htmlFor="job_card_id">Job Card (production order)</Label>
-          <Select id="job_card_id" {...register("job_card_id")} className="mt-1">
-            <option value="">No job card link</option>
-            {jobCards.map((jc) => (
-              <option key={jc.id} value={jc.id}>{jc.jc_number}</option>
-            ))}
-          </Select>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="job_card_id">Job Card (production order)</Label>
+            <Select id="job_card_id" {...register("job_card_id")} className="mt-1">
+              <option value="">No job card link</option>
+              {jobCards.map((jc) => (
+                <option key={jc.id} value={jc.id}>{jc.jc_number}</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="issued_to">Issued to (operator)</Label>
+            <Input id="issued_to" {...register("issued_to")} className="mt-1" placeholder="e.g. Suman" />
+          </div>
         </div>
         <div>
           <Label htmlFor="remarks">Remarks</Label>

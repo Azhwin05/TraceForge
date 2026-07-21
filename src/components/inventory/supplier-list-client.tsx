@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Plus, Search } from "lucide-react"
@@ -15,6 +16,7 @@ import {
 import { cn } from "@/lib/utils"
 import { supplierSchema, type SupplierInput } from "@/lib/validations/supplier"
 import { createSupplier, updateSupplier } from "@/app/(app)/inventory/suppliers/actions"
+import { ApprovalActions, ApprovalBadge } from "@/components/inventory/approval-actions"
 import type { Supplier, UserRole } from "@/types/database"
 
 function FieldError({ message }: { message?: unknown }) {
@@ -89,6 +91,9 @@ function SupplierDialog({
       ? await createSupplier(data)
       : await updateSupplier(supplier!.id, data)
     if (result.error) { setServerError(result.error); return }
+    if (mode === "create" && "pending" in result && result.pending) {
+      toast.info("Supplier submitted for admin approval")
+    }
     reset()
     onOpenChange(false)
     router.refresh()
@@ -124,6 +129,8 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
   const [editing, setEditing] = useState<Supplier | null>(null)
 
   const canCreate = ["admin", "engineer"].includes(userRole)
+  const isAdmin = userRole === "admin"
+  const pendingSuppliers = records.filter((s) => s.approval_status === "pending")
 
   const filtered = records.filter((s) => {
     const q = search.toLowerCase()
@@ -143,6 +150,27 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
           </Button>
         )}
       </div>
+
+      {isAdmin && pendingSuppliers.length > 0 && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+            {pendingSuppliers.length} supplier{pendingSuppliers.length > 1 ? "s" : ""} awaiting your approval
+          </h2>
+          <div className="divide-y divide-amber-200">
+            {pendingSuppliers.map((s) => (
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{s.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[s.contact_name, s.contact_phone, s.gst_no ? `GST ${s.gst_no}` : null].filter(Boolean).join(" · ") || "No contact details"}
+                  </p>
+                </div>
+                <ApprovalActions kind="supplier" id={s.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -168,6 +196,7 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
                   >
                     {s.is_active ? "Active" : "Inactive"}
                   </span>
+                  <ApprovalBadge status={s.approval_status} />
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   {s.contact_name && <span>{s.contact_name}</span>}

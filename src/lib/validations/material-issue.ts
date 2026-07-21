@@ -10,9 +10,20 @@ export const materialIssueItemSchema = z.object({
 
 export const materialIssueSchema = z.object({
   job_card_id:  z.string().uuid().nullish().or(z.literal("")),
+  issued_to:    z.string().nullish(),
   remarks:      z.string().nullish(),
   items:        z.array(materialIssueItemSchema).min(1, "Add at least one item to issue"),
 })
 
 export type MaterialIssueItemInput = z.infer<typeof materialIssueItemSchema>
 export type MaterialIssueInput = z.infer<typeof materialIssueSchema>
+
+// Confirmation of how much of each issued line was actually consumed.
+export const consumptionSchema = z.object({
+  items: z.array(z.object({
+    id:           z.string().uuid(),
+    consumed_qty: z.coerce.number().min(0, "Cannot be negative"),
+  })).min(1),
+})
+
+export type ConsumptionInput = z.infer<typeof consumptionSchema>

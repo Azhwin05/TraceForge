@@ -603,14 +603,14 @@ export interface Database {
 
       // ── Inventory module ───────────────────────────────────────────────
       item_master: {
-        Row: { id: string; item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; created_by: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; item_code: string; item_name: string; category: string; consumable_type?: string | null; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; created_by?: string | null; created_at?: string; updated_at?: string };
+        Row: { id: string; item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; approval_status: string; approved_by: string | null; approved_at: string | null; rejection_reason: string | null; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; item_code: string; item_name: string; category: string; consumable_type?: string | null; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; approval_status?: string; approved_by?: string | null; approved_at?: string | null; rejection_reason?: string | null; created_by?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["item_master"]["Insert"]>;
         Relationships: [];
       };
       suppliers: {
-        Row: { id: string; name: string; contact_name: string | null; contact_phone: string | null; contact_email: string | null; address: string | null; gst_no: string | null; is_active: boolean; created_at: string };
-        Insert: { id?: string; name: string; contact_name?: string | null; contact_phone?: string | null; contact_email?: string | null; address?: string | null; gst_no?: string | null; is_active?: boolean; created_at?: string };
+        Row: { id: string; name: string; contact_name: string | null; contact_phone: string | null; contact_email: string | null; address: string | null; gst_no: string | null; is_active: boolean; approval_status: string; approved_by: string | null; approved_at: string | null; rejection_reason: string | null; created_at: string };
+        Insert: { id?: string; name: string; contact_name?: string | null; contact_phone?: string | null; contact_email?: string | null; address?: string | null; gst_no?: string | null; is_active?: boolean; approval_status?: string; approved_by?: string | null; approved_at?: string | null; rejection_reason?: string | null; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["suppliers"]["Insert"]>;
         Relationships: [];
       };
@@ -621,8 +621,8 @@ export interface Database {
         Relationships: [];
       };
       material_inward: {
-        Row: { id: string; dc_number: string; dc_date: string; supplier_id: string; po_number: string | null; vehicle_no: string | null; remarks: string | null; status: string; received_by: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; dc_number: string; dc_date?: string; supplier_id: string; po_number?: string | null; vehicle_no?: string | null; remarks?: string | null; status?: string; received_by?: string | null; created_at?: string; updated_at?: string };
+        Row: { id: string; inward_number: string; dc_number: string; dc_date: string; supplier_id: string; po_number: string | null; vehicle_no: string | null; remarks: string | null; status: string; received_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; inward_number?: string; dc_number: string; dc_date?: string; supplier_id: string; po_number?: string | null; vehicle_no?: string | null; remarks?: string | null; status?: string; received_by?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["material_inward"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "material_inward_supplier_id_fkey"; columns: ["supplier_id"]; isOneToOne: false; referencedRelation: "suppliers"; referencedColumns: ["id"] }
@@ -673,16 +673,16 @@ export interface Database {
         ];
       };
       material_issues: {
-        Row: { id: string; issue_number: string; job_card_id: string | null; issued_by: string | null; issue_date: string; status: string; remarks: string | null };
-        Insert: { id?: string; issue_number: string; job_card_id?: string | null; issued_by?: string | null; issue_date?: string; status?: string; remarks?: string | null };
+        Row: { id: string; issue_number: string; job_card_id: string | null; issued_by: string | null; issued_to: string | null; issue_date: string; status: string; consumption_status: string; remarks: string | null };
+        Insert: { id?: string; issue_number: string; job_card_id?: string | null; issued_by?: string | null; issued_to?: string | null; issue_date?: string; status?: string; consumption_status?: string; remarks?: string | null };
         Update: Partial<Database["public"]["Tables"]["material_issues"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "material_issues_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
         ];
       };
       material_issue_items: {
-        Row: { id: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; uom: string; remarks: string | null };
-        Insert: { id?: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; uom: string; remarks?: string | null };
+        Row: { id: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty: number | null; returned_qty: number; uom: string; remarks: string | null };
+        Insert: { id?: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty?: number | null; returned_qty?: number; uom: string; remarks?: string | null };
         Update: Partial<Database["public"]["Tables"]["material_issue_items"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "material_issue_items_material_issue_id_fkey"; columns: ["material_issue_id"]; isOneToOne: false; referencedRelation: "material_issues"; referencedColumns: ["id"] },
@@ -740,6 +740,7 @@ export interface Database {
       };
       generate_grn_number: { Args: Record<string, never>; Returns: string };
       generate_material_issue_number: { Args: Record<string, never>; Returns: string };
+      generate_material_inward_number: { Args: Record<string, never>; Returns: string };
     };
     Enums: {
       user_role: UserRole;

@@ -22,7 +22,7 @@ export function MaterialInwardListClient({ records }: { records: Row[] }) {
 
   const filtered = records.filter((r) => {
     const q = search.toLowerCase()
-    return !q || r.dc_number.toLowerCase().includes(q) || (r.suppliers?.name ?? "").toLowerCase().includes(q)
+    return !q || r.inward_number.toLowerCase().includes(q) || r.dc_number.toLowerCase().includes(q) || (r.suppliers?.name ?? "").toLowerCase().includes(q)
   })
 
   return (
@@ -48,7 +48,7 @@ export function MaterialInwardListClient({ records }: { records: Row[] }) {
               >
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{r.dc_number}</span>
+                    <span className="font-medium">{r.inward_number}</span>
                     <span className="text-muted-foreground">—</span>
                     <span>{r.suppliers?.name ?? "Unknown supplier"}</span>
                     <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", status.className)}>
@@ -56,6 +56,7 @@ export function MaterialInwardListClient({ records }: { records: Row[] }) {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span>DC: {r.dc_number}</span>
                     <span>DC Date: {new Date(r.dc_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                     {r.po_number && <span>PO: {r.po_number}</span>}
                   </div>

@@ -26,9 +26,13 @@ export async function createMaterialInward(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Validation error" }
   const data = parsed.data
 
+  const { data: inwardNumber, error: numberError } = await supabase.rpc("generate_material_inward_number")
+  if (numberError) return { error: numberError.message }
+
   const { data: inward, error } = await supabase
     .from("material_inward")
     .insert({
+      inward_number: inwardNumber as string,
       dc_number:    data.dc_number.trim(),
       dc_date:      data.dc_date,
       supplier_id:  data.supplier_id,

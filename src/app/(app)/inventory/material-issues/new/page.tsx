@@ -14,7 +14,7 @@ export default async function NewMaterialIssuePage() {
   }
 
   const [{ data: items }, { data: locations }, { data: jobCards }] = await Promise.all([
-    supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).order("item_code"),
+    supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).eq("approval_status", "approved").order("item_code"),
     supabase.from("storage_locations").select("id, code, name").eq("is_active", true).order("code"),
     supabase.from("job_cards").select("id, jc_number").order("created_at", { ascending: false }).limit(100),
   ])
