@@ -19,6 +19,7 @@ import type { Dispatch, JobCardStatus, UserRole } from "@/types/database"
 
 export function DispatchSection({
   jobCardId,
+  jcNumber,
   status,
   userRole,
   dispatches,
@@ -26,6 +27,7 @@ export function DispatchSection({
   validatedByName,
 }: {
   jobCardId: string
+  jcNumber: string
   status: JobCardStatus
   userRole: UserRole
   dispatches: Dispatch[]
@@ -146,6 +148,16 @@ export function DispatchSection({
                 {d.vehicle_details && (
                   <p className="text-muted-foreground">Vehicle: {d.vehicle_details}</p>
                 )}
+                {(d.driver_name || d.driver_phone) && (
+                  <p className="text-muted-foreground">
+                    Driver: {[d.driver_name, d.driver_phone].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                {(d.transporter_name || d.lr_number) && (
+                  <p className="text-muted-foreground">
+                    {[d.transporter_name, d.lr_number && `LR ${d.lr_number}`].filter(Boolean).join(" · ")}
+                  </p>
+                )}
                 {d.remarks && <p className="text-muted-foreground">{d.remarks}</p>}
                 <DocumentCard
                   storagePath={d.storage_path}
@@ -169,6 +181,15 @@ export function DispatchSection({
         {canDispatch && (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 border-t border-border pt-4">
             <p className="text-sm font-medium">Create Dispatch Record</p>
+
+            {/* Job card is known from context — shown read-only, auto-linked. */}
+            <div className="space-y-1">
+              <Label>Job Card</Label>
+              <div className="flex h-9 items-center rounded-md border border-input bg-muted/40 px-3 text-sm font-medium">
+                {jcNumber}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label htmlFor="dc_number">DC Number *</Label>
@@ -196,12 +217,34 @@ export function DispatchSection({
               </div>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="vehicle_details">Vehicle Details</Label>
+              <Label htmlFor="vehicle_details">Vehicle Number *</Label>
               <Input
                 id="vehicle_details"
-                placeholder="e.g. TN 01 AB 1234 - Tempo"
+                placeholder="e.g. TN 01 AB 1234"
                 {...register("vehicle_details")}
+                aria-invalid={!!errors.vehicle_details}
               />
+              {errors.vehicle_details && (
+                <p className="text-xs text-destructive">{errors.vehicle_details.message}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="driver_name">Driver Name</Label>
+                <Input id="driver_name" placeholder="e.g. Suresh" {...register("driver_name")} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="driver_phone">Driver Phone</Label>
+                <Input id="driver_phone" placeholder="e.g. 98765 43210" {...register("driver_phone")} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="transporter_name">Transporter</Label>
+                <Input id="transporter_name" placeholder="Transporter / carrier" {...register("transporter_name")} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="lr_number">LR Number</Label>
+                <Input id="lr_number" placeholder="Lorry receipt no." {...register("lr_number")} />
+              </div>
             </div>
             <div className="space-y-1">
               <Label htmlFor="doc_url">Document URL</Label>

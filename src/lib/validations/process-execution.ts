@@ -52,7 +52,11 @@ export type ProcessExecutionInput = z.infer<typeof processExecutionSchema>
 export const dispatchSchema = z.object({
   dc_number: z.string().min(1, "DC number is required"),
   dispatch_date: z.string().min(1, "Dispatch date is required"),
-  vehicle_details: z.string().optional(),
+  vehicle_details: z.string().min(1, "Vehicle number is required"),
+  driver_name: z.string().optional(),
+  driver_phone: z.string().optional(),
+  transporter_name: z.string().optional(),
+  lr_number: z.string().optional(),
   remarks: z.string().optional(),
   doc_url: z.string().url("Enter a valid URL").optional().or(z.literal("")),
 })

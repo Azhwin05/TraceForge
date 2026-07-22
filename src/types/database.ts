@@ -254,8 +254,8 @@ export interface Database {
         ];
       };
       dispatches: {
-        Row: { id: string; job_card_id: string; dc_number: string; dispatch_date: string; vehicle_details: string | null; remarks: string | null; doc_url: string | null; created_by: string | null; created_at: string; storage_path: string | null };
-        Insert: { id?: string; job_card_id: string; dc_number: string; dispatch_date: string; vehicle_details?: string | null; remarks?: string | null; doc_url?: string | null; created_by?: string | null; created_at?: string; storage_path?: string | null };
+        Row: { id: string; job_card_id: string; dc_number: string; dispatch_date: string; vehicle_details: string | null; driver_name: string | null; driver_phone: string | null; transporter_name: string | null; lr_number: string | null; remarks: string | null; doc_url: string | null; created_by: string | null; created_at: string; storage_path: string | null };
+        Insert: { id?: string; job_card_id: string; dc_number: string; dispatch_date: string; vehicle_details?: string | null; driver_name?: string | null; driver_phone?: string | null; transporter_name?: string | null; lr_number?: string | null; remarks?: string | null; doc_url?: string | null; created_by?: string | null; created_at?: string; storage_path?: string | null };
         Update: Partial<Database["public"]["Tables"]["dispatches"]["Insert"]>;
         Relationships: [];
       };

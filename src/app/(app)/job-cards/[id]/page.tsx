@@ -428,6 +428,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
       {/* Dispatch Section */}
       <DispatchSection
         jobCardId={jc.id}
+        jcNumber={jc.jc_number}
         status={jc.status}
         userRole={userRole}
         dispatches={jc.dispatches ?? []}
