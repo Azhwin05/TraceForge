@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { requireAuth } from "@/lib/auth"
-import { WpsForm, wpsMasterToFormValues } from "@/components/master-data/wps-form"
+import { WpsForm } from "@/components/master-data/wps-form"
+import { wpsMasterToFormValues } from "@/lib/form-mappers/wps-master"
 import type { WpsMaster, UserRole } from "@/types/database"
 
 export const metadata = { title: "Edit WPS Master — ValveTrack" }

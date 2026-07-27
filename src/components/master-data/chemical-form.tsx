@@ -17,22 +17,9 @@ import {
   createChemicalMaster,
   updateChemicalMaster,
 } from "@/app/(app)/master-data/chemicals/actions"
-import type { ChemicalMaster } from "@/types/database"
-
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
   return <p className="mt-1 text-xs text-destructive">{message}</p>
-}
-
-function chemicalToFormValues(c: ChemicalMaster): ChemicalMasterInput {
-  return {
-    chemical_name: c.chemical_name,
-    type:          c.type,
-    manufacturer:  c.manufacturer ?? undefined,
-    notes:         c.notes ?? undefined,
-    batch_no:      c.batch_no ?? undefined,
-    expiry_date:   c.expiry_date ?? undefined,
-  }
 }
 
 interface Props {
@@ -160,5 +147,3 @@ export function ChemicalForm({ mode, chemicalId, defaultValues }: Props) {
     </form>
   )
 }
-
-export { chemicalToFormValues }

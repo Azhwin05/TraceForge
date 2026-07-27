@@ -17,26 +17,9 @@ import {
   createConsumableMaster,
   updateConsumableMaster,
 } from "@/app/(app)/master-data/consumables/actions"
-import type { ConsumableMaster } from "@/types/database"
-
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
   return <p className="mt-1 text-xs text-destructive">{message}</p>
-}
-
-function consumableToFormValues(c: ConsumableMaster): ConsumableMasterInput {
-  return {
-    brand:               c.brand,
-    product_name:        c.product_name,
-    type:                c.type,
-    aws_class:           c.aws_class ?? undefined,
-    size:                c.size ?? undefined,
-    manufacturer:        c.manufacturer ?? undefined,
-    notes:               c.notes ?? undefined,
-    batch_no:            c.batch_no ?? undefined,
-    manufacturing_date:  c.manufacturing_date ?? undefined,
-    expiry_date:         c.expiry_date ?? undefined,
-  }
 }
 
 interface Props {
@@ -185,5 +168,3 @@ export function ConsumableForm({ mode, consumableId, defaultValues }: Props) {
     </form>
   )
 }
-
-export { consumableToFormValues }

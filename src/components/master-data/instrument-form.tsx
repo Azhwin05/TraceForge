@@ -17,21 +17,9 @@ import {
   createInstrumentMaster,
   updateInstrumentMaster,
 } from "@/app/(app)/master-data/instruments/actions"
-import type { InstrumentMaster } from "@/types/database"
-
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
   return <p className="mt-1 text-xs text-destructive">{message}</p>
-}
-
-function instrumentToFormValues(i: InstrumentMaster): InstrumentMasterInput {
-  return {
-    instrument_name: i.instrument_name,
-    instrument_type: i.instrument_type,
-    serial_number:   i.serial_number ?? undefined,
-    manufacturer:    i.manufacturer ?? undefined,
-    calibration_due: i.calibration_due ?? undefined,
-  }
 }
 
 interface Props {
@@ -149,5 +137,3 @@ export function InstrumentForm({ mode, instrumentId, defaultValues }: Props) {
     </form>
   )
 }
-
-export { instrumentToFormValues }

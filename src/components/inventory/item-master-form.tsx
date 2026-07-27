@@ -17,24 +17,10 @@ import {
   type ItemMasterInput,
 } from "@/lib/validations/item-master"
 import { createItemMaster, updateItemMaster } from "@/app/(app)/inventory/items/actions"
-import type { ItemMaster } from "@/types/database"
 
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
   return <p className="mt-1 text-xs text-destructive">{message}</p>
-}
-
-function itemToFormValues(it: ItemMaster): ItemMasterInput {
-  return {
-    item_code:        it.item_code,
-    item_name:        it.item_name,
-    category:         it.category as ItemMasterInput["category"],
-    consumable_type:  (it.consumable_type ?? undefined) as ItemMasterInput["consumable_type"],
-    uom:              it.uom,
-    hsn_code:         it.hsn_code ?? undefined,
-    min_stock_level:  it.min_stock_level,
-    description:      it.description ?? undefined,
-  }
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -181,5 +167,3 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
     </form>
   )
 }
-
-export { itemToFormValues }

@@ -17,21 +17,9 @@ import {
   createMachine,
   updateMachine,
 } from "@/app/(app)/master-data/machines/actions"
-import type { Machine } from "@/types/database"
-
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
   return <p className="mt-1 text-xs text-destructive">{message}</p>
-}
-
-function machineToFormValues(m: Machine): MachineInput {
-  return {
-    machine_code: m.machine_code,
-    name:         m.name,
-    category:     m.category,
-    location:     m.location ?? undefined,
-    notes:        m.notes ?? undefined,
-  }
 }
 
 interface Props {
@@ -155,5 +143,3 @@ export function MachineForm({ mode, machineId, defaultValues }: Props) {
     </form>
   )
 }
-
-export { machineToFormValues }
