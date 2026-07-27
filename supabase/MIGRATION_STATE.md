@@ -2,15 +2,17 @@
 
 ## ⚠️ PENDING APPLICATION — Customer Items (2026-07-27)
 
-`0044_customer_items.sql` is committed as a local file but **NOT yet applied** — this
-session's Supabase MCP had no permission on this project (`list_projects` only returns
-unrelated projects), so `apply_migration`/`execute_sql` could not reach
-`axwxpjbzdhaevoimagiz`. Apply it via the SQL Editor or a session with real access.
+`0044_customer_items.sql` and `0045_customer_item_date.sql` are committed as local files
+but **NOT yet applied** — this session's Supabase MCP had no permission on this project
+(`list_projects` only returns unrelated projects), so `apply_migration`/`execute_sql`
+could not reach `axwxpjbzdhaevoimagiz`. Apply both, in order, via the SQL Editor or a
+session with real access.
 
-**What breaks until it's applied:** every page under `/inventory/customers/*` — the
-`customer_items` table, its RLS policies, and `purge_expired_customer_items()` don't
-exist remotely yet. The `clients` table itself is untouched (no migration needed for it)
-— Customer create/edit/delete will work immediately once the table + policies land.
+**What breaks until they're applied:** every page under `/inventory/customers/*` — the
+`customer_items` table, its RLS policies, `purge_expired_customer_items()`, and the
+`item_date` column don't exist remotely yet. The `clients` table itself is untouched (no
+migration needed for it) — Customer create/edit/delete will work immediately once the
+table + policies land.
 
 ## ✅ CONFIRMED LIVE — Recycle bin + inventory delete (2026-07-21 → 2026-07-27)
 

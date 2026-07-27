@@ -40,6 +40,7 @@ function EditItemDialog({
     resolver: zodResolver(customerItemEditSchema),
     defaultValues: {
       item_name: item.item_name,
+      item_date: item.item_date ?? "",
       description: item.description ?? "",
       drawing_number: item.drawing_number ?? "",
       quantity: item.quantity ?? undefined,
@@ -69,10 +70,16 @@ function EditItemDialog({
               {serverError}
             </div>
           )}
-          <div>
-            <Label htmlFor="item_name">Item Name <span className="text-destructive">*</span></Label>
-            <Input id="item_name" {...register("item_name")} className="mt-1" />
-            <FieldError message={errors.item_name?.message} />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <Label htmlFor="item_name">Item Name <span className="text-destructive">*</span></Label>
+              <Input id="item_name" {...register("item_name")} className="mt-1" />
+              <FieldError message={errors.item_name?.message} />
+            </div>
+            <div>
+              <Label htmlFor="item_date">Date</Label>
+              <Input id="item_date" type="date" {...register("item_date")} className="mt-1" />
+            </div>
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
@@ -153,7 +160,10 @@ export function CustomerDetailClient({
               <div key={it.id} className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-white px-3 py-2">
                 <div>
                   <p className="text-sm font-medium">{it.item_name}</p>
-                  {it.remarks && <p className="text-xs text-muted-foreground">{it.remarks}</p>}
+                  <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                    {it.item_date && <span>{new Date(it.item_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
+                    {it.remarks && <span>{it.remarks}</span>}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {isAdmin && (
@@ -189,6 +199,7 @@ export function CustomerDetailClient({
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{it.item_name}</p>
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    {it.item_date && <span>{new Date(it.item_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>}
                     {it.description && <span>{it.description}</span>}
                     {it.drawing_number && <span>Drawing: {it.drawing_number}</span>}
                     {it.quantity != null && <span>Qty: {it.quantity} {it.uom ?? ""}</span>}

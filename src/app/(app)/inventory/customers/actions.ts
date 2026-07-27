@@ -138,6 +138,7 @@ export async function createCustomerItems(
   const rows = parsed.data.items.map((item) => ({
     client_id:      clientId,
     item_name:      item.item_name.trim(),
+    item_date:      sanitize(item.item_date),
     description:    item.deferred ? null : sanitize(item.description),
     drawing_number: item.deferred ? null : sanitize(item.drawing_number),
     quantity:       item.deferred ? null : (item.quantity ?? null),
@@ -172,6 +173,7 @@ export async function updateCustomerItem(
     .from("customer_items")
     .update({
       item_name:      data.item_name.trim(),
+      item_date:      sanitize(data.item_date),
       description:    sanitize(data.description),
       drawing_number: sanitize(data.drawing_number),
       quantity:       data.quantity ?? null,

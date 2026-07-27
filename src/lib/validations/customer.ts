@@ -15,6 +15,7 @@ export type CustomerInput = z.infer<typeof customerSchema>
 // edit, and the row is saved with status: "pending" instead of "complete".
 export const customerItemRowSchema = z.object({
   item_name:      z.string().min(1, "Item name is required"),
+  item_date:      z.string().nullish(),
   description:    z.string().nullish(),
   drawing_number: z.string().nullish(),
   quantity:       z.coerce.number().nullish(),
@@ -32,12 +33,13 @@ export const customerItemsBatchSchema = z.object({
 export type CustomerItemsBatchInput = z.infer<typeof customerItemsBatchSchema>
 
 export function blankCustomerItemRow(): CustomerItemRowInput {
-  return { item_name: "", description: "", drawing_number: "", quantity: undefined, uom: "", remarks: "", deferred: false }
+  return { item_name: "", item_date: "", description: "", drawing_number: "", quantity: undefined, uom: "", remarks: "", deferred: false }
 }
 
 // Editing a single existing item (completing a pending one, or fixing a mistake).
 export const customerItemEditSchema = z.object({
   item_name:      z.string().min(1, "Item name is required"),
+  item_date:      z.string().nullish(),
   description:    z.string().nullish(),
   drawing_number: z.string().nullish(),
   quantity:       z.coerce.number().nullish(),

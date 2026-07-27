@@ -65,6 +65,10 @@ export function CustomerItemsForm({ clientId }: { clientId: string }) {
                   />
                   {errs?.item_name && <p className="text-xs text-destructive">{errs.item_name.message}</p>}
                 </div>
+                <div className="w-36 space-y-1">
+                  <Label className="text-xs">Date</Label>
+                  <Input type="date" {...register(`items.${idx}.item_date`)} className="h-8 text-sm" />
+                </div>
                 <Button
                   type="button" variant="ghost" size="sm" disabled={fields.length === 1}
                   onClick={() => remove(idx)} className="mt-5"

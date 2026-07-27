@@ -18,11 +18,15 @@ export default async function NewCustomerItemsPage({
 
   const { data: customer, error } = await supabase
     .from("clients")
-    .select("id, name")
+    .select("*")
     .eq("id", params.id)
     .single()
 
   if (error || !customer) notFound()
+
+  const contactLine = [customer.contact_name, customer.contact_phone, customer.contact_email]
+    .filter(Boolean)
+    .join(" · ")
 
   return (
     <div className="p-6 max-w-4xl space-y-4">
@@ -38,6 +42,19 @@ export default async function NewCustomerItemsPage({
           check &ldquo;Add details later&rdquo; and just give it a name — you can complete it any time.
         </p>
       </div>
+
+      {/* Customer context — visible while filling out items, no need to leave the page. */}
+      <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <p className="text-sm font-semibold">{customer.name}</p>
+        <dl className="mt-1.5 grid grid-cols-1 gap-x-6 gap-y-0.5 text-xs text-muted-foreground sm:grid-cols-2">
+          {contactLine && <div>{contactLine}</div>}
+          {customer.address && <div>{customer.address}</div>}
+        </dl>
+        {!contactLine && !customer.address && (
+          <p className="mt-1 text-xs text-muted-foreground">No contact details on file.</p>
+        )}
+      </div>
+
       <CustomerItemsForm clientId={customer.id} />
     </div>
   )
