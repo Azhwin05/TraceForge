@@ -77,6 +77,14 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
         Relationships: [];
       };
+      customer_items: {
+        Row: { id: string; client_id: string; item_name: string; description: string | null; drawing_number: string | null; quantity: number | null; uom: string | null; remarks: string | null; status: string; created_by: string | null; created_at: string; updated_at: string; deleted_at: string | null; deleted_by: string | null; purge_at: string | null };
+        Insert: { id?: string; client_id: string; item_name: string; description?: string | null; drawing_number?: string | null; quantity?: number | null; uom?: string | null; remarks?: string | null; status?: string; created_by?: string | null; created_at?: string; updated_at?: string; deleted_at?: string | null; deleted_by?: string | null; purge_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["customer_items"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "customer_items_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
+        ];
+      };
       job_cards: {
         Row: {
           id: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -748,6 +756,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: { purged_id: string; jc_number: string; skipped: boolean; reason: string | null }[];
       };
+      purge_expired_customer_items: {
+        Args: Record<string, never>;
+        Returns: { purged_id: string; item_name: string; skipped: boolean; reason: string | null }[];
+      };
     };
     Enums: {
       user_role: UserRole;
@@ -761,6 +773,7 @@ export interface Database {
 // ── Convenience row types — existing ──────────────────────────────────────
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
+export type CustomerItem = Database["public"]["Tables"]["customer_items"]["Row"];
 export type JobCard = Database["public"]["Tables"]["job_cards"]["Row"];
 export type WpsQualification = Database["public"]["Tables"]["wps_qualifications"]["Row"];
 export type ProcessExecution = Database["public"]["Tables"]["process_executions"]["Row"];

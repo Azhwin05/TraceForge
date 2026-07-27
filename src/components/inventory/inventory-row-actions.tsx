@@ -23,20 +23,24 @@ export function InventoryRowActions({
   canDelete,
   onDelete,
   onToggleActive,
+  deleteDescription,
 }: {
   /** e.g. "RM-001 — SS316 Bar" — shown in the confirm dialog */
   label: string
-  isActive: boolean
-  canDeactivate: boolean
+  isActive?: boolean
+  canDeactivate?: boolean
   canDelete: boolean
   onDelete: () => Promise<{ error?: string }>
-  onToggleActive: (next: boolean) => Promise<{ error?: string }>
+  onToggleActive?: (next: boolean) => Promise<{ error?: string }>
+  /** Override the default (item/GRN-flavoured) confirm-dialog copy. */
+  deleteDescription?: string
 }) {
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
   async function handleToggle() {
+    if (!onToggleActive) return
     setBusy(true)
     const res = await onToggleActive(!isActive)
     setBusy(false)
@@ -86,10 +90,12 @@ export function InventoryRowActions({
           <DialogHeader>
             <DialogTitle>Delete {label}?</DialogTitle>
             <DialogDescription>
-              This permanently removes it. If it has any transaction history
-              (stock movement, GRN, or issue records), the delete is blocked —
-              deactivate it instead so it stays in your records but stops
-              showing up in new transactions.
+              {deleteDescription ?? (
+                "This permanently removes it. If it has any transaction history " +
+                "(stock movement, GRN, or issue records), the delete is blocked — " +
+                "deactivate it instead so it stays in your records but stops " +
+                "showing up in new transactions."
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

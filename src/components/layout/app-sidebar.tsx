@@ -28,6 +28,7 @@ import {
   MapPin,
   Wallet,
   Trash2,
+  Building2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
@@ -158,6 +159,13 @@ export const MODULES: Module[] = [
           { href: "/inventory/items",     label: "Item Master",       icon: Boxes },
           { href: "/inventory/suppliers", label: "Suppliers",         icon: Users },
           { href: "/inventory/locations", label: "Storage Locations", icon: MapPin },
+          { href: "/inventory/customers", label: "Customers",         icon: Building2 },
+          {
+            href: "/inventory/customers/recycle-bin",
+            label: "Recycle Bin",
+            icon: Trash2,
+            roles: ["admin"],
+          },
         ],
       },
     ],

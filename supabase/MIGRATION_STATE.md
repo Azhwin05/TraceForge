@@ -1,12 +1,24 @@
 # Migration State — source of truth
 
-## ⚠️ PENDING APPLICATION — Recycle bin + inventory delete (2026-07-27)
+## ⚠️ PENDING APPLICATION — Customer Items (2026-07-27)
 
-`0041_dispatch_details.sql` was applied and registered in a prior session (confirmed
-live). **`0042_job_card_recycle_bin.sql` and `0043_inventory_delete_policies.sql` are
-committed as local files but NOT yet applied** — the Supabase MCP available in this
-session had no permission on this project (`list_projects` only returns unrelated
-projects), so `apply_migration`/`execute_sql` could not reach `axwxpjbzdhaevoimagiz`.
+`0044_customer_items.sql` is committed as a local file but **NOT yet applied** — this
+session's Supabase MCP had no permission on this project (`list_projects` only returns
+unrelated projects), so `apply_migration`/`execute_sql` could not reach
+`axwxpjbzdhaevoimagiz`. Apply it via the SQL Editor or a session with real access.
+
+**What breaks until it's applied:** every page under `/inventory/customers/*` — the
+`customer_items` table, its RLS policies, and `purge_expired_customer_items()` don't
+exist remotely yet. The `clients` table itself is untouched (no migration needed for it)
+— Customer create/edit/delete will work immediately once the table + policies land.
+
+## ✅ CONFIRMED LIVE — Recycle bin + inventory delete (2026-07-21 → 2026-07-27)
+
+`0041_dispatch_details.sql`, `0042_job_card_recycle_bin.sql`, and
+`0043_inventory_delete_policies.sql` were applied by the user and **verified live** in
+this session: deleted a real job card, confirmed it landed in the Recycle Bin with the
+correct 6-month countdown, and restored it cleanly; created and deleted a throwaway
+storage location to confirm the new DELETE RLS policy works.
 
 **What breaks until these are applied:**
 - Job Card **Delete** will fail (the app now writes `deleted_at`/`deleted_by`/`purge_at`
