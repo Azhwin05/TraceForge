@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import {
   materialInwardSchema, type MaterialInwardInput,
+  materialInwardEditSchema, type MaterialInwardEditInput,
   incomingInspectionSchema, type IncomingInspectionInput,
   qualityInspectionSchema, type QualityInspectionInput,
   grnSchema, type GrnInput,
 } from "@/lib/validations/material-inward"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -169,4 +171,77 @@ export async function generateGrn(raw: GrnInput): Promise<{ error?: string; id?:
   revalidatePath("/inventory/material-inward")
   revalidatePath("/inventory/stock")
   return { id: grnId }
+}
+
+// ── Admin: edit + delete a Material Inward record ───────────────────────
+
+/**
+ * Edit the DC header (number, date, supplier, PO, vehicle, remarks) of an
+ * existing Material Inward record. Deliberately does not touch the items —
+ * those already feed inspection results and any generated GRN. Admin only.
+ */
+export async function updateMaterialInward(
+  id: string,
+  raw: MaterialInwardEditInput,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const parsed = materialInwardEditSchema.safeParse(raw)
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Validation error" }
+  const data = parsed.data
+
+  const { error } = await supabase
+    .from("material_inward")
+    .update({
+      dc_number:   data.dc_number.trim(),
+      dc_date:     data.dc_date,
+      supplier_id: data.supplier_id,
+      po_number:   sanitize(data.po_number),
+      vehicle_no:  sanitize(data.vehicle_no),
+      remarks:     sanitize(data.remarks),
+    })
+    .eq("id", id)
+
+  if (error) return { error: sanitizeError(error) }
+
+  revalidatePath("/inventory/material-inward")
+  revalidatePath(`/inventory/material-inward/${id}`)
+  return {}
+}
+
+/**
+ * Permanently delete a Material Inward record (and its cascading inspection/
+ * item rows). Admin only. Blocked with a readable reason if a GRN was
+ * already generated — that FK doesn't cascade, so material already moved
+ * into stock can't actually be deleted regardless.
+ */
+export async function deleteMaterialInward(id: string): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { count: grnCount } = await supabase
+    .from("grn")
+    .select("*", { count: "exact", head: true })
+    .eq("material_inward_id", id)
+
+  if ((grnCount ?? 0) > 0) {
+    return { error: "Cannot delete: a GRN has already been generated and material moved into stock for this record." }
+  }
+
+  const { data: deleted, error } = await supabase
+    .from("material_inward")
+    .delete()
+    .eq("id", id)
+    .select("id")
+
+  if (error) return { error: sanitizeError(error) }
+  if (!deleted || deleted.length === 0) {
+    return { error: "Delete was not applied — administrator permission is required." }
+  }
+
+  revalidatePath("/inventory/material-inward")
+  return {}
 }

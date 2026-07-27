@@ -33,7 +33,7 @@ export default async function MaterialInwardPage() {
         )}
       </div>
 
-      <MaterialInwardListClient records={records ?? []} />
+      <MaterialInwardListClient records={records ?? []} userRole={userRole} />
     </div>
   )
 }

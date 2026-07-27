@@ -1,18 +1,31 @@
 # Migration State — source of truth
 
-## ⚠️ PENDING APPLICATION — Customer Items (2026-07-27)
+## ✅ CONFIRMED LIVE — Material Inward delete + Stock Adjustments (2026-07-27)
 
-`0044_customer_items.sql` and `0045_customer_item_date.sql` are committed as local files
-but **NOT yet applied** — this session's Supabase MCP had no permission on this project
-(`list_projects` only returns unrelated projects), so `apply_migration`/`execute_sql`
-could not reach `axwxpjbzdhaevoimagiz`. Apply both, in order, via the SQL Editor or a
-session with real access.
+`0046_material_inward_delete_and_stock_adjustments.sql` and
+`0047_fix_stock_adjustment_reference_type.sql` were applied live via the Supabase MCP and
+verified end-to-end in the browser this session:
+- Material Inward: admin Edit (header fields only) saves and redirects correctly; admin
+  Delete is blocked with a readable message when a GRN already exists for that record
+  (also enforced at the DB level by the pre-existing `grn_material_inward_id_fkey`, tested
+  directly against a real GRN-generated row).
+- Stock Balances: admin "Adjust Stock" (increase/decrease with a required reason) posts to
+  the new `stock_adjustments` table, which triggers an `adjustment_in`/`adjustment_out`
+  entry in `stock_ledger`. Verified a real increase/decrease round-trip (+5kg then −5kg on
+  RM-C-0021 @ C-001) restored the exact original balance and average cost, and both
+  entries appear in the "Recent Adjustments" audit panel.
+- `0047` fixes a bug caught in isolated fixture testing right after `0046`: the trigger
+  originally wrote `reference_type = 'stock_adjustment'`, which isn't in the
+  `stock_ledger_reference_type_check` allow-list (`'grn'|'material_issue'|'adjustment'`).
+  Fixed to use `'adjustment'`. No real adjustment was ever attempted with the broken
+  version — caught by a throwaway `ZZTEST-*` fixture, cleaned up with zero residue.
 
-**What breaks until they're applied:** every page under `/inventory/customers/*` — the
-`customer_items` table, its RLS policies, `purge_expired_customer_items()`, and the
-`item_date` column don't exist remotely yet. The `clients` table itself is untouched (no
-migration needed for it) — Customer create/edit/delete will work immediately once the
-table + policies land.
+## ✅ CONFIRMED LIVE — Customer Items (2026-07-27, superseding the note below)
+
+`0044_customer_items.sql` and `0045_customer_item_date.sql` are confirmed applied —
+`public.customer_items` exists on the live project. The note below describing them as
+pending was written by a session without MCP access to this project; a later session
+with real access applied and verified both.
 
 ## ✅ CONFIRMED LIVE — Recycle bin + inventory delete (2026-07-21 → 2026-07-27)
 

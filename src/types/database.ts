@@ -710,6 +710,15 @@ export interface Database {
           { foreignKeyName: "stock_ledger_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
         ];
       };
+      stock_adjustments: {
+        Row: { id: string; item_id: string; storage_location_id: string; direction: string; qty: number; unit_rate: number; reason: string; created_by: string | null; created_at: string };
+        Insert: { id?: string; item_id: string; storage_location_id: string; direction: string; qty: number; unit_rate?: number; reason: string; created_by?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["stock_adjustments"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "stock_adjustments_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "stock_adjustments_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
+        ];
+      };
     };
     Views: {
       stock_balances: {
@@ -929,6 +938,7 @@ export type GrnItem = Database["public"]["Tables"]["grn_items"]["Row"];
 export type MaterialIssue = Database["public"]["Tables"]["material_issues"]["Row"];
 export type MaterialIssueItem = Database["public"]["Tables"]["material_issue_items"]["Row"];
 export type StockLedgerEntry = Database["public"]["Tables"]["stock_ledger"]["Row"];
+export type StockAdjustment = Database["public"]["Tables"]["stock_adjustments"]["Row"];
 export type StockBalance = Database["public"]["Views"]["stock_balances"]["Row"];
 
 export type MaterialInwardWithSupplier = MaterialInward & { suppliers: Supplier };

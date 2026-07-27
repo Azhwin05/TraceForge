@@ -2,10 +2,14 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, ChevronRight } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Search, ChevronRight, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { MaterialInward, Supplier } from "@/types/database"
+import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
+import { deleteMaterialInward } from "@/app/(app)/inventory/material-inward/actions"
+import type { MaterialInward, Supplier, UserRole } from "@/types/database"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   pending_inspection:        { label: "Pending Inspection",  className: "bg-slate-100 text-slate-600" },
@@ -17,8 +21,10 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
 
 type Row = MaterialInward & { suppliers: Pick<Supplier, "name"> | null }
 
-export function MaterialInwardListClient({ records }: { records: Row[] }) {
+export function MaterialInwardListClient({ records, userRole }: { records: Row[]; userRole: UserRole }) {
   const [search, setSearch] = useState("")
+  const router = useRouter()
+  const isAdmin = userRole === "admin"
 
   const filtered = records.filter((r) => {
     const q = search.toLowerCase()
@@ -41,12 +47,8 @@ export function MaterialInwardListClient({ records }: { records: Row[] }) {
           {filtered.map((r) => {
             const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-slate-100 text-slate-600" }
             return (
-              <Link
-                key={r.id}
-                href={`/inventory/material-inward/${r.id}`}
-                className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-muted/40 transition-colors"
-              >
-                <div className="min-w-0 space-y-0.5">
+              <div key={r.id} className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-muted/40 transition-colors">
+                <Link href={`/inventory/material-inward/${r.id}`} className="min-w-0 flex-1 space-y-0.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{r.inward_number}</span>
                     <span className="text-muted-foreground">—</span>
@@ -60,9 +62,24 @@ export function MaterialInwardListClient({ records }: { records: Row[] }) {
                     <span>DC Date: {new Date(r.dc_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                     {r.po_number && <span>PO: {r.po_number}</span>}
                   </div>
-                </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </Link>
+                </Link>
+                {isAdmin && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button size="sm" variant="ghost" onClick={() => router.push(`/inventory/material-inward/${r.id}/edit`)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <InventoryRowActions
+                      label={r.inward_number}
+                      canDelete
+                      onDelete={() => deleteMaterialInward(r.id)}
+                      deleteDescription="This permanently removes the delivery-challan record and its inspections. Blocked if a GRN has already been generated (material already moved into stock) — cancel/reverse that first."
+                    />
+                  </div>
+                )}
+                <Link href={`/inventory/material-inward/${r.id}`}>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </div>
             )
           })}
         </div>

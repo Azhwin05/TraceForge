@@ -8,6 +8,7 @@ import type { UserRole } from "@/types/database"
 import { IncomingInspectionForm } from "@/components/inventory/incoming-inspection-form"
 import { QualityInspectionPanel } from "@/components/inventory/quality-inspection-panel"
 import { GrnGenerator } from "@/components/inventory/grn-generator"
+import { MaterialInwardDetailActions } from "@/components/inventory/material-inward-detail-actions"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   pending_inspection:        { label: "Pending Inspection",  className: "bg-slate-100 text-slate-600" },
@@ -77,9 +78,14 @@ export default async function MaterialInwardDetailPage({
           <h1 className="text-2xl font-bold tracking-tight">{record.inward_number}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">DC {record.dc_number} · {record.suppliers?.name}</p>
         </div>
-        <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium shrink-0", status.className)}>
-          {status.label}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", status.className)}>
+            {status.label}
+          </span>
+          {userRole === "admin" && (
+            <MaterialInwardDetailActions id={record.id} inwardNumber={record.inward_number} />
+          )}
+        </div>
       </div>
 
       {/* DC Details */}

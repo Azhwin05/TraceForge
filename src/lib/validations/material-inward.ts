@@ -20,6 +20,20 @@ export const materialInwardSchema = z.object({
 export type MaterialInwardItemInput = z.infer<typeof materialInwardItemSchema>
 export type MaterialInwardInput = z.infer<typeof materialInwardSchema>
 
+// Editing an existing inward record only touches the DC header — not the
+// items, which already feed the inspection/GRN workflow and quantities that
+// have been checked against.
+export const materialInwardEditSchema = z.object({
+  dc_number:   z.string().min(1, "DC number is required"),
+  dc_date:     z.string().min(1, "DC date is required"),
+  supplier_id: z.string().uuid("Select a supplier"),
+  po_number:   z.string().nullish(),
+  vehicle_no:  z.string().nullish(),
+  remarks:     z.string().nullish(),
+})
+
+export type MaterialInwardEditInput = z.infer<typeof materialInwardEditSchema>
+
 export const incomingInspectionSchema = z.object({
   quantity_ok:   z.boolean(),
   packaging_ok:  z.boolean(),
