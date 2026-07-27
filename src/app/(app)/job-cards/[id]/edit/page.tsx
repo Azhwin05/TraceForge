@@ -22,6 +22,7 @@ export default async function EditJobCardPage({ params }: { params: Promise<{ id
     supabase.from("clients").select("*").order("name"),
   ])
   if (!jc) notFound()
+  if (jc.deleted_at) notFound()
 
   const { data: rows } = await supabase
     .from("process_executions")

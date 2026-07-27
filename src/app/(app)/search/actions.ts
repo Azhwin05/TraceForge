@@ -23,6 +23,7 @@ export async function searchJobCards(
   const { data, error } = await supabase
     .from("job_cards")
     .select("id, jc_number, nbdn_number, description, status, received_date, created_at, client:clients(id, name), creator:profiles!created_by(id, full_name)")
+    .is("deleted_at", null)
     .or(
       [
         `jc_number.ilike.%${safe}%`,

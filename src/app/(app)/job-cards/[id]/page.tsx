@@ -179,6 +179,9 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
 
   if (!jobCard) notFound()
   if (!session) notFound()
+  // Soft-deleted job cards only exist in the Recycle Bin — everywhere else
+  // (including a stale bookmark/link) it's as if the job card is gone.
+  if ((jobCard as { deleted_at?: string | null }).deleted_at) notFound()
 
   const userRole = (session.profile?.role ?? "operator") as UserRole
   // Cast to JobCardDetail (process_executions, dispatches, accounts are properly typed there)

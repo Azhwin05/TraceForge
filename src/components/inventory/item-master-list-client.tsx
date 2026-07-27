@@ -7,6 +7,8 @@ import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { ApprovalActions, ApprovalBadge } from "@/components/inventory/approval-actions"
+import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
+import { deleteItemMaster, toggleItemMasterActive } from "@/app/(app)/inventory/items/actions"
 import type { ItemMaster, UserRole } from "@/types/database"
 
 function ActiveBadge({ isActive }: { isActive: boolean }) {
@@ -153,12 +155,8 @@ export function ItemMasterListClient({
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((it) => (
-            <Link
-              key={it.id}
-              href={`/inventory/items/${it.id}`}
-              className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-muted/40 transition-colors"
-            >
-              <div className="min-w-0 space-y-0.5">
+            <div key={it.id} className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-muted/40 transition-colors">
+              <Link href={`/inventory/items/${it.id}`} className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{it.item_code}</span>
                   <span className="text-muted-foreground">—</span>
@@ -182,9 +180,21 @@ export function ItemMasterListClient({
                   <span>UOM: {it.uom}</span>
                   {it.hsn_code && <span>HSN: {it.hsn_code}</span>}
                 </div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </Link>
+              </Link>
+              {isAdmin && (
+                <InventoryRowActions
+                  label={`${it.item_code} — ${it.item_name}`}
+                  isActive={it.is_active}
+                  canDeactivate
+                  canDelete
+                  onDelete={() => deleteItemMaster(it.id)}
+                  onToggleActive={(next) => toggleItemMasterActive(it.id, next)}
+                />
+              )}
+              <Link href={`/inventory/items/${it.id}`}>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            </div>
           ))}
         </div>
       )}

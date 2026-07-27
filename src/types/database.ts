@@ -105,6 +105,8 @@ export interface Database {
           despatch_dc_no: string | null; despatch_date: string | null;
           // 0029 — physical dispatch validation gate
           dispatch_validated_by: string | null; dispatch_validated_at: string | null;
+          // 0042 — recycle bin
+          deleted_at: string | null; deleted_by: string | null; purge_at: string | null;
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -129,6 +131,7 @@ export interface Database {
           weld_deposit_thickness_before?: string | null; weld_deposit_thickness_after?: string | null;
           despatch_dc_no?: string | null; despatch_date?: string | null;
           dispatch_validated_by?: string | null; dispatch_validated_at?: string | null;
+          deleted_at?: string | null; deleted_by?: string | null; purge_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];
@@ -741,6 +744,10 @@ export interface Database {
       generate_grn_number: { Args: Record<string, never>; Returns: string };
       generate_material_issue_number: { Args: Record<string, never>; Returns: string };
       generate_material_inward_number: { Args: Record<string, never>; Returns: string };
+      purge_expired_job_cards: {
+        Args: Record<string, never>;
+        Returns: { purged_id: string; jc_number: string; skipped: boolean; reason: string | null }[];
+      };
     };
     Enums: {
       user_role: UserRole;

@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { supplierSchema, type SupplierInput } from "@/lib/validations/supplier"
-import { createSupplier, updateSupplier } from "@/app/(app)/inventory/suppliers/actions"
+import { createSupplier, updateSupplier, deleteSupplier, toggleSupplierActive } from "@/app/(app)/inventory/suppliers/actions"
 import { ApprovalActions, ApprovalBadge } from "@/components/inventory/approval-actions"
+import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
 import type { Supplier, UserRole } from "@/types/database"
 
 function FieldError({ message }: { message?: unknown }) {
@@ -204,9 +205,21 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
                   {s.gst_no && <span>GST: {s.gst_no}</span>}
                 </div>
               </div>
-              {canCreate && (
-                <Button size="sm" variant="outline" onClick={() => setEditing(s)}>Edit</Button>
-              )}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {canCreate && (
+                  <Button size="sm" variant="outline" onClick={() => setEditing(s)}>Edit</Button>
+                )}
+                {isAdmin && (
+                  <InventoryRowActions
+                    label={s.name}
+                    isActive={s.is_active}
+                    canDeactivate
+                    canDelete
+                    onDelete={() => deleteSupplier(s.id)}
+                    onToggleActive={(next) => toggleSupplierActive(s.id, next)}
+                  />
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -72,7 +72,8 @@ export default async function OverlayReportDetailPage({
   const status = (r.report_status ?? "draft") as OverlayReportStatus
   const badge = STATUS_BADGE[status] ?? STATUS_BADGE.draft
   const resBadge = r.result_status ? RESULT_BADGE[r.result_status] : null
-  const canEdit = ["admin", "qa"].includes(userRole) && status === "draft"
+  // Admin can always edit; QA stays limited to draft, matching the server action.
+  const canEdit = userRole === "admin" || (userRole === "qa" && status === "draft")
 
   const chemicals: OverlayChemicalEntry[] = Array.isArray(r.chemicals_used_json)
     ? (r.chemicals_used_json as unknown as OverlayChemicalEntry[])

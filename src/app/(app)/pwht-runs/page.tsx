@@ -30,6 +30,7 @@ export default async function PwhtRunsPage({
     supabase
       .from("job_cards")
       .select("*, clients(name)")
+      .is("deleted_at", null)
       .not("status", "in", '("closed","dispatched","accounts_processing")')
       .order("jc_number"),
   ])

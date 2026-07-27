@@ -27,6 +27,7 @@ import {
   ArrowRightLeft,
   MapPin,
   Wallet,
+  Trash2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
@@ -113,6 +114,12 @@ export const MODULES: Module[] = [
         heading: "System",
         items: [
           { href: "/audit",    label: "Audit Trail", icon: History },
+          {
+            href: "/job-cards/recycle-bin",
+            label: "Recycle Bin",
+            icon: Trash2,
+            roles: ["admin"],
+          },
           {
             href: "/portal-users",
             label: "Portal Users",

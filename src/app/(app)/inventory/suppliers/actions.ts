@@ -97,3 +97,50 @@ export async function updateSupplier(id: string, raw: SupplierInput): Promise<{ 
   revalidatePath(`/inventory/suppliers/${id}`)
   return {}
 }
+
+/**
+ * Permanently delete a supplier. Admin only. Blocked if any material inward
+ * (delivery challan) has ever been recorded against them — that FK doesn't
+ * cascade, so an in-use supplier can't actually be deleted; this explains why
+ * up front instead of surfacing a raw database error.
+ */
+export async function deleteSupplier(id: string): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { count } = await supabase
+    .from("material_inward")
+    .select("*", { count: "exact", head: true })
+    .eq("supplier_id", id)
+
+  if ((count ?? 0) > 0) {
+    return { error: "Cannot delete: this supplier has material inward history. Deactivate it instead." }
+  }
+
+  const { data: deleted, error } = await supabase
+    .from("suppliers")
+    .delete()
+    .eq("id", id)
+    .select("id")
+
+  if (error) return { error: error.message }
+  if (!deleted || deleted.length === 0) {
+    return { error: "Delete was not applied — administrator permission is required." }
+  }
+
+  revalidatePath("/inventory/suppliers")
+  return {}
+}
+
+export async function toggleSupplierActive(id: string, isActive: boolean): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin", "engineer"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase.from("suppliers").update({ is_active: isActive }).eq("id", id)
+  if (error) return { error: error.message }
+
+  revalidatePath("/inventory/suppliers")
+  return {}
+}

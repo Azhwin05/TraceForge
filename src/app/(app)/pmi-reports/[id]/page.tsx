@@ -64,7 +64,8 @@ export default async function PmiReportDetailPage({
   const r = report as PmiReport & { job_cards: { jc_number: string } | null }
   const status = (r.pmi_status ?? "draft") as keyof typeof STATUS_BADGE
   const badge = STATUS_BADGE[status] ?? STATUS_BADGE.draft
-  const canEdit = ["admin", "qa"].includes(userRole) && status === "draft"
+  // Admin can always edit; QA stays limited to draft, matching the server action.
+  const canEdit = userRole === "admin" || (userRole === "qa" && status === "draft")
   const rawReadings = r.readings
   const readings: PmiReadings = Array.isArray(rawReadings) ? (rawReadings as unknown as PmiReadings) : []
 

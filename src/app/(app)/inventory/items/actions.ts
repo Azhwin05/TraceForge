@@ -120,3 +120,47 @@ export async function toggleItemMasterActive(id: string, isActive: boolean): Pro
   revalidatePath("/inventory/items")
   return {}
 }
+
+/**
+ * Permanently delete an item master record. Admin only. Blocked with a
+ * readable reason if the item has any real transaction history (material
+ * inward, GRN, issues, or a stock ledger entry) — none of those FKs cascade,
+ * so an in-use item can never actually be deleted; this just explains why
+ * up front instead of surfacing a raw database error.
+ */
+export async function deleteItemMaster(id: string): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const [{ count: inwardCount }, { count: grnCount }, { count: issueCount }, { count: ledgerCount }] = await Promise.all([
+    supabase.from("material_inward_items").select("*", { count: "exact", head: true }).eq("item_id", id),
+    supabase.from("grn_items").select("*", { count: "exact", head: true }).eq("item_id", id),
+    supabase.from("material_issue_items").select("*", { count: "exact", head: true }).eq("item_id", id),
+    supabase.from("stock_ledger").select("*", { count: "exact", head: true }).eq("item_id", id),
+  ])
+
+  if ((inwardCount ?? 0) > 0 || (grnCount ?? 0) > 0) {
+    return { error: "Cannot delete: this item has material inward / GRN history. Deactivate it instead." }
+  }
+  if ((issueCount ?? 0) > 0) {
+    return { error: "Cannot delete: this item has been issued before. Deactivate it instead." }
+  }
+  if ((ledgerCount ?? 0) > 0) {
+    return { error: "Cannot delete: this item has stock ledger history. Deactivate it instead." }
+  }
+
+  const { data: deleted, error } = await supabase
+    .from("item_master")
+    .delete()
+    .eq("id", id)
+    .select("id")
+
+  if (error) return { error: error.message }
+  if (!deleted || deleted.length === 0) {
+    return { error: "Delete was not applied — administrator permission is required." }
+  }
+
+  revalidatePath("/inventory/items")
+  return {}
+}

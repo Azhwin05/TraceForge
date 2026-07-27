@@ -27,9 +27,9 @@ function UndoToast({ jcNumber, onUndo }: { jcNumber: string; onUndo: () => void 
         <Trash2 className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground">Deleting {jcNumber}</p>
+        <p className="text-sm font-medium text-foreground">Moving {jcNumber} to Recycle Bin</p>
         <p className="text-xs text-muted-foreground">
-          Removing in {remaining}s — undo to keep it.
+          In {remaining}s — undo to keep it here.
         </p>
       </div>
       <button
@@ -68,7 +68,7 @@ export function DeleteJobCardButton({
       if (res.error) {
         toast.error("Couldn't delete job card", { description: res.error })
       } else {
-        toast.success(`Job card ${jcNumber} deleted`)
+        toast.success(`${jcNumber} moved to Recycle Bin`, { description: "Restorable for 6 months." })
         router.refresh()
       }
     }, UNDO_SECONDS * 1000)
@@ -105,10 +105,10 @@ export function DeleteJobCardButton({
           <DialogHeader>
             <DialogTitle>Delete job card {jcNumber}?</DialogTitle>
             <DialogDescription>
-              This permanently removes the job card and everything under it —
-              process steps, WPS qualifications, inspection &amp; PWHT records,
-              reports, dispatch and accounts entries. You&rsquo;ll have{" "}
-              {UNDO_SECONDS} seconds to undo before it&rsquo;s deleted.
+              This moves the job card to the Recycle Bin — nothing is destroyed.
+              It stays fully restorable there for 6 months, after which it&rsquo;s
+              permanently deleted automatically. You&rsquo;ll have {UNDO_SECONDS}{" "}
+              seconds to undo right now before it moves.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

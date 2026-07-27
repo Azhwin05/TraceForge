@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { storageLocationSchema, type StorageLocationInput } from "@/lib/validations/storage-location"
-import { createStorageLocation, updateStorageLocation } from "@/app/(app)/inventory/locations/actions"
+import { createStorageLocation, updateStorageLocation, deleteStorageLocation, toggleStorageLocationActive } from "@/app/(app)/inventory/locations/actions"
+import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
 import type { StorageLocation, UserRole } from "@/types/database"
 
 function FieldError({ message }: { message?: unknown }) {
@@ -96,6 +97,7 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
   const [editing, setEditing] = useState<StorageLocation | null>(null)
 
   const canCreate = ["admin", "engineer"].includes(userRole)
+  const isAdmin = userRole === "admin"
 
   const filtered = records.filter((l) => {
     const q = search.toLowerCase()
@@ -145,9 +147,21 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
                 </div>
                 {l.description && <p className="text-xs text-muted-foreground">{l.description}</p>}
               </div>
-              {canCreate && (
-                <Button size="sm" variant="outline" onClick={() => setEditing(l)}>Edit</Button>
-              )}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {canCreate && (
+                  <Button size="sm" variant="outline" onClick={() => setEditing(l)}>Edit</Button>
+                )}
+                {isAdmin && (
+                  <InventoryRowActions
+                    label={`${l.code} — ${l.name}`}
+                    isActive={l.is_active}
+                    canDeactivate
+                    canDelete
+                    onDelete={() => deleteStorageLocation(l.id)}
+                    onToggleActive={(next) => toggleStorageLocationActive(l.id, next)}
+                  />
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -12,6 +12,7 @@ export default async function AlertsPage() {
     supabase
       .from("job_cards")
       .select("*, client:clients(id, name), creator:profiles!created_by(id, full_name)")
+      .is("deleted_at", null)
       .not("status", "eq", "closed")
       .order("stage_entered_at", { ascending: true }),
     supabase

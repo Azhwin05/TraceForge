@@ -16,6 +16,7 @@ export default async function PortalHome() {
   const { data: jobsRaw } = await supabase
     .from("job_cards")
     .select("id, jc_number, description, status, received_date")
+    .is("deleted_at", null)
     .order("received_date", { ascending: false })
 
   const jobs = (jobsRaw ?? []) as JobRow[]

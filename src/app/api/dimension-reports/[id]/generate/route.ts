@@ -105,7 +105,13 @@ export async function POST(
     uploaded_by:       user.id,
   })
 
-  return NextResponse.json({ storagePath }, {
+  // Sign a download URL up front so "Download PDF" works immediately after
+  // generating, without a second request to /generate-url.
+  const { data: signed } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(storagePath, 3600)
+
+  return NextResponse.json({ storagePath, downloadUrl: signed?.signedUrl ?? null }, {
     headers: { "Cache-Control": "no-store" },
   })
 }

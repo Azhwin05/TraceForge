@@ -414,52 +414,92 @@ export async function rejectWps(
   return {}
 }
 
+const RECYCLE_BIN_RETENTION_DAYS = 182 // ~6 months
+
 /**
- * Permanently delete a job card and everything that cascades from it
- * (process steps, WPS quals, NDE/air-test records, PWHT links, reports,
- * dispatches, accounts). Admin only.
+ * Move a job card to the Recycle Bin (soft delete). Nothing cascades and
+ * nothing is destroyed — every child row (process steps, reports, dispatches,
+ * accounts, dossiers, issues) stays exactly as it is. Fully reversible via
+ * restoreJobCard() for RECYCLE_BIN_RETENTION_DAYS, after which the scheduled
+ * purge (0042: purge_expired_job_cards) hard-deletes it for real.
  *
- * Two relations do NOT cascade and would otherwise raise a raw FK error, so we
- * pre-check them and return a readable reason instead:
- *   - customer_dossiers (on delete restrict)
- *   - material_issues   (no action — stock already issued against this job)
- *
- * The actual "undo for 10s, then delete" window is handled on the client; by
- * the time this runs the user has chosen not to undo.
+ * Admin only. The "undo for 10s" window is handled client-side; by the time
+ * this runs the user has chosen not to undo.
  */
 export async function deleteJobCard(
   jobCardId: string,
 ): Promise<{ error?: string }> {
   const guard = await requireRole(["admin"])
   if (guard.error) return { error: guard.error }
-  const { supabase } = guard
+  const { supabase, user } = guard
 
-  const [{ count: dossierCount }, { count: issueCount }] = await Promise.all([
-    supabase.from("customer_dossiers").select("*", { count: "exact", head: true }).eq("job_card_id", jobCardId),
-    supabase.from("material_issues").select("*", { count: "exact", head: true }).eq("job_card_id", jobCardId),
-  ])
+  const purgeAt = new Date(Date.now() + RECYCLE_BIN_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
 
-  if (dossierCount && dossierCount > 0) {
-    return { error: `Cannot delete: ${dossierCount} customer dossier(s) reference this job card. Archive them first.` }
-  }
-  if (issueCount && issueCount > 0) {
-    return { error: "Cannot delete: material has been issued to this job card. Cancel those issues first." }
-  }
-
-  // Admin RLS (job_cards_admin_all) permits the delete; child tables cascade.
-  // .select() lets us detect an RLS-filtered 0-row delete (HTTP 200, no error).
-  const { data: deleted, error } = await supabase
+  // .select() lets us detect an RLS-filtered 0-row update (HTTP 200, no error).
+  const { data: updated, error } = await supabase
     .from("job_cards")
-    .delete()
+    .update({ deleted_at: new Date().toISOString(), deleted_by: user.id, purge_at: purgeAt })
     .eq("id", jobCardId)
+    .is("deleted_at", null)
     .select("id")
 
   if (error) { console.error("[job-cards] delete", error); return { error: sanitizeError(error) } }
-  if (!deleted || deleted.length === 0) {
-    return { error: "Delete was not applied — administrator permission is required." }
+  if (!updated || updated.length === 0) {
+    return { error: "Delete was not applied — it may already be in the Recycle Bin, or you lack permission." }
   }
 
   revalidatePath("/job-cards")
+  revalidatePath("/job-cards/recycle-bin")
   revalidatePath("/dashboard")
   return {}
+}
+
+/** Reverse a soft delete — the job card returns to normal, exactly as it was. Admin only. */
+export async function restoreJobCard(
+  jobCardId: string,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { data: updated, error } = await supabase
+    .from("job_cards")
+    .update({ deleted_at: null, deleted_by: null, purge_at: null })
+    .eq("id", jobCardId)
+    .not("deleted_at", "is", null)
+    .select("id")
+
+  if (error) { console.error("[job-cards] restore", error); return { error: sanitizeError(error) } }
+  if (!updated || updated.length === 0) {
+    return { error: "Restore was not applied — it may not be in the Recycle Bin." }
+  }
+
+  revalidatePath("/job-cards")
+  revalidatePath("/job-cards/recycle-bin")
+  revalidatePath("/dashboard")
+  return {}
+}
+
+/**
+ * Admin override: permanently purge everything currently past its retention
+ * date right now, instead of waiting for the scheduled job. Returns a summary
+ * so the UI can show what was removed vs. what's still blocked (e.g. a
+ * customer_dossier with `on delete restrict`).
+ */
+export async function purgeJobCardsNow(): Promise<
+  { error?: string; purged?: number; skipped?: { jcNumber: string; reason: string }[] }
+> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { data, error } = await supabase.rpc("purge_expired_job_cards")
+  if (error) { console.error("[job-cards] purge", error); return { error: sanitizeError(error) } }
+
+  const rows = data ?? []
+  revalidatePath("/job-cards/recycle-bin")
+  return {
+    purged: rows.filter((r) => !r.skipped).length,
+    skipped: rows.filter((r) => r.skipped).map((r) => ({ jcNumber: r.jc_number, reason: r.reason ?? "Blocked" })),
+  }
 }

@@ -64,18 +64,21 @@ export default async function DashboardPage() {
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .neq("status", "closed"),
 
     // stat 2: currently in process
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "in_process"),
 
     // stat 3: awaiting reports
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .in("status", ["reports_pending", "process_complete"]),
 
     // stat 4: dispatched this month (use created_at on dispatches table — accurate)
@@ -88,6 +91,7 @@ export default async function DashboardPage() {
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "closed")
       .gte("updated_at", monthStart),
 
@@ -95,6 +99,7 @@ export default async function DashboardPage() {
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .lt("due_date", today)
       .not("status", "in", "(dispatched,accounts_processing,closed)"),
 
@@ -102,6 +107,7 @@ export default async function DashboardPage() {
     supabase
       .from("job_cards")
       .select("id, jc_number, description, status, client:clients(id, name)")
+      .is("deleted_at", null)
       .neq("status", "closed")
       .order("created_at", { ascending: false })
       .limit(8),
@@ -110,6 +116,7 @@ export default async function DashboardPage() {
     supabase
       .from("job_cards")
       .select("id, jc_number, status, stage_entered_at, client:clients(id, name)")
+      .is("deleted_at", null)
       .neq("status", "closed")
       .or(`status.eq.on_hold,stage_entered_at.lte.${sevenDaysAgo}`)
       .order("stage_entered_at", { ascending: true })

@@ -41,6 +41,7 @@ export default async function JobCardsPage({
       "id, jc_number, nbdn_number, description, process_type, status, stage_entered_at, received_date, due_date, created_at, client:clients(id, name), creator:profiles!created_by(id, full_name)",
       { count: "exact" }
     )
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .range(from, to)
 
@@ -55,6 +56,7 @@ export default async function JobCardsPage({
     supabase
       .from("job_cards")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .neq("status", "closed"),
   ])
 

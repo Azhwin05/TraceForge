@@ -74,7 +74,9 @@ export default async function DimensionReportDetailPage({
   const status = (r.dimension_status ?? "draft") as keyof typeof STATUS_BADGE
   const badge = STATUS_BADGE[status] ?? STATUS_BADGE.draft
   const resBadge = r.result_status ? RESULT_BADGE[r.result_status] : null
-  const canEdit = ["admin", "qa"].includes(userRole) && status === "draft"
+  // Admin can always edit (fixes past mistakes on approved/rejected/submitted
+  // reports too); QA stays limited to draft, matching the server action.
+  const canEdit = userRole === "admin" || (userRole === "qa" && status === "draft")
 
   const rawDims = r.dimensions
   const dims: DimensionRow[] = Array.isArray(rawDims) ? (rawDims as unknown as DimensionRow[]) : []

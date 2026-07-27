@@ -1,5 +1,34 @@
 # Migration State — source of truth
 
+## ⚠️ PENDING APPLICATION — Recycle bin + inventory delete (2026-07-27)
+
+`0041_dispatch_details.sql` was applied and registered in a prior session (confirmed
+live). **`0042_job_card_recycle_bin.sql` and `0043_inventory_delete_policies.sql` are
+committed as local files but NOT yet applied** — the Supabase MCP available in this
+session had no permission on this project (`list_projects` only returns unrelated
+projects), so `apply_migration`/`execute_sql` could not reach `axwxpjbzdhaevoimagiz`.
+
+**What breaks until these are applied:**
+- Job Card **Delete** will fail (the app now writes `deleted_at`/`deleted_by`/`purge_at`
+  columns that don't exist yet on the remote `job_cards` table).
+- The **Recycle Bin** page (`/job-cards/recycle-bin`) will error on load (queries those
+  same columns).
+- Inventory **Delete** on an item/supplier/location with NO transaction history will hit
+  "permission denied" — 0043 is the missing DELETE RLS policy. (Delete on an item *with*
+  history correctly returns a readable blocked-reason error without touching the DB at
+  all — that part works today, verified live, since the app-layer guard runs first.)
+- Everything else in this session's changes (report edit-access fix, deleted-job-card
+  list filtering, inventory Deactivate toggle) needs no migration and is already live —
+  verified in the browser: Edit now shows on approved PMI/Dimension/Overlay reports.
+
+**Apply `0042` then `0043`** via the owning account's Supabase MCP `apply_migration`, or
+paste both into the SQL Editor, in that order. `0042` also attempts to schedule a daily
+pg_cron purge — if pg_cron isn't available on the plan it logs a NOTICE and the rest of
+the migration still applies cleanly (fall back: the `/api/cron/purge-job-cards` route,
+gated by `CRON_SECRET` — currently blank in `.env.local`, must be set to use it).
+
+---
+
 ## Inventory valuation + Module-2 client changes (2026-07-21) — ALL LIVE
 
 - `0035_inventory_valuation_and_consumable_type` and `0036_inventory_valuation_triggers`
