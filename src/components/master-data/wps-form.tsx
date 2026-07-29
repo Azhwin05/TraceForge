@@ -16,6 +16,7 @@ import {
   type WpsMasterInput,
 } from "@/lib/validations/wps-master"
 import { createWpsMaster, updateWpsMaster } from "@/app/(app)/master-data/wps/actions"
+import { WpsExtractDialog } from "@/components/master-data/wps-extract-dialog"
 
 type WpsFormProps =
   | { mode: "create" }
@@ -31,15 +32,22 @@ function FieldError({ message }: { message?: unknown }) {
   return <p className="mt-0.5 text-xs text-destructive">{message}</p>
 }
 
-function Field({ id, label, register, placeholder, list }: {
+function Field({ id, label, register, placeholder, list, extractedFields }: {
   id: string; label: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any; placeholder?: string; list?: string
+  register: any; placeholder?: string; list?: string; extractedFields?: Set<string>
 }) {
+  const extracted = extractedFields?.has(id)
   return (
     <div className="space-y-1">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} placeholder={placeholder} list={list} {...register(id)} />
+      <Input
+        id={id}
+        placeholder={placeholder}
+        list={list}
+        className={extracted ? "border-l-2 border-l-amber-400" : undefined}
+        {...register(id)}
+      />
     </div>
   )
 }
@@ -49,6 +57,7 @@ export function WpsForm(props: WpsFormProps) {
   const [isPending, startTransition] = useTransition()
   const defaults = props.mode === "edit" ? props.defaultValues : undefined
   const [pwhtRequired, setPwhtRequired] = useState(defaults?.pwht_required ?? false)
+  const [extractedFields, setExtractedFields] = useState<Set<string>>(new Set())
 
   const {
     register,
@@ -70,6 +79,28 @@ export function WpsForm(props: WpsFormProps) {
 
   const passRows = useFieldArray({ control, name: "weld_passes" })
   const tensileRows = useFieldArray({ control, name: "tensile_tests" })
+
+  function handleExtracted(data: Record<string, unknown>) {
+    const filled = new Set<string>()
+    for (const [key, value] of Object.entries(data)) {
+      if (key === "weld_passes" || key === "tensile_tests") continue
+      if (value === null || value === undefined || value === "") continue
+      setValue(key, key === "pwht_required" ? !!value : String(value), { shouldDirty: true })
+      filled.add(key)
+    }
+    const passes = (data.weld_passes as Record<string, unknown>[] | undefined)?.filter(
+      (r) => Object.values(r).some((v) => v),
+    )
+    if (passes?.length) passRows.replace(passes.map((r) => ({ ...blankWeldPassRow(), ...r })))
+    const tensile = (data.tensile_tests as Record<string, unknown>[] | undefined)?.filter(
+      (r) => Object.values(r).some((v) => v),
+    )
+    if (tensile?.length) tensileRows.replace(tensile.map((r) => ({ ...blankTensileTestRow(), ...r })))
+    if (data.pwht_required !== undefined && data.pwht_required !== null) {
+      setPwhtRequired(!!data.pwht_required)
+    }
+    setExtractedFields(filled)
+  }
 
   function handleFormSubmit(data: WpsMasterInput) {
     startTransition(async () => {
@@ -97,6 +128,15 @@ export function WpsForm(props: WpsFormProps) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {props.mode === "create" && (
+        <div className="flex items-center justify-between rounded-lg border border-dashed border-border px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Have a scanned WPS document? Extract fields from it instead of typing everything by hand.
+          </p>
+          <WpsExtractDialog onExtracted={handleExtracted} />
+        </div>
+      )}
+
       {/* ── Section 1: Basic Information ─────────────────────────────────── */}
       <Card>
         <CardHeader className="pb-3">
@@ -106,10 +146,16 @@ export function WpsForm(props: WpsFormProps) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label htmlFor="wps_no">WPS Number <span className="text-destructive">*</span></Label>
-              <Input id="wps_no" placeholder="WPS/RE/301" {...register("wps_no")} aria-invalid={!!errors.wps_no} />
+              <Input
+                id="wps_no"
+                placeholder="WPS/RE/301"
+                className={extractedFields.has("wps_no") ? "border-l-2 border-l-amber-400" : undefined}
+                {...register("wps_no")}
+                aria-invalid={!!errors.wps_no}
+              />
               <FieldError message={errors.wps_no?.message} />
             </div>
-            <Field id="pqr_no" label="PQR Number" register={register} placeholder="PQR/RE/301" />
+            <Field id="pqr_no" label="PQR Number" register={register} extractedFields={extractedFields} placeholder="PQR/RE/301" />
             <div className="space-y-1">
               <Label htmlFor="welding_process">Welding Process</Label>
               <Input id="welding_process" list="welding-processes" placeholder="SAW, GTAW, SMAW…" {...register("welding_process")} />
@@ -120,7 +166,7 @@ export function WpsForm(props: WpsFormProps) {
               <Input id="type" list="wps-types" placeholder="Manual, Semi-Auto, Auto…" {...register("type")} />
               <datalist id="wps-types">{TYPES.map((t) => <option key={t} value={t} />)}</datalist>
             </div>
-            <Field id="revision" label="Revision" register={register} placeholder="Rev 0" />
+            <Field id="revision" label="Revision" register={register} extractedFields={extractedFields} placeholder="Rev 0" />
             <div className="space-y-1">
               <Label htmlFor="effective_date">Effective Date</Label>
               <Input id="effective_date" type="date" {...register("effective_date")} />
@@ -149,13 +195,13 @@ export function WpsForm(props: WpsFormProps) {
               <Input id="joint_design" list="joint-designs" placeholder="Double V Groove…" {...register("joint_design")} />
               <datalist id="joint-designs">{JOINT_DESIGNS.map((j) => <option key={j} value={j} />)}</datalist>
             </div>
-            <Field id="joint_root_gap"      label="Root Gap"      register={register} placeholder="1.5 – 2 mm" />
-            <Field id="joint_root_face"     label="Root Face"     register={register} placeholder="1.5 – 2 mm" />
-            <Field id="joint_groove_angle"  label="Groove Angle"  register={register} placeholder="60° ± 5°" />
-            <Field id="joint_groove_length" label="Groove Length" register={register} placeholder="300 mm" />
-            <Field id="joint_groove_width"  label="Groove Width"  register={register} placeholder="150 mm" />
-            <Field id="joint_backing"       label="Backing"       register={register} placeholder="Base metal" />
-            <Field id="joint_retainer"      label="Retainer"      register={register} placeholder="Nil" />
+            <Field id="joint_root_gap"      label="Root Gap"      register={register} extractedFields={extractedFields} placeholder="1.5 – 2 mm" />
+            <Field id="joint_root_face"     label="Root Face"     register={register} extractedFields={extractedFields} placeholder="1.5 – 2 mm" />
+            <Field id="joint_groove_angle"  label="Groove Angle"  register={register} extractedFields={extractedFields} placeholder="60° ± 5°" />
+            <Field id="joint_groove_length" label="Groove Length" register={register} extractedFields={extractedFields} placeholder="300 mm" />
+            <Field id="joint_groove_width"  label="Groove Width"  register={register} extractedFields={extractedFields} placeholder="150 mm" />
+            <Field id="joint_backing"       label="Backing"       register={register} extractedFields={extractedFields} placeholder="Base metal" />
+            <Field id="joint_retainer"      label="Retainer"      register={register} extractedFields={extractedFields} placeholder="Nil" />
           </div>
         </CardContent>
       </Card>
@@ -167,13 +213,13 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field id="base_material_spec"       label="Material Specification" register={register} placeholder="ASTM A217" />
-            <Field id="base_material_type_grade" label="Type or Grade"          register={register} placeholder="WC6" />
-            <Field id="base_material_pno"        label="P.No."                  register={register} placeholder="P.No.4 Gr.1 to P.No.4 Gr.1" />
-            <Field id="base_material_heat_no"    label="Heat No."                register={register} placeholder="M1687" />
-            <Field id="test_coupon_thickness"    label="Thickness of Test Coupon" register={register} placeholder="40 mm" />
-            <Field id="test_coupon_diameter"     label="Diameter of Test Coupon"  register={register} placeholder="40 mm thk" />
-            <Field id="base_material" label="Base Material (summary)" register={register} placeholder="SS316, P91…" />
+            <Field id="base_material_spec"       label="Material Specification" register={register} extractedFields={extractedFields} placeholder="ASTM A217" />
+            <Field id="base_material_type_grade" label="Type or Grade"          register={register} extractedFields={extractedFields} placeholder="WC6" />
+            <Field id="base_material_pno"        label="P.No."                  register={register} extractedFields={extractedFields} placeholder="P.No.4 Gr.1 to P.No.4 Gr.1" />
+            <Field id="base_material_heat_no"    label="Heat No."                register={register} extractedFields={extractedFields} placeholder="M1687" />
+            <Field id="test_coupon_thickness"    label="Thickness of Test Coupon" register={register} extractedFields={extractedFields} placeholder="40 mm" />
+            <Field id="test_coupon_diameter"     label="Diameter of Test Coupon"  register={register} extractedFields={extractedFields} placeholder="40 mm thk" />
+            <Field id="base_material" label="Base Material (summary)" register={register} extractedFields={extractedFields} placeholder="SS316, P91…" />
           </div>
         </CardContent>
       </Card>
@@ -185,19 +231,19 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field id="filler_sfa_spec"    label="SFA Specification" register={register} placeholder="A5.5" />
+            <Field id="filler_sfa_spec"    label="SFA Specification" register={register} extractedFields={extractedFields} placeholder="A5.5" />
             <div className="space-y-1">
               <Label htmlFor="filler_aws_class">AWS Classification</Label>
               <Input id="filler_aws_class" placeholder="E 8018-B2" {...register("filler_aws_class")} />
             </div>
-            <Field id="filler_fno"         label="Filler Metal F.No." register={register} placeholder="4" />
-            <Field id="filler_ano"         label="Weld Metal Analysis A.No." register={register} placeholder="3" />
+            <Field id="filler_fno"         label="Filler Metal F.No." register={register} extractedFields={extractedFields} placeholder="4" />
+            <Field id="filler_ano"         label="Weld Metal Analysis A.No." register={register} extractedFields={extractedFields} placeholder="3" />
             <div className="space-y-1">
               <Label htmlFor="filler_size">Size of Filler Metal</Label>
               <Input id="filler_size" placeholder="4.00 mm dia electrode" {...register("filler_size")} />
             </div>
-            <Field id="filler_feed_rate"        label="Filler Metal / Powder Feed Rate" register={register} placeholder="N/A" />
-            <Field id="weld_metal_thickness"    label="Weld Metal Thickness"           register={register} placeholder="40 mm" />
+            <Field id="filler_feed_rate"        label="Filler Metal / Powder Feed Rate" register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="weld_metal_thickness"    label="Weld Metal Thickness"           register={register} extractedFields={extractedFields} placeholder="40 mm" />
             <div className="space-y-1">
               <Label htmlFor="filler_material">Filler Material (summary)</Label>
               <Input id="filler_material" placeholder="ER316L…" {...register("filler_material")} />
@@ -218,7 +264,7 @@ export function WpsForm(props: WpsFormProps) {
               <Input id="position" list="positions" placeholder="Flat, 1G, 2G…" {...register("position")} />
               <datalist id="positions">{POSITIONS.map((p) => <option key={p} value={p} />)}</datalist>
             </div>
-            <Field id="weld_progression" label="Weld Progression" register={register} placeholder="N/A" />
+            <Field id="weld_progression" label="Weld Progression" register={register} extractedFields={extractedFields} placeholder="N/A" />
           </div>
         </CardContent>
       </Card>
@@ -238,7 +284,7 @@ export function WpsForm(props: WpsFormProps) {
               <Label htmlFor="interpass_max">Interpass Temperature (°C)</Label>
               <Input id="interpass_max" type="number" placeholder="300" {...register("interpass_max")} />
             </div>
-            <Field id="preheat_other" label="Others" register={register} placeholder="N/A" />
+            <Field id="preheat_other" label="Others" register={register} extractedFields={extractedFields} placeholder="N/A" />
           </div>
         </CardContent>
       </Card>
@@ -273,11 +319,11 @@ export function WpsForm(props: WpsFormProps) {
                 <Label htmlFor="pwht_temp_max">Temperature Max (°C)</Label>
                 <Input id="pwht_temp_max" type="number" placeholder="715" {...register("pwht_temp_max")} />
               </div>
-              <Field id="pwht_time_range"      label="Time Range"              register={register} placeholder="2 Hours" />
-              <Field id="pwht_cooling_method"   label="Cooling"                  register={register} placeholder="Furnace cool" />
-              <Field id="pwht_rate_of_heating"  label="Rate of Heating/Cooling"  register={register} placeholder="100°C / hour" />
-              <Field id="pwht_loading_temp"     label="Loading Temperature"      register={register} placeholder="300°C" />
-              <Field id="pwht_unloading_temp"   label="Unloading Temperature"    register={register} placeholder="300°C" />
+              <Field id="pwht_time_range"      label="Time Range"              register={register} extractedFields={extractedFields} placeholder="2 Hours" />
+              <Field id="pwht_cooling_method"   label="Cooling"                  register={register} extractedFields={extractedFields} placeholder="Furnace cool" />
+              <Field id="pwht_rate_of_heating"  label="Rate of Heating/Cooling"  register={register} extractedFields={extractedFields} placeholder="100°C / hour" />
+              <Field id="pwht_loading_temp"     label="Loading Temperature"      register={register} extractedFields={extractedFields} placeholder="300°C" />
+              <Field id="pwht_unloading_temp"   label="Unloading Temperature"    register={register} extractedFields={extractedFields} placeholder="300°C" />
             </div>
           )}
         </CardContent>
@@ -290,11 +336,11 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field id="gas_shielding"   label="Shielding Gas"          register={register} placeholder="N/A" />
-            <Field id="gas_trailing"    label="Trailing Gas"           register={register} placeholder="N/A" />
-            <Field id="gas_backing"     label="Backing Gas"            register={register} placeholder="N/A" />
-            <Field id="gas_composition" label="% Composition / Mixture" register={register} placeholder="N/A" />
-            <Field id="gas_flow_rate"   label="Flow Rate (lpm)"        register={register} placeholder="—" />
+            <Field id="gas_shielding"   label="Shielding Gas"          register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="gas_trailing"    label="Trailing Gas"           register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="gas_backing"     label="Backing Gas"            register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="gas_composition" label="% Composition / Mixture" register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="gas_flow_rate"   label="Flow Rate (lpm)"        register={register} extractedFields={extractedFields} placeholder="—" />
           </div>
         </CardContent>
       </Card>
@@ -306,13 +352,13 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field id="elec_current_type"  label="Current (AC or DC)" register={register} placeholder="DC" />
-            <Field id="elec_polarity"      label="Polarity"           register={register} placeholder="Reverse (Electrode +ve) (EP)" />
-            <Field id="elec_current_range" label="Amps (Range)"       register={register} placeholder="160 – 185 A" />
-            <Field id="elec_voltage_range" label="Volts (Range)"      register={register} placeholder="26 – 27 V" />
-            <Field id="elec_tungsten_electrode_size" label="Tungsten Electrode Size" register={register} placeholder="N/A" />
-            <Field id="elec_travel_speed"  label="Travel Speed (mm/min)" register={register} placeholder="100 – 110" />
-            <Field id="elec_heat_input"    label="Heat Input (kJ/mm)"    register={register} placeholder="N/A" />
+            <Field id="elec_current_type"  label="Current (AC or DC)" register={register} extractedFields={extractedFields} placeholder="DC" />
+            <Field id="elec_polarity"      label="Polarity"           register={register} extractedFields={extractedFields} placeholder="Reverse (Electrode +ve) (EP)" />
+            <Field id="elec_current_range" label="Amps (Range)"       register={register} extractedFields={extractedFields} placeholder="160 – 185 A" />
+            <Field id="elec_voltage_range" label="Volts (Range)"      register={register} extractedFields={extractedFields} placeholder="26 – 27 V" />
+            <Field id="elec_tungsten_electrode_size" label="Tungsten Electrode Size" register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="elec_travel_speed"  label="Travel Speed (mm/min)" register={register} extractedFields={extractedFields} placeholder="100 – 110" />
+            <Field id="elec_heat_input"    label="Heat Input (kJ/mm)"    register={register} extractedFields={extractedFields} placeholder="N/A" />
           </div>
         </CardContent>
       </Card>
@@ -397,22 +443,22 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field id="tech_bead_type"             label="String or Weave Bead"            register={register} placeholder="Both (weave ≤ 3× dia of electrode)" />
-            <Field id="tech_oscillation"           label="Oscillation"                       register={register} placeholder="N/A" />
-            <Field id="tech_pass_type"             label="Multi/Single Pass per Side"        register={register} placeholder="Multi pass" />
-            <Field id="tech_multi_single_layer"    label="Multi/Single Layer"                register={register} placeholder="Multiple layer" />
-            <Field id="tech_multi_single_electrode" label="Multi/Single Electrode"           register={register} placeholder="Single" />
-            <Field id="tech_contact_tube_distance" label="Contact Tube to Work Distance"     register={register} placeholder="N/A" />
-            <Field id="tech_orifice_gas_cup_size"  label="Orifice, Nozzle or Gas Cup Size"   register={register} placeholder="N/A" />
-            <Field id="tech_cleaning_method"       label="Initial &amp; Interpass Cleaning"  register={register} placeholder="Wire Brushing and Grinding" />
-            <Field id="tech_back_gouging"          label="Method of Back Gouging"            register={register} placeholder="Grinding" />
-            <Field id="tech_electrode_spacing"     label="Electrode Spacing"                 register={register} placeholder="N/A" />
-            <Field id="tech_change_of_process"     label="Change of Process"                 register={register} placeholder="N/A (manual only)" />
-            <Field id="tech_peening"               label="Peening"                           register={register} placeholder="Not allowed" />
-            <Field id="tech_transfer_mode"         label="Transfer Mode"                     register={register} placeholder="N/A" />
-            <Field id="tech_torch_orifice_dia"     label="Torch Orifice Dia."                register={register} placeholder="N/A" />
-            <Field id="tech_filler_metal_delivery" label="Filler Metal Delivery"             register={register} placeholder="N/A" />
-            <Field id="tech_use_of_thermal_process" label="Use of Thermal Process"           register={register} placeholder="Nil" />
+            <Field id="tech_bead_type"             label="String or Weave Bead"            register={register} extractedFields={extractedFields} placeholder="Both (weave ≤ 3× dia of electrode)" />
+            <Field id="tech_oscillation"           label="Oscillation"                       register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_pass_type"             label="Multi/Single Pass per Side"        register={register} extractedFields={extractedFields} placeholder="Multi pass" />
+            <Field id="tech_multi_single_layer"    label="Multi/Single Layer"                register={register} extractedFields={extractedFields} placeholder="Multiple layer" />
+            <Field id="tech_multi_single_electrode" label="Multi/Single Electrode"           register={register} extractedFields={extractedFields} placeholder="Single" />
+            <Field id="tech_contact_tube_distance" label="Contact Tube to Work Distance"     register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_orifice_gas_cup_size"  label="Orifice, Nozzle or Gas Cup Size"   register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_cleaning_method"       label="Initial &amp; Interpass Cleaning"  register={register} extractedFields={extractedFields} placeholder="Wire Brushing and Grinding" />
+            <Field id="tech_back_gouging"          label="Method of Back Gouging"            register={register} extractedFields={extractedFields} placeholder="Grinding" />
+            <Field id="tech_electrode_spacing"     label="Electrode Spacing"                 register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_change_of_process"     label="Change of Process"                 register={register} extractedFields={extractedFields} placeholder="N/A (manual only)" />
+            <Field id="tech_peening"               label="Peening"                           register={register} extractedFields={extractedFields} placeholder="Not allowed" />
+            <Field id="tech_transfer_mode"         label="Transfer Mode"                     register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_torch_orifice_dia"     label="Torch Orifice Dia."                register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_filler_metal_delivery" label="Filler Metal Delivery"             register={register} extractedFields={extractedFields} placeholder="N/A" />
+            <Field id="tech_use_of_thermal_process" label="Use of Thermal Process"           register={register} extractedFields={extractedFields} placeholder="Nil" />
           </div>
         </CardContent>
       </Card>
@@ -489,8 +535,8 @@ export function WpsForm(props: WpsFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="approved_by" label="Prepared &amp; Approved By" register={register} placeholder="Name / designation" />
-            <Field id="reviewed_by" label="Reviewed By"                register={register} placeholder="Name / designation" />
+            <Field id="approved_by" label="Prepared &amp; Approved By" register={register} extractedFields={extractedFields} placeholder="Name / designation" />
+            <Field id="reviewed_by" label="Reviewed By"                register={register} extractedFields={extractedFields} placeholder="Name / designation" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="notes">Notes</Label>

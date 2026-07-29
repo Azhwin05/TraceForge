@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireRole } from "@/lib/auth"
 import { wpsMasterSchema, type WpsMasterInput } from "@/lib/validations/wps-master"
+import { extractWpsFromFile, isWpsExtractionConfigured } from "@/lib/ai/wps-extraction"
+import { checkRateLimit } from "@/lib/rate-limit"
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "@/lib/documents/storage-utils"
+import { validateFileSignature } from "@/lib/documents/file-signature"
 import type { WpsMasterStatus } from "@/types/database"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -353,4 +357,46 @@ export async function createWpsMasterAndRedirect(
   const result = await createWpsMaster(raw)
   if (result.error) return { error: result.error }
   redirect(`/master-data/wps/${result.id}`)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// extractWpsFromDocument — reads an uploaded WPS PDF/image and returns field
+// values to pre-fill the New WPS form with. Never writes to the database;
+// the user still reviews and saves through the normal createWpsMaster path.
+// ─────────────────────────────────────────────────────────────────────────────
+const IMAGE_MIME_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"]
+
+export async function extractWpsFromDocument(
+  formData: FormData,
+): Promise<{ error?: string; data?: Record<string, unknown> }> {
+  const guard = await requireRole(["admin", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { user } = guard
+
+  if (!isWpsExtractionConfigured()) {
+    return { error: "WPS auto-extraction is not set up yet. Ask an admin to configure it, or fill the form manually." }
+  }
+
+  // Generous per-user cap — nowhere near Gemini's free daily quota, just
+  // guards against a runaway client loop burning the shared allowance.
+  const rate = await checkRateLimit(`wps-extract:${user.id}`, 20, 60 * 60 * 1000)
+  if (!rate.allowed) {
+    return { error: "Extraction limit reached for now — please try again in a bit, or fill the form manually." }
+  }
+
+  const file = formData.get("file")
+  if (!(file instanceof File)) return { error: "No file was uploaded." }
+  if (file.size === 0) return { error: "The uploaded file is empty." }
+  if (file.size > MAX_FILE_SIZE_BYTES) return { error: "File is too large (max 50 MB)." }
+  if (!ALLOWED_MIME_TYPES.includes(file.type as (typeof ALLOWED_MIME_TYPES)[number]) || !IMAGE_MIME_TYPES.includes(file.type)) {
+    return { error: "Only PDF, JPEG, PNG, or WEBP files are supported for extraction." }
+  }
+
+  const bytes = Buffer.from(await file.arrayBuffer())
+  const sigError = validateFileSignature(file.name, bytes)
+  if (sigError) return { error: sigError }
+
+  const result = await extractWpsFromFile(bytes, file.type)
+  if ("error" in result) return { error: result.error }
+  return { data: result.data }
 }

@@ -20,6 +20,7 @@ const ENV_SCHEMA: EnvVar[] = [
   { key: "RESEND_API_KEY",    required: false, description: "Resend email API key (email notifications disabled without this)" },
   { key: "SENTRY_DSN",        required: false, description: "Sentry DSN (error tracking disabled without this)" },
   { key: "SUPABASE_SERVICE_ROLE_KEY", required: false, description: "Service role key (required to provision customer portal logins)" },
+  { key: "GEMINI_API_KEY",            required: false, description: "Google Gemini API key (WPS PDF/image auto-extraction disabled without this)" },
   { key: "UPSTASH_REDIS_REST_URL",    required: false, description: "Upstash Redis REST URL (multi-instance rate limiting; falls back to in-process)" },
   { key: "UPSTASH_REDIS_REST_TOKEN",  required: false, description: "Upstash Redis REST token (pairs with UPSTASH_REDIS_REST_URL)" },
 ]
