@@ -128,6 +128,7 @@ export function CustomerDetailClient({
 }) {
   const [editing, setEditing] = useState<CustomerItem | null>(null)
   const isAdmin = userRole === "admin"
+  const isCreator = isAdmin || userRole === "operator"
 
   const pendingItems = items.filter((it) => it.status === "pending")
   const completeItems = items.filter((it) => it.status === "complete")
@@ -141,7 +142,7 @@ export function CustomerDetailClient({
             {[customer.contact_name, customer.contact_phone, customer.contact_email].filter(Boolean).join(" · ") || "No contact details on file"}
           </p>
         </div>
-        {isAdmin && (
+        {isCreator && (
           <Link href={`/inventory/customers/${customer.id}/items/new`} className={cn(buttonVariants({ size: "sm" }))}>
             <Plus className="mr-1.5 h-4 w-4" /> Add Items
           </Link>

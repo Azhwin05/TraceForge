@@ -1,5 +1,28 @@
 # Migration State — source of truth
 
+## ✅ CONFIRMED LIVE — Operator insert on Customer Items (2026-07-29)
+
+`0048_customer_items_operator_insert.sql` applied live and verified in the browser.
+Operators can now create Customers (already worked — `clients_operator_insert` already
+existed) and can now also add Customer Items via the batch "Add Items" form. Editing an
+item, deleting it, and the Recycle Bin all remain admin-only — only the two `INSERT`
+policies were opened up (`clients` already had one from an earlier migration; `0048` adds
+the matching one for `customer_items`).
+
+**Real bug caught and fixed in the same session**: the app-layer guard in
+`createCustomerItems` (customers/actions.ts) was changed to `requireRole(["admin",
+"operator"])`, but the RLS `customer_items_admin_insert` policy from 0044 still restricted
+INSERT to admin only — so an operator's submission passed the app check and then silently
+failed at the database (no visible error, because the UI's error path wasn't hit in an
+observable way during manual testing). Diagnosed by checking `pg_policies` directly and
+confirmed fixed by re-testing the same submission after applying 0048 — the row landed with
+`created_by` = the operator's own user id.
+
+Also fixed in this session (no migration needed, UI-only): Stock Balances and the
+Inventory Dashboard now show a "Deactivated" badge next to any item whose Item Master
+record has `is_active = false` but still carries a stock balance — previously such items
+were indistinguishable from active ones on both pages.
+
 ## ✅ CONFIRMED LIVE — Material Inward delete + Stock Adjustments (2026-07-27)
 
 `0046_material_inward_delete_and_stock_adjustments.sql` and

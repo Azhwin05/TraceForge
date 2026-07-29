@@ -16,7 +16,7 @@ type BalanceRow = {
   balance_qty: number
   balance_value: number
   avg_unit_cost: number
-  item_master: { item_code: string; item_name: string; category: string; uom: string; min_stock_level: number }
+  item_master: { item_code: string; item_name: string; category: string; uom: string; min_stock_level: number; is_active: boolean }
   storage_locations: { code: string; name: string }
 }
 
@@ -106,6 +106,11 @@ export function StockBalanceListClient({
                     {belowMin && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
                         <AlertTriangle className="h-3 w-3" /> Below minimum
+                      </span>
+                    )}
+                    {!b.item_master.is_active && (
+                      <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                        Deactivated
                       </span>
                     )}
                   </div>

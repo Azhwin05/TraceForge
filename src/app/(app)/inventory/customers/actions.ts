@@ -21,7 +21,7 @@ const RECYCLE_BIN_RETENTION_DAYS = 182 // ~6 months, matches the job-card Recycl
 // ─────────────────────────────────────────────────────────────
 
 export async function createCustomer(raw: CustomerInput): Promise<{ error?: string; id?: string }> {
-  const guard = await requireRole(["admin"])
+  const guard = await requireRole(["admin", "operator"])
   if (guard.error) return { error: guard.error }
   const { supabase } = guard
 
@@ -128,7 +128,7 @@ export async function createCustomerItems(
   clientId: string,
   raw: CustomerItemsBatchInput,
 ): Promise<{ error?: string }> {
-  const guard = await requireRole(["admin"])
+  const guard = await requireRole(["admin", "operator"])
   if (guard.error) return { error: guard.error }
   const { supabase, user } = guard
 

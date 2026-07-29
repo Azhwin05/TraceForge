@@ -14,7 +14,7 @@ export default async function NewCustomerItemsPage({
 }) {
   const { supabase, profile } = await requireAuth()
   const userRole = (profile?.role ?? "operator") as UserRole
-  if (userRole !== "admin") redirect(`/inventory/customers/${params.id}`)
+  if (userRole !== "admin" && userRole !== "operator") redirect(`/inventory/customers/${params.id}`)
 
   const { data: customer, error } = await supabase
     .from("clients")

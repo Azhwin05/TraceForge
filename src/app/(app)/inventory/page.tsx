@@ -14,6 +14,7 @@ type BalanceRow = {
     consumable_type: string | null
     uom: string
     min_stock_level: number
+    is_active: boolean
   } | null
 }
 
@@ -22,7 +23,7 @@ export default async function InventoryDashboardPage() {
 
   const { data: balances } = await supabase
     .from("stock_balances")
-    .select("*, item_master(item_code, item_name, category, consumable_type, uom, min_stock_level)")
+    .select("*, item_master(item_code, item_name, category, consumable_type, uom, min_stock_level, is_active)")
 
   // Roll every storage-location balance up to one row per item so the
   // dashboard shows total qty and total value held for each material.
@@ -46,6 +47,7 @@ export default async function InventoryDashboardPage() {
         consumable_type: b.item_master.consumable_type,
         uom:             b.item_master.uom,
         min_stock_level: Number(b.item_master.min_stock_level) || 0,
+        is_active:       b.item_master.is_active,
         qty,
         value,
       })

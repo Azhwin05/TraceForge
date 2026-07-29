@@ -15,6 +15,7 @@ export type ItemStock = {
   consumable_type: string | null
   uom: string
   min_stock_level: number
+  is_active: boolean
   qty: number
   value: number
   avg_unit_cost?: number
@@ -152,6 +153,11 @@ export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]
                       <Link href={`/inventory/items/${it.item_id}`} className="font-medium hover:underline">
                         {it.item_code}
                       </Link>
+                      {!it.is_active && (
+                        <span className="ml-1.5 inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                          Deactivated
+                        </span>
+                      )}
                       <p className="text-xs text-muted-foreground">{it.item_name}</p>
                     </td>
                     <td className="px-4 py-3">
