@@ -58,11 +58,14 @@ export function PwhtRunsClient({
   const [selectedJCs, setSelectedJCs] = useState<string[]>([])
   const [jcSearch, setJcSearch] = useState("")
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreatePwhtRunInput>({
-    resolver: zodResolver(createPwhtRunSchema),
+  // job_card_ids is tracked in its own `selectedJCs` state (checkboxes below),
+  // not as a react-hook-form field — so the form's own resolver must not
+  // require it too, or handleSubmit blocks on a field it never sees updates
+  // for. The manual check in onSubmit is the real validation for it.
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<Omit<CreatePwhtRunInput, "job_card_ids">>({
+    resolver: zodResolver(createPwhtRunSchema.omit({ job_card_ids: true })),
     defaultValues: {
       date_of_cycle: new Date().toISOString().split("T")[0],
-      job_card_ids: [],
     },
   })
 
@@ -70,7 +73,7 @@ export function PwhtRunsClient({
     setSelectedJCs((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
   }
 
-  function onSubmit(data: CreatePwhtRunInput) {
+  function onSubmit(data: Omit<CreatePwhtRunInput, "job_card_ids">) {
     if (selectedJCs.length === 0) {
       toast.error("Select at least one job card")
       return
@@ -320,7 +323,6 @@ export function PwhtRunsClient({
                 onChange={(e) => setJcSearch(e.target.value)}
                 className="mb-2"
               />
-              {errors.job_card_ids && <p className="text-xs text-destructive mb-2">{errors.job_card_ids.message}</p>}
               <div className="max-h-48 overflow-y-auto rounded-lg border border-border divide-y divide-border">
                 {filteredJCs.length === 0 ? (
                   <p className="p-3 text-sm text-muted-foreground text-center">No eligible job cards found.</p>
