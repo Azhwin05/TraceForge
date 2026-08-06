@@ -4,6 +4,7 @@ import { isAdminConfigured } from "@/lib/supabase/admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortalUsersClient } from "@/components/portal/portal-users-client"
+import { PortalUserRowActions } from "@/components/portal/portal-user-row-actions"
 
 export const metadata = { title: "Customer Portal Users — ValveTrack" }
 
@@ -65,6 +66,7 @@ export default async function PortalUsersPage() {
                   <th className="p-2">Client</th>
                   <th className="p-2">Status</th>
                   <th className="p-2">Created</th>
+                  <th className="p-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,6 +80,15 @@ export default async function PortalUsersPage() {
                         : <Badge className="bg-gray-100 text-gray-600">Disabled</Badge>}
                     </td>
                     <td className="p-2 text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
+                    <td className="p-2">
+                      <div className="flex justify-end">
+                        <PortalUserRowActions
+                          userId={c.id}
+                          label={`${c.full_name}${c.clients?.name ? ` — ${c.clients.name}` : ""}`}
+                          isActive={c.is_active}
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

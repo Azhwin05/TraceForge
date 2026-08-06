@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { ClipboardList, Warehouse } from "lucide-react"
 import { requireAuth } from "@/lib/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -38,6 +39,12 @@ const MODULES = [
 
 export default async function HomePage() {
   const { user, profile } = await requireAuth()
+
+  // /home lives outside the (app) route group, so the customer guard in
+  // (app)/layout.tsx never runs here — without this, an external portal
+  // customer lands on the internal module picker after signing in.
+  if (profile.role === "customer") redirect("/portal")
+
   const fullName = profile.full_name ?? user.email ?? "User"
 
   return (
