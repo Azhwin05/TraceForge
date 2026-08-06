@@ -101,6 +101,7 @@ export async function updatePwhtRunDetails(
       process_name:             parsed.data.process_name || null,
       loading_time:             parsed.data.loading_time ?? null,
       unloading_time:           parsed.data.unloading_time ?? null,
+      unloading_temp:           parsed.data.unloading_temp ?? null,
     })
     .eq("id", runId)
 
@@ -209,6 +210,81 @@ export async function importChartCsv(
   if (error) return { error: sanitizeError(error) }
   revalidatePath(`/pwht-runs/${runId}`)
   return { imported: result.readings.length, skipped: result.skipped }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chart recorder — generate the trapezoid graph from entered cycle parameters.
+// For furnaces with no digital data logger (a mechanical pen-on-paper
+// recorder only), there's nothing to import — staff enter the same numbers
+// printed on the chart's stamp, and this computes the 4 vertices of the
+// heating-ramp / soak / cooling-ramp curve directly from them.
+// ─────────────────────────────────────────────────────────────────────────────
+export async function generatePwhtGraph(runId: string): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin", "engineer", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase, user } = guard
+
+  const { data: run } = await supabase
+    .from("pwht_runs")
+    .select("loading_temp, soaking_temp, soaking_time, rate_of_heating, rate_of_cooling, unloading_temp, cycle_start, date_of_cycle, approval_status, submitted_to_customer")
+    .eq("id", runId)
+    .single()
+
+  if (!run) return { error: "PWHT run not found" }
+  const r = run as {
+    loading_temp: number; soaking_temp: number; soaking_time: number; rate_of_heating: number
+    rate_of_cooling: number | null; unloading_temp: number | null
+    cycle_start: string | null; date_of_cycle: string
+    approval_status: string; submitted_to_customer: boolean
+  }
+
+  if (r.approval_status === "approved" || r.submitted_to_customer) {
+    return { error: "Chart readings are locked: the PWHT run is approved or submitted to customer." }
+  }
+  if (r.unloading_temp == null) {
+    return { error: "Enter Unloading Temperature in Cycle Details first." }
+  }
+  if (!r.rate_of_heating) {
+    return { error: "Enter Heating Rate first." }
+  }
+
+  const coolingRate = r.rate_of_cooling ?? r.rate_of_heating
+  const start = r.cycle_start ? new Date(r.cycle_start) : new Date(`${r.date_of_cycle}T00:00:00`)
+
+  const rampUpHours = (r.soaking_temp - r.loading_temp) / r.rate_of_heating
+  const rampUpEnd = new Date(start.getTime() + rampUpHours * 3_600_000)
+  const soakEnd = new Date(rampUpEnd.getTime() + r.soaking_time * 60_000)
+  const rampDownHours = (r.soaking_temp - r.unloading_temp) / coolingRate
+  const rampDownEnd = new Date(soakEnd.getTime() + rampDownHours * 3_600_000)
+
+  const points = [
+    { recorded_at: start.toISOString(),      temperature_c: r.loading_temp },
+    { recorded_at: rampUpEnd.toISOString(),   temperature_c: r.soaking_temp },
+    { recorded_at: soakEnd.toISOString(),     temperature_c: r.soaking_temp },
+    { recorded_at: rampDownEnd.toISOString(), temperature_c: r.unloading_temp },
+  ]
+
+  const { error: delError } = await supabase
+    .from("pwht_chart_readings")
+    .delete()
+    .eq("pwht_run_id", runId)
+    .eq("source", "generated")
+  if (delError) return { error: sanitizeError(delError) }
+
+  const { error } = await supabase.from("pwht_chart_readings").insert(
+    points.map((p) => ({
+      pwht_run_id:   runId,
+      channel:       "TC1",
+      recorded_at:   p.recorded_at,
+      temperature_c: p.temperature_c,
+      source:        "generated" as const,
+      created_by:    user.id,
+    }))
+  )
+
+  if (error) return { error: sanitizeError(error) }
+  revalidatePath(`/pwht-runs/${runId}`)
+  return {}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

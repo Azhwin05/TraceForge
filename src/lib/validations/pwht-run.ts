@@ -37,6 +37,7 @@ export const updatePwhtDetailsSchema = z.object({
   process_name: z.string().max(200).optional(),
   loading_time: z.number().int().min(0).optional().nullable(),
   unloading_time: z.number().int().min(0).optional().nullable(),
+  unloading_temp: z.number().min(0).optional().nullable(),
 })
 
 export type UpdatePwhtDetailsInput = z.infer<typeof updatePwhtDetailsSchema>

@@ -6,7 +6,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import {
   ArrowLeft, CheckCircle, XCircle, Send, Lock, Upload, Plus,
-  Trash2, FileDown, Thermometer, Flame,
+  Trash2, FileDown, Thermometer, Flame, Sparkles,
 } from "lucide-react"
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import {
-  addChartReading, deleteChartReading, importChartCsv,
+  addChartReading, deleteChartReading, importChartCsv, generatePwhtGraph,
   updatePwhtRunDetails, submitPwhtRun, approvePwhtRun, rejectPwhtRun,
 } from "@/app/(app)/pwht-runs/actions"
 import type { PwhtRun, PwhtChartReading, PwhtJobStatus, UserRole } from "@/types/database"
@@ -93,6 +93,7 @@ export function PwhtRunDetailClient({
     process_name: run.process_name ?? "",
     loading_time: run.loading_time != null ? String(run.loading_time) : "",
     unloading_time: run.unloading_time != null ? String(run.unloading_time) : "",
+    unloading_temp: run.unloading_temp != null ? String(run.unloading_temp) : "",
   })
 
   const [newReading, setNewReading] = useState({ recorded_at: "", temperature_c: "", channel: "TC1" })
@@ -111,6 +112,7 @@ export function PwhtRunDetailClient({
         process_name: details.process_name,
         loading_time: details.loading_time ? Number(details.loading_time) : null,
         unloading_time: details.unloading_time ? Number(details.unloading_time) : null,
+        unloading_temp: details.unloading_temp ? Number(details.unloading_temp) : null,
       })
       if (res.error) toast.error(res.error)
       else { toast.success("Run details saved"); router.refresh() }
@@ -161,6 +163,14 @@ export function PwhtRunDetailClient({
     }
     reader.readAsText(file)
     if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  function onGenerateGraph() {
+    startTransition(async () => {
+      const res = await generatePwhtGraph(run.id)
+      if (res.error) toast.error(res.error)
+      else { toast.success("Graph generated from cycle parameters"); router.refresh() }
+    })
   }
 
   function doSubmit() {
@@ -295,7 +305,7 @@ export function PwhtRunDetailClient({
                     onChange={(e) => setDetails((s) => ({ ...s, cycle_end: e.target.value }))} />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div>
                   <Label htmlFor="procname">Process Name</Label>
                   <Input id="procname" value={details.process_name} disabled={!canEdit}
@@ -310,6 +320,11 @@ export function PwhtRunDetailClient({
                   <Label htmlFor="utime">Unloading Time (min)</Label>
                   <Input id="utime" type="number" value={details.unloading_time} disabled={!canEdit}
                     onChange={(e) => setDetails((s) => ({ ...s, unloading_time: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="utemp">Unloading Temp (°C)</Label>
+                  <Input id="utemp" type="number" value={details.unloading_temp} disabled={!canEdit}
+                    onChange={(e) => setDetails((s) => ({ ...s, unloading_temp: e.target.value }))} />
                 </div>
               </div>
               <div>
@@ -361,6 +376,9 @@ export function PwhtRunDetailClient({
                 ref={fileInputRef} type="file" accept=".csv,.txt" className="hidden"
                 onChange={(e) => onCsvSelected(e.target.files?.[0] ?? null)}
               />
+              <Button variant="outline" size="sm" onClick={onGenerateGraph} disabled={isPending}>
+                <Sparkles className="mr-1 h-4 w-4" /> Generate Graph
+              </Button>
               <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isPending}>
                 <Upload className="mr-1 h-4 w-4" /> Import recorder CSV
               </Button>

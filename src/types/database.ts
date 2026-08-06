@@ -248,8 +248,8 @@ export interface Database {
         Relationships: [];
       };
       pwht_chart_readings: {
-        Row: { id: string; pwht_run_id: string; channel: string; recorded_at: string; temperature_c: number; source: "manual" | "import"; created_by: string | null; created_at: string };
-        Insert: { id?: string; pwht_run_id: string; channel?: string; recorded_at: string; temperature_c: number; source?: "manual" | "import"; created_by?: string | null; created_at?: string };
+        Row: { id: string; pwht_run_id: string; channel: string; recorded_at: string; temperature_c: number; source: "manual" | "import" | "generated"; created_by: string | null; created_at: string };
+        Insert: { id?: string; pwht_run_id: string; channel?: string; recorded_at: string; temperature_c: number; source?: "manual" | "import" | "generated"; created_by?: string | null; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["pwht_chart_readings"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "pwht_chart_readings_pwht_run_id_fkey"; columns: ["pwht_run_id"]; isOneToOne: false; referencedRelation: "pwht_runs"; referencedColumns: ["id"] }
