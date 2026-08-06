@@ -16,10 +16,29 @@ export function isValidUUID(value: string): boolean {
  * Strips internal Supabase/Postgres error details from messages returned to
  * the client. Log the original server-side before calling this.
  */
+/**
+ * Pulls a human-readable message out of whatever an error-ish value turns out
+ * to be. Supabase/PostgREST errors are PLAIN OBJECTS ({ message, details, hint,
+ * code }), not Error instances — so `String(err)` on them yields the literal
+ * "[object Object]". That was doing two bad things at once: showing users a
+ * meaningless toast, and silently defeating the leak filter below (its patterns
+ * can never match "[object Object]", so nothing was ever actually filtered).
+ */
+function extractMessage(err: unknown): string {
+  if (typeof err === "string") return err
+  if (err instanceof Error) return err.message
+  if (typeof err === "object" && err !== null) {
+    const message = (err as { message?: unknown }).message
+    if (typeof message === "string") return message
+  }
+  return ""
+}
+
 export function sanitizeError(err: unknown): string {
   if (!err) return "An unexpected error occurred."
 
-  const msg = err instanceof Error ? err.message : String(err)
+  const msg = extractMessage(err)
+  if (!msg.trim()) return "An unexpected error occurred."
 
   // Block patterns that leak schema/constraint details
   const leaks = [

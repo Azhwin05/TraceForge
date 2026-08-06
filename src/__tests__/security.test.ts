@@ -48,6 +48,38 @@ describe("sanitizeError", () => {
     const result = sanitizeError(new Error(longMsg))
     expect(result).not.toBe(longMsg)
   })
+
+  // Supabase/PostgREST errors are PLAIN OBJECTS, not Error instances. Every
+  // test above used `new Error(...)`, which is why a regression shipped where
+  // real DB errors rendered as the literal string "[object Object]" — and,
+  // worse, bypassed the leak filter entirely (its patterns can't match it).
+  describe("plain-object errors (the real Supabase shape)", () => {
+    it("never renders as [object Object]", () => {
+      const pgErr = { message: "Only draft reports can be approved.", details: null, hint: null, code: "P0001" }
+      expect(sanitizeError(pgErr)).not.toContain("[object Object]")
+      expect(sanitizeError(pgErr)).toBe("Only draft reports can be approved.")
+    })
+
+    it("still filters schema leaks from plain-object errors", () => {
+      const pgErr = {
+        message: 'null value in column "overall_result" of relation "dimension_reports" violates not-null constraint',
+        details: null, hint: null, code: "23502",
+      }
+      const msg = sanitizeError(pgErr)
+      expect(msg).not.toContain("overall_result")
+      expect(msg).not.toContain("dimension_reports")
+      expect(msg).toContain("database error")
+    })
+
+    it("handles objects with no usable message", () => {
+      expect(sanitizeError({ code: "500" })).toBe("An unexpected error occurred.")
+      expect(sanitizeError({ message: "   " })).toBe("An unexpected error occurred.")
+    })
+
+    it("accepts bare strings", () => {
+      expect(sanitizeError("Unauthorized: insufficient permissions")).toBe("Unauthorized: insufficient permissions")
+    })
+  })
 })
 
 describe("escapeHtml", () => {
