@@ -25,7 +25,11 @@ export default async function PortalUsersPage() {
   const [{ data: customers }, { data: clients }, { data: grants }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, is_active, created_at, client_id, clients(name)")
+      // The FK must be named explicitly: portal_user_clients gave profiles a
+      // SECOND path to clients, so a bare clients(name) embed is ambiguous and
+      // PostgREST rejects the whole query with PGRST201 (which rendered as an
+      // empty "no portal users" list rather than an error).
+      .select("id, full_name, is_active, created_at, client_id, clients!profiles_client_id_fkey(name)")
       .eq("role", "customer")
       .order("created_at", { ascending: false }),
     supabase.from("clients").select("id, name").order("name"),
