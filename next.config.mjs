@@ -4,6 +4,9 @@ const isDev = process.env.NODE_ENV === "development"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Lets a verification build run without fighting a running dev server for
+  // the .next directory (Windows locks it). Unset in normal builds.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   // Required for Docker standalone deployment
   output: "standalone",
   experimental: {

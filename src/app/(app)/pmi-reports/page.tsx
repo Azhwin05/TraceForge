@@ -1,8 +1,12 @@
 import Link from "next/link"
 import { requireAuth } from "@/lib/auth"
+import { must } from "@/lib/db"
 import { ChevronRight, FlaskConical } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
+
+/** Cap on rows fetched for the list view — see the query below. */
+const LIST_LIMIT = 200
 
 const STATUS_BADGE = {
   draft:     { label: "Draft",     className: "bg-amber-100 text-amber-700" },
@@ -22,12 +26,18 @@ export default async function PmiReportsPage() {
     job_cards: { jc_number: string } | null
   }
 
-  const { data: rawReports } = await supabase
+  // Bounded: this table grows with every job, and the page previously fetched
+  // every row on each load. `count: "exact"` still reports the true total so
+  // the header stays honest when the list is truncated.
+  const res = await supabase
     .from("pmi_reports")
-    .select("id, report_number, report_date, customer, pmi_status, job_card_id, result, job_cards(jc_number)")
+    .select("id, report_number, report_date, customer, pmi_status, job_card_id, result, job_cards(jc_number)",
+            { count: "exact" })
     .order("created_at", { ascending: false })
+    .limit(LIST_LIMIT)
 
-  const reports = (rawReports ?? []) as PmiListRow[]
+  const reports = must(res, "PMI reports") as PmiListRow[]
+  const totalCount = res.count ?? reports.length
 
   const canCreate = ["admin", "qa"].includes(userRole)
 
@@ -37,7 +47,8 @@ export default async function PmiReportsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">PMI Reports</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {reports.length} report{reports.length !== 1 ? "s" : ""} total
+            {totalCount} report{totalCount !== 1 ? "s" : ""} total
+            {reports.length < totalCount && ` — showing the latest ${reports.length}`}
           </p>
         </div>
       </div>

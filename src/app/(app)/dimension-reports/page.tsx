@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { UserRole } from "@/types/database"
+import { must } from "@/lib/db"
+
+/** Cap on rows fetched for the list view — see the query below. */
+const LIST_LIMIT = 200
 
 export const metadata = { title: "Dimension Reports — ValveTrack" }
 export const revalidate = 30
@@ -38,12 +42,16 @@ export default async function DimensionReportsPage() {
   const session = await getSessionWithProfile()
   const userRole = (session?.profile?.role ?? "operator") as UserRole
 
-  const { data: rawReports } = await supabase
+  // Bounded — this table grows with every job. See LIST_LIMIT.
+  const res = await supabase
     .from("dimension_reports")
-    .select("id, report_number, report_date, dimension_status, result_status, job_card_id, job_cards(jc_number)")
+    .select("id, report_number, report_date, dimension_status, result_status, job_card_id, job_cards(jc_number)",
+            { count: "exact" })
     .order("created_at", { ascending: false })
+    .limit(LIST_LIMIT)
 
-  const reports = (rawReports ?? []) as DimListRow[]
+  const reports = must(res, "dimension reports") as DimListRow[]
+  const totalCount = res.count ?? reports.length
 
   return (
     <div className="space-y-6">
@@ -66,7 +74,14 @@ export default async function DimensionReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Reports</CardTitle>
+          <CardTitle className="text-base">
+            All Reports ({totalCount})
+            {reports.length < totalCount && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                showing the latest {reports.length}
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {reports.length === 0 ? (

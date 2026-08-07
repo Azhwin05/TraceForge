@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { requireCustomer } from "@/lib/auth"
 import { isValidUUID } from "@/lib/security"
+import { must } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortalDocList } from "@/components/portal/portal-doc-list"
@@ -18,16 +19,20 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
   const { supabase } = await requireCustomer()
 
   // RLS: a customer can only read their own client's job; a guessed id returns nothing.
-  const { data: job } = await supabase
+  // must() first, THEN the null check: previously a query *error* also produced
+  // `job === null` and rendered a 404, telling the customer their own job does
+  // not exist. Only a genuine no-rows result may 404.
+  const jobRes = await supabase
     .from("job_cards")
     .select("*")
     .eq("id", id)
     .maybeSingle()
 
+  const job = must(jobRes, "this job")
   if (!job) notFound()
   const status = job.status as JobCardStatus
 
-  const [{ data: docs }, { data: pmi }, { data: dim }, { data: overlay }, { data: dispatches }, { data: prj }] =
+  const [docsRes, pmiRes, dimRes, overlayRes, dispatchesRes, prjRes] =
     await Promise.all([
       supabase.from("documents").select("id, document_name, document_type, file_name, storage_path, version, uploaded_at")
         .eq("job_card_id", id).eq("is_active", true).eq("is_latest", true).order("uploaded_at", { ascending: false }),
@@ -37,6 +42,16 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
       supabase.from("dispatches").select("id, dc_number, dispatch_date, vehicle_details").eq("job_card_id", id).order("dispatch_date", { ascending: false }),
       supabase.from("pwht_run_jobs").select("pwht_runs(id, chart_number, approval_status, date_of_cycle)").eq("job_card_id", id),
     ])
+
+  // These are the substance of the portal — the documents and inspection
+  // records the customer signed in to see. Rendering "none" because a query
+  // failed would misrepresent completed work, so every one of them must throw.
+  const docs = must(docsRes, "documents for this job")
+  const pmi = must(pmiRes, "PMI reports for this job")
+  const dim = must(dimRes, "dimension reports for this job")
+  const overlay = must(overlayRes, "overlay welding reports for this job")
+  const dispatches = must(dispatchesRes, "dispatch records for this job")
+  const prj = must(prjRes, "heat treatment records for this job")
 
   const pwhtRuns = ((prj ?? []) as unknown as Array<{ pwht_runs: { id: string; chart_number: string; approval_status: string; date_of_cycle: string | null } | null }>)
     .map((r) => r.pwht_runs).filter(Boolean) as Array<{ id: string; chart_number: string; approval_status: string; date_of_cycle: string | null }>

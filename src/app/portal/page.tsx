@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { requireCustomer } from "@/lib/auth"
+import { must } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { STATUS_LABEL, statusBadgeClass } from "@/lib/portal/status"
@@ -13,13 +14,15 @@ export default async function PortalHome() {
   const { supabase } = await requireCustomer()
 
   // RLS scopes these rows to the customer's own client automatically.
-  const { data: jobsRaw } = await supabase
+  // must(): if this query fails, the customer must NOT be shown "Total Jobs: 0"
+  // — a confident, wrong answer about their own work is worse than an error.
+  const jobsRes = await supabase
     .from("job_cards")
     .select("id, jc_number, description, status, received_date")
     .is("deleted_at", null)
     .order("received_date", { ascending: false })
 
-  const jobs = (jobsRaw ?? []) as JobRow[]
+  const jobs = must(jobsRes, "your jobs") as JobRow[]
 
   const inProduction = jobs.filter((j) => ["process_assigned", "in_process", "process_complete"].includes(j.status)).length
   const inInspection = jobs.filter((j) => ["reports_pending", "reports_complete"].includes(j.status)).length

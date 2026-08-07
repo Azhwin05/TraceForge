@@ -5,6 +5,10 @@ import { requireAuth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { DossierStatus, UserRole } from "@/types/database"
+import { must } from "@/lib/db"
+
+/** Cap on rows fetched for the list view — see the query below. */
+const LIST_LIMIT = 200
 
 export const metadata = { title: "Dossiers — ValveTrack" }
 
@@ -53,14 +57,18 @@ export default async function DossiersPage({
 
   let query = supabase
     .from("customer_dossiers")
-    .select("id, dossier_number, dossier_date, status, customer_name, submitted_to_customer, submitted_at, created_at, job_cards(jc_number)")
+    .select("id, dossier_number, dossier_date, status, customer_name, submitted_to_customer, submitted_at, created_at, job_cards(jc_number)",
+            { count: "exact" })
     .order("created_at", { ascending: false })
 
   if (!showArchived) query = query.neq("status", "archived")
   if (sp.status) query = query.eq("status", sp.status as DossierStatus)
 
-  const { data: rawRows } = await query
-  const dossiers = (rawRows ?? []) as DossierRow[]
+  // Bounded — see LIST_LIMIT. The count reflects the same filters, so the
+  // header stays accurate whichever status tab is active.
+  const res = await query.limit(LIST_LIMIT)
+  const dossiers = must(res, "dossiers") as DossierRow[]
+  const totalCount = res.count ?? dossiers.length
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -111,7 +119,12 @@ export default async function DossiersPage({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Dossiers {dossiers.length > 0 && `(${dossiers.length})`}
+            Dossiers {totalCount > 0 && `(${totalCount})`}
+            {dossiers.length < totalCount && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                showing the latest {dossiers.length}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

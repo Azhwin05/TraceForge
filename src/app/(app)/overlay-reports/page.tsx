@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAuth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { must } from "@/lib/db"
+
+/** Cap on rows fetched for the list view — see the query below. */
+const LIST_LIMIT = 200
 
 export const metadata = { title: "Overlay Welding Reports — ValveTrack" }
 export const revalidate = 30
@@ -41,12 +45,16 @@ export default async function OverlayReportsPage() {
   await requireAuth()
   const supabase = await createClient()
 
-  const { data: rawReports } = await supabase
+  // Bounded — this table grows with every job. See LIST_LIMIT.
+  const res = await supabase
     .from("overlay_welding_reports")
-    .select("id, report_number, report_date, customer_name, report_status, result_status, job_card_id, job_cards(jc_number)")
+    .select("id, report_number, report_date, customer_name, report_status, result_status, job_card_id, job_cards(jc_number)",
+            { count: "exact" })
     .order("created_at", { ascending: false })
+    .limit(LIST_LIMIT)
 
-  const reports = (rawReports ?? []) as OverlayListRow[]
+  const reports = must(res, "overlay welding reports") as OverlayListRow[]
+  const totalCount = res.count ?? reports.length
 
   return (
     <div className="space-y-6">
@@ -57,7 +65,14 @@ export default async function OverlayReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">All Reports ({reports.length})</CardTitle>
+          <CardTitle className="text-base">
+            All Reports ({totalCount})
+            {reports.length < totalCount && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                showing the latest {reports.length}
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {reports.length === 0 ? (

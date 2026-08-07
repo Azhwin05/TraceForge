@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { requireAuth } from "@/lib/auth"
 import { isAdminConfigured } from "@/lib/supabase/admin"
+import { must, orEmpty } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortalUsersClient } from "@/components/portal/portal-users-client"
@@ -22,7 +23,7 @@ export default async function PortalUsersPage() {
   const { profile, supabase } = await requireAuth()
   if (profile.role !== "admin") redirect("/dashboard")
 
-  const [{ data: customers }, { data: clients }, { data: grants }] = await Promise.all([
+  const [customersRes, clientsRes, grantsRes] = await Promise.all([
     supabase
       .from("profiles")
       // The FK must be named explicitly: portal_user_clients gave profiles a
@@ -35,6 +36,12 @@ export default async function PortalUsersPage() {
     supabase.from("clients").select("id, name").order("name"),
     supabase.from("portal_user_clients").select("profile_id, client_id"),
   ])
+
+  // must(): a failure here must surface, not render as an empty list — that is
+  // exactly how the PGRST201 embed error hid six existing portal users.
+  const customers = must(customersRes, "portal users")
+  const clients = must(clientsRes, "client companies")
+  const grants = orEmpty(grantsRes, "portal company grants")
 
   const clientList = (clients ?? []) as { id: string; name: string }[]
   const clientNameById = new Map(clientList.map((c) => [c.id, c.name]))
