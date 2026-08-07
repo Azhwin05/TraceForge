@@ -4,15 +4,19 @@ import { requireCustomer } from "@/lib/auth"
 import { PortalHeaderActions } from "@/components/portal/portal-header-actions"
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const { supabase, profile, clientId } = await requireCustomer()
+  const { supabase, profile, clientId, clientIds } = await requireCustomer()
 
-  const { data: client } = await supabase
+  const { data: clientRows } = await supabase
     .from("clients")
-    .select("name")
-    .eq("id", clientId)
-    .maybeSingle()
+    .select("id, name")
+    .in("id", clientIds)
 
-  const clientName = client?.name ?? "Your Company"
+  const rows = (clientRows ?? []) as { id: string; name: string }[]
+  const primaryName = rows.find((c) => c.id === clientId)?.name ?? "Your Company"
+  // A login can span several companies — don't imply it's only the primary one.
+  const clientName =
+    rows.length > 1 ? `${primaryName} +${rows.length - 1} more` : primaryName
+  const allCompanies = rows.map((c) => c.name).join(" · ")
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -22,7 +26,7 @@ export default async function PortalLayout({ children }: { children: React.React
             <Factory className="h-5 w-5 text-orange-500" />
             <div className="leading-tight">
               <div className="text-sm font-semibold">Raghav Engineering · Customer Portal</div>
-              <div className="text-xs text-muted-foreground">{clientName}</div>
+              <div className="text-xs text-muted-foreground" title={allCompanies}>{clientName}</div>
             </div>
           </Link>
           <nav className="flex items-center gap-4 text-sm">

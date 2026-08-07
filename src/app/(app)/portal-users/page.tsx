@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortalUsersClient } from "@/components/portal/portal-users-client"
 import { PortalUserRowActions } from "@/components/portal/portal-user-row-actions"
+import { PortalUserManageDialog } from "@/components/portal/portal-user-manage-dialog"
 
 export const metadata = { title: "Customer Portal Users — ValveTrack" }
 
@@ -21,14 +22,24 @@ export default async function PortalUsersPage() {
   const { profile, supabase } = await requireAuth()
   if (profile.role !== "admin") redirect("/dashboard")
 
-  const [{ data: customers }, { data: clients }] = await Promise.all([
+  const [{ data: customers }, { data: clients }, { data: grants }] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, full_name, is_active, created_at, client_id, clients(name)")
       .eq("role", "customer")
       .order("created_at", { ascending: false }),
     supabase.from("clients").select("id, name").order("name"),
+    supabase.from("portal_user_clients").select("profile_id, client_id"),
   ])
+
+  const clientList = (clients ?? []) as { id: string; name: string }[]
+  const clientNameById = new Map(clientList.map((c) => [c.id, c.name]))
+
+  // Additional companies granted per login, beyond their primary one
+  const extrasByUser = new Map<string, string[]>()
+  for (const g of (grants ?? []) as { profile_id: string; client_id: string }[]) {
+    extrasByUser.set(g.profile_id, [...(extrasByUser.get(g.profile_id) ?? []), g.client_id])
+  }
 
   return (
     <div className="space-y-6">
@@ -49,7 +60,7 @@ export default async function PortalUsersPage() {
       )}
 
       <PortalUsersClient
-        clients={(clients ?? []) as { id: string; name: string }[]}
+        clients={clientList}
         provisioningEnabled={isAdminConfigured()}
       />
 
@@ -70,10 +81,19 @@ export default async function PortalUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {(customers as unknown as CustomerProfile[]).map((c) => (
+                {(customers as unknown as CustomerProfile[]).map((c) => {
+                  const extras = extrasByUser.get(c.id) ?? []
+                  return (
                   <tr key={c.id} className="border-b last:border-0">
                     <td className="p-2 font-medium">{c.full_name}</td>
-                    <td className="p-2">{c.clients?.name ?? "—"}</td>
+                    <td className="p-2">
+                      {c.clients?.name ?? "—"}
+                      {extras.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          + {extras.map((id) => clientNameById.get(id) ?? "Unknown").join(", ")}
+                        </div>
+                      )}
+                    </td>
                     <td className="p-2">
                       {c.is_active
                         ? <Badge className="bg-green-100 text-green-700">Active</Badge>
@@ -81,7 +101,14 @@ export default async function PortalUsersPage() {
                     </td>
                     <td className="p-2 text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="p-2">
-                      <div className="flex justify-end">
+                      <div className="flex items-center justify-end">
+                        <PortalUserManageDialog
+                          userId={c.id}
+                          userName={c.full_name}
+                          primaryClientId={c.client_id}
+                          clients={clientList}
+                          extraClientIds={extras}
+                        />
                         <PortalUserRowActions
                           userId={c.id}
                           label={`${c.full_name}${c.clients?.name ? ` — ${c.clients.name}` : ""}`}
@@ -90,7 +117,8 @@ export default async function PortalUsersPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           )}

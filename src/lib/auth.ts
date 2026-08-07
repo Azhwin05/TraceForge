@@ -56,9 +56,11 @@ export async function requireRole(allowedRoles: UserRole[]) {
  * unauthenticated users to login. Customer data isolation is ultimately
  * enforced by RLS (`current_client_id()`); this is the app-layer gate.
  */
-export async function requireCustomer(): Promise<AuthSession & { clientId: string }> {
+export async function requireCustomer(): Promise<
+  AuthSession & { clientId: string; clientIds: string[] }
+> {
   const session = await requireAuth()
-  const { profile } = session
+  const { profile, supabase } = session
   if (profile.role !== "customer") {
     // Internal staff shouldn't be in the portal
     redirect("/dashboard")
@@ -66,5 +68,18 @@ export async function requireCustomer(): Promise<AuthSession & { clientId: strin
   if (!profile.client_id) {
     redirect("/login?error=portal_not_provisioned")
   }
-  return { ...session, clientId: profile.client_id }
+
+  // A login may be granted additional companies beyond its primary one
+  // (portal_user_clients). RLS already scopes every query via
+  // current_client_ids(); this is only so the UI can name them.
+  const { data: extra } = await supabase
+    .from("portal_user_clients")
+    .select("client_id")
+    .eq("profile_id", session.user.id)
+
+  const clientIds = Array.from(
+    new Set([profile.client_id, ...((extra ?? []) as { client_id: string }[]).map((r) => r.client_id)]),
+  )
+
+  return { ...session, clientId: profile.client_id, clientIds }
 }

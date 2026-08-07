@@ -123,6 +123,94 @@ export async function deletePortalUser(userId: string): Promise<{ error?: string
   return {}
 }
 
+/**
+ * Shared guard: resolve a target portal user, refusing anything that isn't a
+ * customer. Keeps these admin endpoints incapable of touching internal staff
+ * accounts regardless of what id is posted to them.
+ */
+async function loadCustomerTarget(userId: string) {
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Admin client unavailable" as string }
+  }
+  const { data: target } = await admin
+    .from("profiles")
+    .select("id, role")
+    .eq("id", userId)
+    .single()
+
+  if (!target) return { error: "That portal user no longer exists." }
+  if ((target as { role: string }).role !== "customer") {
+    return { error: "That account is not a customer portal login." }
+  }
+  return { admin }
+}
+
+/**
+ * Replace the set of ADDITIONAL companies a portal login may access. The
+ * primary company (profiles.client_id) is always included implicitly by
+ * current_client_ids() and is never stored here, so it can't be revoked by
+ * accident.
+ */
+export async function setPortalUserCompanies(
+  userId: string,
+  clientIds: string[],
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+
+  const target = await loadCustomerTarget(userId)
+  if ("error" in target) return { error: target.error }
+  const { admin } = target
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("client_id")
+    .eq("id", userId)
+    .single()
+  const primary = (profile as { client_id: string | null } | null)?.client_id ?? null
+
+  // Never persist the primary company as an "extra" grant
+  const extras = Array.from(new Set(clientIds)).filter((id) => id && id !== primary)
+
+  const { error: delErr } = await admin.from("portal_user_clients").delete().eq("profile_id", userId)
+  if (delErr) return { error: sanitizeError(delErr) }
+
+  if (extras.length > 0) {
+    const { error: insErr } = await admin
+      .from("portal_user_clients")
+      .insert(extras.map((client_id) => ({ profile_id: userId, client_id })))
+    if (insErr) return { error: sanitizeError(insErr) }
+  }
+
+  revalidatePath("/portal-users")
+  return {}
+}
+
+/** Set a new password for a portal login. Admin-only. */
+export async function resetPortalUserPassword(
+  userId: string,
+  password: string,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+
+  if (typeof password !== "string" || password.length < 8) {
+    return { error: "Password must be at least 8 characters." }
+  }
+
+  const target = await loadCustomerTarget(userId)
+  if ("error" in target) return { error: target.error }
+
+  const { error } = await target.admin.auth.admin.updateUserById(userId, { password })
+  if (error) return { error: sanitizeError(error) }
+
+  revalidatePath("/portal-users")
+  return {}
+}
+
 /** Enable/disable a portal login without deleting it. Admin-only. */
 export async function setPortalUserActive(userId: string, active: boolean): Promise<{ error?: string }> {
   const guard = await requireRole(["admin"])

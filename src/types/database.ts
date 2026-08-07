@@ -85,6 +85,15 @@ export interface Database {
           { foreignKeyName: "customer_items_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
         ];
       };
+      portal_user_clients: {
+        Row: { profile_id: string; client_id: string; created_at: string };
+        Insert: { profile_id: string; client_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["portal_user_clients"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "portal_user_clients_profile_id_fkey"; columns: ["profile_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "portal_user_clients_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
+        ];
+      };
       job_cards: {
         Row: {
           id: string; jc_number: string; client_id: string; nbdn_number: string;
