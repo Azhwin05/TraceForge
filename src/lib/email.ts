@@ -1,5 +1,5 @@
 import { Resend } from "resend"
-import { escapeHtml } from "@/lib/security"
+import { escapeHtml, sanitizeError } from "@/lib/security"
 import type { JobCardStatus } from "@/types/database"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -210,7 +210,7 @@ export async function sendDossierEmail({
         </div>
       `,
     })
-    if (error) return { error: error.message ?? "Email send failed" }
+    if (error) { console.error("[email] send failed:", error); return { error: sanitizeError(error) } }
     return {}
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Email send failed" }

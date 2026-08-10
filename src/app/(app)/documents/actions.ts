@@ -178,13 +178,24 @@ export async function registerUploadedDocument(
 export async function getSignedDownloadUrl(
   storagePath: string,
 ): Promise<{ url: string; error: null } | { url: null; error: string }> {
-  const { supabase } = await requireAuth()
+  const { profile, supabase } = await requireAuth()
+
+  // Defence in depth. Storage RLS (migration 0053) is the real boundary, but
+  // requireAuth alone admits portal customers, and this action does not scope
+  // by ownership the way the portal's own getCustomerSignedUrl does. Customers
+  // must use that one.
+  if (profile?.role === "customer") {
+    return { url: null, error: "Not available for portal accounts." }
+  }
 
   const { data, error } = await supabase.storage
     .from("documents")
     .createSignedUrl(storagePath, 3600) // 1 hour
 
-  if (error) return { url: null, error: error.message }
+  if (error) {
+    console.error("[documents] signing failed:", storagePath, error)
+    return { url: null, error: sanitizeError(error) }
+  }
   return { url: data.signedUrl, error: null }
 }
 
@@ -220,7 +231,10 @@ export async function getJobCardDocuments(jobCardId: string) {
     .eq("is_latest", true)
     .order("uploaded_at", { ascending: false })
 
-  if (error) return { data: [], error: error.message }
+  if (error) {
+    console.error("[documents] job card documents:", error)
+    return { data: [], error: sanitizeError(error) }
+  }
   return { data: data ?? [], error: null }
 }
 
