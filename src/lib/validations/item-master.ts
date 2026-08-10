@@ -12,6 +12,11 @@ export const itemMasterSchema = z.object({
   hsn_code:         z.string().nullish(),
   min_stock_level:  z.coerce.number().min(0).default(0),
   description:      z.string().nullish(),
+  // Nominal kg per stocking unit, for consumables measured by weight
+  // (client request #3). Only needed when the item is NOT stocked in kg —
+  // without it, a before/after weight cannot be converted into a stock
+  // quantity and the consumption form says so rather than guessing.
+  kg_per_unit:      z.coerce.number().positive("Must be greater than 0").nullish(),
 }).refine(
   (d) => d.category !== "consumable" || !!d.consumable_type,
   { message: "Consumable type is required for consumables", path: ["consumable_type"] },

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { sanitizeError } from "@/lib/security"
 
 async function getUser() {
   const supabase = await createClient()
@@ -17,7 +18,7 @@ export async function acknowledgeAlert(alertId: string): Promise<{ error?: strin
     .from("alerts")
     .update({ acknowledged_at: new Date().toISOString(), acknowledged_by: user.id })
     .eq("id", alertId)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath("/alerts")
   return {}
 }

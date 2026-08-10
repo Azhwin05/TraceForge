@@ -34,6 +34,7 @@ const DOC_TYPE_LABELS: Record<DocumentType, string> = {
   final_acceptance_document: "Final Acceptance Document",
   contract_review:           "Contract Review",
   process_layout:            "Process Layout",
+  rework_photo:              "Rework Photo",
 }
 
 function getSourceLink(entityType: DocumentEntityType, entityId: string): string | null {

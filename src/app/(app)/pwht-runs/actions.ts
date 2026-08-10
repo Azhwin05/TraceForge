@@ -37,7 +37,7 @@ export async function createPwhtRun(
     .select()
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   const { error: jobsError } = await supabase
     .from("pwht_run_jobs")
@@ -50,7 +50,7 @@ export async function createPwhtRun(
       }))
     )
 
-  if (jobsError) return { error: jobsError.message }
+  if (jobsError) return { error: sanitizeError(jobsError) }
 
   revalidatePath("/pwht-runs")
   return { id: run.id }
@@ -68,7 +68,7 @@ export async function updatePwhtJobStatus(
     .from("pwht_run_jobs")
     .update({ status })
     .eq("id", jobId)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath("/pwht-runs")
   return {}
 }

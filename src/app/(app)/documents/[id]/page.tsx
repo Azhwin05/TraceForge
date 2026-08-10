@@ -41,6 +41,7 @@ const DOC_TYPE_LABELS: Record<DocumentType, string> = {
   final_acceptance_document: "Final Acceptance Document",
   contract_review:           "Contract Review",
   process_layout:            "Process Layout",
+  rework_photo:              "Rework Photo",
 }
 
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {

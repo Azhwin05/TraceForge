@@ -22,6 +22,8 @@ export type PaymentStatus = "pending" | "partial" | "received";
 export type ExecutionStatus = "assigned" | "in_progress" | "completed" | "skipped";
 export type PwhtJobStatus = "pending" | "passed" | "failed";
 export type PwhtApprovalStatus = "draft" | "submitted" | "approved" | "rejected";
+// 0055 — rework lifecycle
+export type ReworkStatus = "open" | "in_progress" | "completed";
 
 // ── Inventory module enums ─────────────────────────────────────────────────
 export type ItemCategory = "raw_material" | "consumable" | "component" | "finished_part" | "other";
@@ -58,7 +60,9 @@ export type DocumentType =
   | "welding_report" | "electrode_test_certificate" | "consumable_certificate"
   | "material_test_certificate" | "nde_report" | "lpt_report" | "hardness_report"
   | "incoming_delivery_challan" | "outgoing_delivery_challan"
-  | "final_acceptance_document" | "contract_review" | "process_layout";
+  | "final_acceptance_document" | "contract_review" | "process_layout"
+  // 0055 — photos attached to a rework record
+  | "rework_photo";
 
 export interface Database {
   public: {
@@ -124,6 +128,8 @@ export interface Database {
           dispatch_validated_by: string | null; dispatch_validated_at: string | null;
           // 0042 — recycle bin
           deleted_at: string | null; deleted_by: string | null; purge_at: string | null;
+          // 0055 — freeform operator tags (never null; defaults to '{}')
+          tags: string[];
         };
         Insert: {
           id?: string; jc_number: string; client_id: string; nbdn_number: string;
@@ -149,6 +155,7 @@ export interface Database {
           despatch_dc_no?: string | null; despatch_date?: string | null;
           dispatch_validated_by?: string | null; dispatch_validated_at?: string | null;
           deleted_at?: string | null; deleted_by?: string | null; purge_at?: string | null;
+          tags?: string[];
         };
         Update: Partial<Database["public"]["Tables"]["job_cards"]["Insert"]>;
         Relationships: [{ foreignKeyName: "job_cards_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }];
@@ -623,8 +630,8 @@ export interface Database {
 
       // ── Inventory module ───────────────────────────────────────────────
       item_master: {
-        Row: { id: string; item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; approval_status: string; approved_by: string | null; approved_at: string | null; rejection_reason: string | null; created_by: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; item_code: string; item_name: string; category: string; consumable_type?: string | null; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; approval_status?: string; approved_by?: string | null; approved_at?: string | null; rejection_reason?: string | null; created_by?: string | null; created_at?: string; updated_at?: string };
+        Row: { id: string; item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; hsn_code: string | null; min_stock_level: number; description: string | null; is_active: boolean; approval_status: string; approved_by: string | null; approved_at: string | null; rejection_reason: string | null; created_by: string | null; created_at: string; updated_at: string; kg_per_unit: number | null };
+        Insert: { id?: string; item_code: string; item_name: string; category: string; consumable_type?: string | null; uom: string; hsn_code?: string | null; min_stock_level?: number; description?: string | null; is_active?: boolean; approval_status?: string; approved_by?: string | null; approved_at?: string | null; rejection_reason?: string | null; created_by?: string | null; created_at?: string; updated_at?: string; kg_per_unit?: number | null };
         Update: Partial<Database["public"]["Tables"]["item_master"]["Insert"]>;
         Relationships: [];
       };
@@ -701,8 +708,8 @@ export interface Database {
         ];
       };
       material_issue_items: {
-        Row: { id: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty: number | null; returned_qty: number; uom: string; remarks: string | null };
-        Insert: { id?: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty?: number | null; returned_qty?: number; uom: string; remarks?: string | null };
+        Row: { id: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty: number | null; returned_qty: number; uom: string; remarks: string | null; weight_before_kg: number | null; weight_after_kg: number | null };
+        Insert: { id?: string; material_issue_id: string; item_id: string; storage_location_id: string; issued_qty: number; consumed_qty?: number | null; returned_qty?: number; uom: string; remarks?: string | null; weight_before_kg?: number | null; weight_after_kg?: number | null };
         Update: Partial<Database["public"]["Tables"]["material_issue_items"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "material_issue_items_material_issue_id_fkey"; columns: ["material_issue_id"]; isOneToOne: false; referencedRelation: "material_issues"; referencedColumns: ["id"] },
@@ -728,10 +735,26 @@ export interface Database {
           { foreignKeyName: "stock_adjustments_storage_location_id_fkey"; columns: ["storage_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
         ];
       };
+      // 0055 — one row per rework event against a job card
+      rework_records: {
+        Row: { id: string; job_card_id: string; rework_date: string; stage: string; reason: string; quantity: number; identified_by: string | null; performed_by: string | null; corrective_action: string | null; status: ReworkStatus; notes: string | null; created_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; job_card_id: string; rework_date?: string; stage: string; reason: string; quantity?: number; identified_by?: string | null; performed_by?: string | null; corrective_action?: string | null; status?: ReworkStatus; notes?: string | null; created_by?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["rework_records"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "rework_records_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
+        ];
+      };
     };
     Views: {
       stock_balances: {
         Row: { item_id: string | null; storage_location_id: string | null; balance_qty: number | null; balance_value: number | null; avg_unit_cost: number | null };
+        Relationships: [];
+      };
+      // 0054 — invoice REFERENCE only. `accounts` is staff-only, and RLS cannot
+      // mask columns, so the portal reads this instead. Never widen it to
+      // include value or payment columns.
+      portal_invoice_refs: {
+        Row: { job_card_id: string | null; invoice_number: string | null; invoice_date: string | null };
         Relationships: [];
       };
     };
@@ -959,3 +982,8 @@ export type MaterialInwardDetail = MaterialInwardWithSupplier & {
   grn: Grn[];
 };
 export type StockBalanceWithItem = StockBalance & { item_master: ItemMaster; storage_locations: StorageLocation };
+
+// ── 0054 / 0055 — client meeting requests ──────────────────────────────────
+export type ReworkRecord = Database["public"]["Tables"]["rework_records"]["Row"];
+export type PortalInvoiceRef = Database["public"]["Views"]["portal_invoice_refs"]["Row"];
+export type ReworkWithJob = ReworkRecord & { job_cards: { jc_number: string } | null };

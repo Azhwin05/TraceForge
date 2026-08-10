@@ -1,4 +1,4 @@
-import { isValidUUID, sanitizeError, escapeHtml, escapeLike, isValidOrigin } from "@/lib/security"
+import { isValidUUID, sanitizeError, escapeHtml, escapeLike, escapeOrFilterValue, isValidOrigin } from "@/lib/security"
 
 describe("isValidUUID", () => {
   it("accepts valid v4 UUIDs", () => {
@@ -117,6 +117,35 @@ describe("escapeLike", () => {
 
   it("leaves normal search terms unchanged", () => {
     expect(escapeLike("valve repair")).toBe("valve repair")
+  })
+})
+
+describe("escapeOrFilterValue", () => {
+  it("leaves ordinary terms untouched", () => {
+    expect(escapeOrFilterValue("valve repair")).toBe("valve repair")
+  })
+
+  it("leaves PostgREST structural characters alone — quoting neutralises them", () => {
+    // These broke the search before: inside a quoted value they are literal,
+    // so they must survive unmodified rather than being stripped.
+    expect(escapeOrFilterValue("Valve, 6 inch")).toBe("Valve, 6 inch")
+    expect(escapeOrFilterValue("a.b(c)")).toBe("a.b(c)")
+  })
+
+  it("escapes double quotes so they cannot terminate the quoted value", () => {
+    expect(escapeOrFilterValue('say "hi"')).toBe('say \\"hi\\"')
+  })
+
+  it("escapes backslashes before quotes so escaping cannot be broken out of", () => {
+    expect(escapeOrFilterValue("a\\b")).toBe("a\\\\b")
+    // A trailing backslash must not escape the closing quote the caller adds.
+    expect(escapeOrFilterValue("trail\\")).toBe("trail\\\\")
+  })
+
+  it("composes with escapeLike so LIKE escapes survive the second layer", () => {
+    // escapeLike turns 100% into 100\% ; the or-layer doubles that backslash so
+    // PostgREST unescapes it back to a valid LIKE pattern.
+    expect(escapeOrFilterValue(escapeLike("100%"))).toBe("100\\\\%")
   })
 })
 

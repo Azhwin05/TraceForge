@@ -111,6 +111,26 @@ export const fullJobCardSchema = z.object({
 
 export type FullJobCardInput = z.infer<typeof fullJobCardSchema>;
 
+/**
+ * Creation-only variant that requires a Purchase Order (client request #6).
+ *
+ * Deliberately separate from fullJobCardSchema, which stays permissive for
+ * EDITS: historical job cards were created before this rule and have no PO, so
+ * requiring it on the edit form would block unrelated changes to those records
+ * until someone tracked down a PO number that may not exist.
+ *
+ * Dispatch is the hard stop for those older jobs — see the
+ * enforce_po_before_dispatch trigger in migration 0055.
+ */
+export const fullJobCardCreateSchema = fullJobCardSchema.extend({
+  po_number: z
+    .string({ error: "Purchase Order number is required" })
+    .trim()
+    .min(1, "Purchase Order number is required"),
+});
+
+export type FullJobCardCreateInput = z.infer<typeof fullJobCardCreateSchema>;
+
 export const createClientSchema = z.object({
   name: z.string().min(1, "Client name is required"),
   contact_name: z.string().optional(),

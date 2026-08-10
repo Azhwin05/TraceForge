@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { materialIssueSchema, type MaterialIssueInput, consumptionSchema, type ConsumptionInput } from "@/lib/validations/material-issue"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -21,7 +22,7 @@ export async function createMaterialIssue(
   const data = parsed.data
 
   const { data: numberResult, error: numberError } = await supabase.rpc("generate_material_issue_number")
-  if (numberError) return { error: numberError.message }
+  if (numberError) return { error: sanitizeError(numberError) }
 
   const { data: issue, error } = await supabase
     .from("material_issues")
@@ -35,7 +36,7 @@ export async function createMaterialIssue(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   const issueId = (issue as { id: string }).id
 
   // Insert one at a time: the DB trigger checks stock sufficiency per row
@@ -49,7 +50,7 @@ export async function createMaterialIssue(
       uom:                    item.uom,
       remarks:                sanitize(item.remarks),
     })
-    if (itemError) return { error: itemError.message }
+    if (itemError) return { error: sanitizeError(itemError) }
   }
 
   revalidatePath("/inventory/material-issues")
@@ -105,16 +106,24 @@ export async function confirmConsumption(
     const returned = Number((line.issued_qty - entry.consumed_qty).toFixed(3))
     const { error: rowError } = await supabase
       .from("material_issue_items")
-      .update({ consumed_qty: entry.consumed_qty, returned_qty: returned })
+      .update({
+        consumed_qty: entry.consumed_qty,
+        returned_qty: returned,
+        // Stored as the record of HOW the figure was arrived at. consumed_qty
+        // stays authoritative for stock; these are the measurement evidence
+        // (client request #3).
+        weight_before_kg: entry.weight_before_kg ?? null,
+        weight_after_kg:  entry.weight_after_kg ?? null,
+      })
       .eq("id", entry.id)
-    if (rowError) return { error: rowError.message }
+    if (rowError) return { error: sanitizeError(rowError) }
   }
 
   const { error: statusError } = await supabase
     .from("material_issues")
     .update({ consumption_status: "confirmed" })
     .eq("id", issueId)
-  if (statusError) return { error: statusError.message }
+  if (statusError) return { error: sanitizeError(statusError) }
 
   revalidatePath(`/inventory/material-issues/${issueId}`)
   revalidatePath("/inventory/material-issues")

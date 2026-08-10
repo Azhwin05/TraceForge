@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
+import { sanitizeError } from "@/lib/security"
 
 type TogglableTable = "consumable_master" | "chemical_master" | "instrument_master" | "machines"
 
@@ -34,7 +35,7 @@ export async function toggleMasterItemActive(
     .update({ is_active: !currentValue })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   const basePath = TABLE_PATHS[table]
   revalidatePath(basePath)

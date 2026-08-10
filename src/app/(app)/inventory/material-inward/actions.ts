@@ -29,7 +29,7 @@ export async function createMaterialInward(
   const data = parsed.data
 
   const { data: inwardNumber, error: numberError } = await supabase.rpc("generate_material_inward_number")
-  if (numberError) return { error: numberError.message }
+  if (numberError) return { error: sanitizeError(numberError) }
 
   const { data: inward, error } = await supabase
     .from("material_inward")
@@ -46,7 +46,7 @@ export async function createMaterialInward(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   const inwardId = (inward as { id: string }).id
 
   const { error: itemsError } = await supabase.from("material_inward_items").insert(
@@ -59,7 +59,7 @@ export async function createMaterialInward(
     }))
   )
 
-  if (itemsError) return { error: itemsError.message }
+  if (itemsError) return { error: sanitizeError(itemsError) }
 
   revalidatePath("/inventory/material-inward")
   return { id: inwardId }
@@ -87,7 +87,7 @@ export async function submitIncomingInspection(
     remarks:              sanitize(data.remarks),
   })
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath(`/inventory/material-inward/${materialInwardId}`)
   return {}
@@ -117,7 +117,7 @@ export async function submitQualityInspection(
     remarks:                   sanitize(data.remarks),
   })
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath(`/inventory/material-inward/${materialInwardId}`)
   return {}
@@ -134,7 +134,7 @@ export async function generateGrn(raw: GrnInput): Promise<{ error?: string; id?:
   const data = parsed.data
 
   const { data: grnNumberResult, error: numberError } = await supabase.rpc("generate_grn_number")
-  if (numberError) return { error: numberError.message }
+  if (numberError) return { error: sanitizeError(numberError) }
 
   const { data: grn, error } = await supabase
     .from("grn")
@@ -147,7 +147,7 @@ export async function generateGrn(raw: GrnInput): Promise<{ error?: string; id?:
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   const grnId = (grn as { id: string }).id
 
   // Insert line items one at a time: the DB trigger validates each against
@@ -164,7 +164,7 @@ export async function generateGrn(raw: GrnInput): Promise<{ error?: string; id?:
       unit_rate:                item.unit_rate ?? 0,
       remarks:                  sanitize(item.remarks),
     })
-    if (itemError) return { error: itemError.message }
+    if (itemError) return { error: sanitizeError(itemError) }
   }
 
   revalidatePath(`/inventory/material-inward/${data.material_inward_id}`)

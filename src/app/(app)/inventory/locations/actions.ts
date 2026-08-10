@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { storageLocationSchema, type StorageLocationInput } from "@/lib/validations/storage-location"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -29,7 +30,7 @@ export async function createStorageLocation(raw: StorageLocationInput): Promise<
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/locations")
   return { id: (row as { id: string }).id }
@@ -53,7 +54,7 @@ export async function updateStorageLocation(id: string, raw: StorageLocationInpu
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/locations")
   return {}
@@ -86,7 +87,7 @@ export async function deleteStorageLocation(id: string): Promise<{ error?: strin
     .eq("id", id)
     .select("id")
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   if (!deleted || deleted.length === 0) {
     return { error: "Delete was not applied — administrator permission is required." }
   }
@@ -101,7 +102,7 @@ export async function toggleStorageLocationActive(id: string, isActive: boolean)
   const { supabase } = guard
 
   const { error } = await supabase.from("storage_locations").update({ is_active: isActive }).eq("id", id)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/locations")
   return {}

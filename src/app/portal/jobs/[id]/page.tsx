@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, CheckCircle2, Circle } from "lucide-react"
 import { requireCustomer } from "@/lib/auth"
 import { isValidUUID } from "@/lib/security"
-import { must } from "@/lib/db"
+import { must, orEmpty } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PortalDocList } from "@/components/portal/portal-doc-list"
@@ -32,7 +32,7 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
   if (!job) notFound()
   const status = job.status as JobCardStatus
 
-  const [docsRes, pmiRes, dimRes, overlayRes, dispatchesRes, prjRes] =
+  const [docsRes, pmiRes, dimRes, overlayRes, dispatchesRes, prjRes, invoiceRes] =
     await Promise.all([
       supabase.from("documents").select("id, document_name, document_type, file_name, storage_path, version, uploaded_at")
         .eq("job_card_id", id).eq("is_active", true).eq("is_latest", true).order("uploaded_at", { ascending: false }),
@@ -41,6 +41,11 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
       supabase.from("overlay_welding_reports").select("id, report_number, report_status, created_at").eq("job_card_id", id),
       supabase.from("dispatches").select("id, dc_number, dispatch_date, vehicle_details").eq("job_card_id", id).order("dispatch_date", { ascending: false }),
       supabase.from("pwht_run_jobs").select("pwht_runs(id, chart_number, approval_status, date_of_cycle)").eq("job_card_id", id),
+      // Invoice REFERENCE only (client request #5). Reads the
+      // portal_invoice_refs view, not `accounts` — that table is staff-only
+      // (migration 0054) because it also holds PO values, invoice values and
+      // payment amounts, and RLS cannot mask individual columns.
+      supabase.from("portal_invoice_refs").select("invoice_number, invoice_date").eq("job_card_id", id),
     ])
 
   // These are the substance of the portal — the documents and inspection
@@ -52,6 +57,10 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
   const overlay = must(overlayRes, "overlay welding reports for this job")
   const dispatches = must(dispatchesRes, "dispatch records for this job")
   const prj = must(prjRes, "heat treatment records for this job")
+  // orEmpty, not must: an invoice may legitimately not exist yet, and a job
+  // page should still render everything else if the reference lookup fails.
+  const invoiceRefs = orEmpty(invoiceRes, "invoice reference for this job")
+  const invoice = invoiceRefs[0] ?? null
 
   const pwhtRuns = ((prj ?? []) as unknown as Array<{ pwht_runs: { id: string; chart_number: string; approval_status: string; date_of_cycle: string | null } | null }>)
     .map((r) => r.pwht_runs).filter(Boolean) as Array<{ id: string; chart_number: string; approval_status: string; date_of_cycle: string | null }>
@@ -91,6 +100,22 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
           <Field label="Quantity" value={job.quantity} />
           <Field label="Received" value={new Date(job.received_date).toLocaleDateString()} />
           <Field label="Process" value={(job.process_type as string[]).join(", ")} />
+          {/* Invoice reference (client request #5) — number and date only. */}
+          {invoice?.invoice_number && (
+            <Field
+              label="Invoice No."
+              value={
+                <span className="font-mono">
+                  {invoice.invoice_number}
+                  {invoice.invoice_date && (
+                    <span className="ml-1 font-sans text-xs text-muted-foreground">
+                      ({new Date(invoice.invoice_date).toLocaleDateString()})
+                    </span>
+                  )}
+                </span>
+              }
+            />
+          )}
         </CardContent>
       </Card>
 

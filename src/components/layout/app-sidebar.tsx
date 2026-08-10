@@ -21,6 +21,7 @@ import {
   FolderOpen,
   Users,
   PackageCheck,
+  Wrench,
   Truck,
   Warehouse,
   Boxes,
@@ -102,6 +103,7 @@ export const MODULES: Module[] = [
           { href: "/pmi-reports",       label: "PMI Reports",       icon: Microscope },
           { href: "/dimension-reports", label: "Dimension Reports", icon: Ruler      },
           { href: "/overlay-reports",   label: "Overlay Reports",   icon: Layers     },
+          { href: "/rework",            label: "Rework",            icon: Wrench     },
           { href: "/documents",         label: "Document Center",   icon: FolderOpen },
           {
             href: "/dossiers",

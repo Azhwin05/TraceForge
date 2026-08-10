@@ -9,6 +9,7 @@ import { checkRateLimit } from "@/lib/rate-limit"
 import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from "@/lib/documents/storage-utils"
 import { validateFileSignature } from "@/lib/documents/file-signature"
 import type { WpsMasterStatus } from "@/types/database"
+import { sanitizeError } from "@/lib/security"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -190,7 +191,7 @@ export async function createWpsMaster(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/wps")
   return { id: (row as { id: string }).id }
@@ -275,7 +276,7 @@ export async function updateWpsMaster(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/wps")
   revalidatePath(`/master-data/wps/${id}`)
@@ -308,7 +309,7 @@ export async function approveWpsMaster(
     .update({ status: "approved" as WpsMasterStatus })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/wps")
   revalidatePath(`/master-data/wps/${id}`)
@@ -341,7 +342,7 @@ export async function supersedeWpsMaster(
     .update({ status: "superseded" as WpsMasterStatus })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/wps")
   revalidatePath(`/master-data/wps/${id}`)

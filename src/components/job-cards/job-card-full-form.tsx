@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { fullJobCardSchema, createClientSchema, type FullJobCardInput, type CreateClientInput } from "@/lib/validations/job-card"
+import { fullJobCardSchema, fullJobCardCreateSchema, createClientSchema, type FullJobCardInput, type CreateClientInput } from "@/lib/validations/job-card"
 import { createJobCard, updateFullJobCard, createClient_ } from "@/app/(app)/job-cards/actions"
 import type { Client } from "@/types/database"
 
@@ -71,7 +71,9 @@ export function JobCardFullForm({
     setValue,
     formState: { errors },
   } = useForm<FullJobCardInput>({
-    resolver: zodResolver(fullJobCardSchema),
+    // Creation requires a Purchase Order (client request #6); editing does not,
+    // so pre-existing job cards without a PO stay editable. See the schema.
+    resolver: zodResolver(mode === "edit" ? fullJobCardSchema : fullJobCardCreateSchema),
     defaultValues: {
       quantity: 1,
       received_date: new Date().toISOString().split("T")[0],
@@ -164,7 +166,13 @@ export function JobCardFullForm({
                   <Field label="NBDN Number *" error={errors.nbdn_number?.message}>
                     <Input placeholder="NBDN-2025-001" {...register("nbdn_number")} aria-invalid={!!errors.nbdn_number} />
                   </Field>
-                  <Field label="PO Number" hint="(opt.)"><Input {...register("po_number")} /></Field>
+                  <Field
+                    label="PO Number"
+                    hint={mode === "edit" ? "(opt.)" : "(required)"}
+                    error={errors.po_number?.message}
+                  >
+                    <Input {...register("po_number")} />
+                  </Field>
                   <Field label="Product Group" hint="(opt.)"><Input placeholder="CBE" {...register("product_group")} /></Field>
                   <Field label="Buyer" hint="(opt.)"><Input {...register("buyer")} /></Field>
                 </div>

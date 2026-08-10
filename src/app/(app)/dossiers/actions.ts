@@ -146,7 +146,7 @@ export async function markDossierSubmitted(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath(`/dossiers/${id}`)
   revalidatePath("/dossiers")
@@ -289,7 +289,7 @@ export async function archiveDossier(id: string): Promise<{ error: string | null
     .eq("id", id)
     .neq("status", "submitted")
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath(`/dossiers/${id}`)
   revalidatePath("/dossiers")

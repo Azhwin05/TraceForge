@@ -14,7 +14,7 @@ type IssueItem = {
   consumed_qty: number | null
   returned_qty: number
   uom: string
-  item_master: { item_code: string; item_name: string }
+  item_master: { item_code: string; item_name: string; category: string | null; kg_per_unit: number | null }
   storage_locations: { code: string; name: string }
 }
 
@@ -31,7 +31,7 @@ export default async function MaterialIssueDetailPage({
     .from("material_issues")
     .select(`
       *, job_cards(jc_number),
-      material_issue_items(*, item_master(item_code, item_name), storage_locations(code, name))
+      material_issue_items(*, item_master(item_code, item_name, category, kg_per_unit), storage_locations(code, name))
     `)
     .eq("id", params.id)
     .single()

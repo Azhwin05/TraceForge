@@ -45,6 +45,7 @@ const UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
   final_acceptance_document: ["admin", "qa"],
   contract_review:           ["admin"],
   process_layout:            ["admin", "engineer"],
+  rework_photo:              ["admin", "operator", "engineer", "qa"],
 }
 
 export type FileUploadProps = {

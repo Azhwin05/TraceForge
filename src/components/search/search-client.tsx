@@ -12,6 +12,7 @@ export function SearchClient() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<JobCardWithRelations[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -21,13 +22,17 @@ export function SearchClient() {
     if (value.trim().length < 2) {
       setResults([])
       setHasSearched(false)
+      setError(null)
       return
     }
 
     debounceRef.current = setTimeout(() => {
       startTransition(async () => {
-        const { results: found } = await searchJobCards(value)
-        setResults(found)
+        const res = await searchJobCards(value)
+        // Surfacing this matters: a failed search previously rendered as
+        // "No results found.", which reads as a confident answer.
+        setError(res.error ?? null)
+        setResults(res.results)
         setHasSearched(true)
       })
     }, 300)
@@ -69,7 +74,13 @@ export function SearchClient() {
         <p className="text-sm text-muted-foreground">Type at least 2 characters...</p>
       )}
 
-      {showResults && (
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {showResults && !error && (
         <div>
           <p className="text-sm text-muted-foreground mb-3">
             {results.length === 0

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { instrumentMasterSchema, type InstrumentMasterInput } from "@/lib/validations/instrument-master"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -33,7 +34,7 @@ export async function createInstrumentMaster(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/instruments")
   return { id: (row as { id: string }).id }
@@ -62,7 +63,7 @@ export async function updateInstrumentMaster(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/instruments")
   revalidatePath(`/master-data/instruments/${id}`)

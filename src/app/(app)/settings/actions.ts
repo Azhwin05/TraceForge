@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import type { UserRole } from "@/types/database"
+import { sanitizeError } from "@/lib/security"
 
 const VALID_ROLES: UserRole[] = ["admin", "operator", "engineer", "qa", "accounts", "management"]
 
@@ -28,7 +29,7 @@ export async function updateUserRole(
     .from("profiles")
     .update({ role })
     .eq("id", profileId)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/settings")
   return {}
@@ -47,7 +48,7 @@ export async function toggleUserActive(
     .from("profiles")
     .update({ is_active: isActive })
     .eq("id", profileId)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/settings")
   return {}

@@ -62,6 +62,9 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
   })
 
   const isConsumable = watch("category") === "consumable"
+  const uomValue = watch("uom")
+  // kg_per_unit is only meaningful when stock is NOT already held in kg.
+  const isKgUom = (uomValue ?? "").trim().toLowerCase() === "kg"
 
   async function onSubmit(data: ItemMasterInput) {
     setServerError(null)
@@ -123,6 +126,7 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
               <FieldError message={errors.consumable_type?.message} />
             </div>
           ) : (
+
             <div>
               <Label htmlFor="hsn_code">HSN Code</Label>
               <Input id="hsn_code" {...register("hsn_code")} className="mt-1" />
@@ -140,6 +144,21 @@ export function ItemMasterForm({ mode, itemId, defaultValues }: Props) {
             <div>
               <Label htmlFor="hsn_code">HSN Code</Label>
               <Input id="hsn_code" {...register("hsn_code")} className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="kg_per_unit">Kg per {uomValue?.trim() || "unit"}</Label>
+              <Input
+                id="kg_per_unit" type="number" step="0.0001" min="0"
+                {...register("kg_per_unit")}
+                className="mt-1"
+                placeholder="e.g. 15"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isKgUom
+                  ? "Not needed — this item is already stocked in kg."
+                  : "Lets the ERP convert a before/after weight into used quantity."}
+              </p>
+              <FieldError message={errors.kg_per_unit?.message} />
             </div>
           </div>
         )}

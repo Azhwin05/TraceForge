@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { chemicalMasterSchema, type ChemicalMasterInput } from "@/lib/validations/chemical-master"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -34,7 +35,7 @@ export async function createChemicalMaster(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/chemicals")
   return { id: (row as { id: string }).id }
@@ -64,7 +65,7 @@ export async function updateChemicalMaster(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/chemicals")
   revalidatePath(`/master-data/chemicals/${id}`)

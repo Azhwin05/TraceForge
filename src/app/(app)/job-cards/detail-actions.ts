@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import type { ProcessExecutionInput, DispatchInput, AccountsInput } from "@/lib/validations/process-execution"
+import { sanitizeError } from "@/lib/security"
 
 export async function upsertProcessExecution(
   jobCardId: string,
@@ -27,12 +28,12 @@ export async function upsertProcessExecution(
       .from("process_executions")
       .update(payload)
       .eq("id", executionId)
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
   } else {
     const { error } = await supabase
       .from("process_executions")
       .insert({ ...payload, job_card_id: jobCardId })
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
   }
 
   revalidatePath(`/job-cards/${jobCardId}`)
@@ -100,7 +101,7 @@ export async function updateProcessStatus(
     .eq("id", executionId)
     .select("id")
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   if (!updated || updated.length === 0) {
     return { error: "Update was not applied — you may not have permission to change this operation." }
   }
@@ -119,7 +120,7 @@ export async function createDispatch(
   // Gate: job must be in dispatch_ready status AND physically validated
   const { data: jc } = await supabase
     .from("job_cards")
-    .select("status, dispatch_validated_at")
+    .select("status, dispatch_validated_at, po_number")
     .eq("id", jobCardId)
     .single()
 
@@ -129,6 +130,16 @@ export async function createDispatch(
 
   if (!jc?.dispatch_validated_at) {
     return { error: "Product must be physically verified (Ready to Dispatch) before dispatching" }
+  }
+
+  // Purchase Order gate (client request #6). The real boundary is the
+  // enforce_po_before_dispatch trigger in migration 0055 — this check only
+  // exists so the user gets a clear, actionable message instead of a raw
+  // constraint violation.
+  if (!jc.po_number || !jc.po_number.trim()) {
+    return {
+      error: "Dispatch blocked: no Purchase Order number is recorded on this job card. Add the PO before dispatching.",
+    }
   }
 
   // Document gates — approved WPS / inspection reports / PWHT (if required).
@@ -155,14 +166,23 @@ export async function createDispatch(
       created_by: user.id,
     })
 
-  if (dispatchError) return { error: dispatchError.message }
+  // sanitizeError, not .message: the PO trigger and the gate triggers raise
+  // through here, and a raw Postgres message exposes table and constraint
+  // names to the browser.
+  if (dispatchError) {
+    console.error("[dispatch] insert", dispatchError)
+    return { error: sanitizeError(dispatchError) }
+  }
 
   const { error: statusError } = await supabase
     .from("job_cards")
     .update({ status: "dispatched", stage_entered_at: new Date().toISOString() })
     .eq("id", jobCardId)
 
-  if (statusError) return { error: statusError.message }
+  if (statusError) {
+    console.error("[dispatch] status update", statusError)
+    return { error: sanitizeError(statusError) }
+  }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/job-cards")
@@ -201,7 +221,7 @@ export async function validateDispatch(
     })
     .eq("id", jobCardId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
@@ -221,12 +241,12 @@ export async function upsertAccounts(
       .from("accounts")
       .update({ ...data, updated_by: user.id, updated_at: new Date().toISOString() })
       .eq("id", accountId)
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
   } else {
     const { error } = await supabase
       .from("accounts")
       .insert({ ...data, job_card_id: jobCardId, updated_by: user.id })
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
   }
 
   revalidatePath(`/job-cards/${jobCardId}`)

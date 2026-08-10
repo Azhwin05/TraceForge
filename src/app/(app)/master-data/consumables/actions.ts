@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { consumableMasterSchema, type ConsumableMasterInput } from "@/lib/validations/consumable-master"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -38,7 +39,7 @@ export async function createConsumableMaster(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/consumables")
   return { id: (row as { id: string }).id }
@@ -72,7 +73,7 @@ export async function updateConsumableMaster(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/master-data/consumables")
   revalidatePath(`/master-data/consumables/${id}`)

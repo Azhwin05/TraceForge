@@ -7,6 +7,7 @@ import { renderAndStoreWpsPdf } from "@/lib/wps-pdf"
 import { ndeRecordSchema, type NdeRecordInput } from "@/lib/validations/nde-record"
 import { airTestSchema, type AirTestInput } from "@/lib/validations/air-test"
 import type { UserRole } from "@/types/database"
+import { sanitizeError } from "@/lib/security"
 
 function nullify(v: string | undefined | null): string | null {
   return v?.trim() || null
@@ -49,7 +50,7 @@ export async function upsertJobCardAdvancedDetails(
     })
     .eq("id", jobCardId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }
@@ -89,7 +90,7 @@ export async function upsertSignOff(
       } : {}),
     })
     .eq("id", jobCardId)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }
@@ -146,7 +147,7 @@ export async function upsertNdeRecord(
 
   if (recordId) {
     const { error } = await supabase.from("nde_records").update(row).eq("id", recordId)
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
     revalidatePath(`/job-cards/${jobCardId}`)
     return {}
   } else {
@@ -155,7 +156,7 @@ export async function upsertNdeRecord(
       .insert(row)
       .select("id")
       .single()
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
     revalidatePath(`/job-cards/${jobCardId}`)
     return { id: (data as { id: string }).id }
   }
@@ -189,7 +190,7 @@ export async function upsertAirTestRecord(
 
   if (recordId) {
     const { error } = await supabase.from("air_test_records").update(row).eq("id", recordId)
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
     revalidatePath(`/job-cards/${jobCardId}`)
     return {}
   } else {
@@ -198,7 +199,7 @@ export async function upsertAirTestRecord(
       .insert(row)
       .select("id")
       .single()
-    if (error) return { error: error.message }
+    if (error) return { error: sanitizeError(error) }
     revalidatePath(`/job-cards/${jobCardId}`)
     return { id: (data as { id: string }).id }
   }
@@ -236,7 +237,7 @@ export async function linkWpsMaster(
     .update({ wps_master_id: parsed.data.wps_master_id })
     .eq("id", qualificationId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }
@@ -271,7 +272,7 @@ export async function linkWpsMasterByCode(
     .order("created_at", { ascending: false })
     .limit(1)
 
-  if (lookupErr) return { error: lookupErr.message }
+  if (lookupErr) return { error: sanitizeError(lookupErr) }
   const master = (masters as { id: string; wps_no: string; revision: string }[] | null)?.[0]
   if (!master) {
     return { error: `No approved WPS Master found with number "${wpsNo}". Check the number and try again.` }
@@ -320,7 +321,7 @@ export async function linkWpsMasterByCode(
     })
     .eq("id", qualificationId)
 
-  if (updateErr) return { error: updateErr.message }
+  if (updateErr) return { error: sanitizeError(updateErr) }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   return { wpsNo: master.wps_no, revision: master.revision }
@@ -342,7 +343,7 @@ export async function unlinkWpsMaster(
     .update({ wps_master_id: null })
     .eq("id", qualificationId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   revalidatePath(`/job-cards/${jobCardId}`)
   return {}
 }

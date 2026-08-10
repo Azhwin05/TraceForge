@@ -143,10 +143,18 @@ export async function createJobCard(
   if (guard.error) return { error: guard.error }
   const { supabase, user } = guard
 
+  // Purchase Order is mandatory for new jobs (client request #6). Enforced here
+  // as well as in the form, because a server action is a public endpoint — the
+  // client-side resolver is a convenience, not a boundary. Edits stay exempt so
+  // pre-existing job cards without a PO remain editable.
+  if (!data.po_number || !data.po_number.trim()) {
+    return { error: "Purchase Order number is required to create a job card." }
+  }
+
   // Atomic jc_number generation using a DB function (avoids COUNT+INSERT race)
   const { data: jcNumberRow, error: seqError } = await supabase
     .rpc("generate_jc_number")
-  if (seqError) return { error: seqError.message }
+  if (seqError) return { error: sanitizeError(seqError) }
   const jcNumber = jcNumberRow as string
 
   const { data: jobCard, error } = await supabase
@@ -221,6 +229,47 @@ export async function updateJobCardDueDate(
   revalidatePath("/job-cards")
   revalidatePath("/dashboard")
   return {}
+}
+
+/**
+ * Replace a job card's tags (client request #1).
+ *
+ * Tags are normalised here rather than in the UI so that every write path gets
+ * the same treatment: trimmed, lowercased, de-duplicated and capped. Without
+ * the lowercasing, "Urgent" and "urgent" would be different tags and the
+ * containment search in searchJobCards would miss half of them.
+ */
+const MAX_TAGS = 20
+const MAX_TAG_LENGTH = 40
+
+export async function updateJobCardTags(
+  jobCardId: string,
+  tags: string[]
+): Promise<{ error?: string; tags?: string[] }> {
+  const guard = await requireRole(["admin", "operator", "engineer", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  if (!Array.isArray(tags)) return { error: "Invalid tags." }
+
+  const normalised = Array.from(
+    new Set(
+      tags
+        .map((t) => String(t).trim().toLowerCase())
+        .filter((t) => t.length > 0 && t.length <= MAX_TAG_LENGTH),
+    ),
+  ).slice(0, MAX_TAGS)
+
+  const { error } = await supabase
+    .from("job_cards")
+    .update({ tags: normalised })
+    .eq("id", jobCardId)
+
+  if (error) { console.error("[job-cards] tags", error); return { error: sanitizeError(error) } }
+
+  revalidatePath(`/job-cards/${jobCardId}`)
+  revalidatePath("/job-cards")
+  return { tags: normalised }
 }
 
 // Build (or complete) the operation routing for an existing job card.
@@ -338,14 +387,14 @@ export async function submitWps(
       uploaded_by: user.id,
     })
 
-  if (wpsError) return { error: wpsError.message }
+  if (wpsError) return { error: sanitizeError(wpsError) }
 
   const { error: statusError } = await supabase
     .from("job_cards")
     .update({ status: "wps_uploaded", stage_entered_at: new Date().toISOString() })
     .eq("id", jobCardId)
 
-  if (statusError) return { error: statusError.message }
+  if (statusError) return { error: sanitizeError(statusError) }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/job-cards")
@@ -369,14 +418,14 @@ export async function approveWps(
     })
     .eq("id", wpsId)
 
-  if (wpsError) return { error: wpsError.message }
+  if (wpsError) return { error: sanitizeError(wpsError) }
 
   const { error: statusError } = await supabase
     .from("job_cards")
     .update({ status: "wps_approved", stage_entered_at: new Date().toISOString() })
     .eq("id", jobCardId)
 
-  if (statusError) return { error: statusError.message }
+  if (statusError) return { error: sanitizeError(statusError) }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/job-cards")
@@ -400,14 +449,14 @@ export async function rejectWps(
     })
     .eq("id", wpsId)
 
-  if (wpsError) return { error: wpsError.message }
+  if (wpsError) return { error: sanitizeError(wpsError) }
 
   const { error: statusError } = await supabase
     .from("job_cards")
     .update({ status: "wps_pending", stage_entered_at: new Date().toISOString() })
     .eq("id", jobCardId)
 
-  if (statusError) return { error: statusError.message }
+  if (statusError) return { error: sanitizeError(statusError) }
 
   revalidatePath(`/job-cards/${jobCardId}`)
   revalidatePath("/job-cards")

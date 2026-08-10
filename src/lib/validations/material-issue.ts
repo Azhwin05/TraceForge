@@ -23,7 +23,23 @@ export const consumptionSchema = z.object({
   items: z.array(z.object({
     id:           z.string().uuid(),
     consumed_qty: z.coerce.number().min(0, "Cannot be negative"),
-  })).min(1),
+    // Weight-based measurement (client request #3). Optional: the existing
+    // "enter the quantity used" path is unchanged, and weighing is only
+    // meaningful for consumables like welding wire or powder. When both
+    // weights are present the UI derives consumed_qty from them, but
+    // consumed_qty remains the single value the stock ledger reads.
+    weight_before_kg: z.coerce.number().min(0, "Cannot be negative").nullish(),
+    weight_after_kg:  z.coerce.number().min(0, "Cannot be negative").nullish(),
+  }))
+    .min(1)
+    .refine(
+      (items) => items.every((i) =>
+        i.weight_before_kg == null ||
+        i.weight_after_kg == null ||
+        i.weight_after_kg <= i.weight_before_kg
+      ),
+      { message: "Weight after the process cannot be greater than the weight before." },
+    ),
 })
 
 export type ConsumptionInput = z.infer<typeof consumptionSchema>

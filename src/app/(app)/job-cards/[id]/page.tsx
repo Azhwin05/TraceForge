@@ -23,12 +23,14 @@ import { PwhtSummarySection } from "@/components/job-cards/pwht-summary-section"
 import { SignOffSection } from "@/components/job-cards/sign-off-section"
 import { JobCardDocumentsSection } from "@/components/job-cards/job-card-documents-section"
 import { DossierSection } from "@/components/job-cards/dossier-section"
+import { ReworkSection } from "@/components/rework/rework-section"
+import { JobTagsEditor } from "@/components/job-cards/job-tags-editor"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type {
   JobCard, JobCardDetail, UserRole, ProcessType, Document,
   WpsQualificationWithMaster, WpsMasterSummary,
   NdeRecord, ChemicalMaster, PwhtRunJobWithRun,
-  ConsumableMaster, DossierStatus, AirTestRecord, Machine,
+  ConsumableMaster, DossierStatus, AirTestRecord, Machine, ReworkRecord,
 } from "@/types/database"
 
 export const metadata = { title: "Job Card — ValveTrack" }
@@ -96,6 +98,8 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
     { data: overlayReports },
     { data: dossierRows },
     { data: machines },
+    { data: reworkRecords },
+    { data: staffProfiles },
   ] = await Promise.all([
     supabase
       .from("job_cards")
@@ -175,6 +179,19 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
       .eq("is_active", true)
       .order("category")
       .order("machine_code"),
+    supabase
+      .from("rework_records")
+      .select("*")
+      .eq("job_card_id", id)
+      .order("rework_date", { ascending: false }),
+    // Staff list for the "identified by" / "reworked by" pickers. Customers are
+    // excluded — they are portal logins, not people who perform rework.
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .neq("role", "customer")
+      .eq("is_active", true)
+      .order("full_name"),
   ])
 
   if (!jobCard) notFound()
@@ -343,6 +360,13 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         </Card>
       </div>
 
+      {/* Tags — freeform labels for grouping and retrieval (searchable) */}
+      <JobTagsEditor
+        jobCardId={jc.id}
+        tags={(jc as unknown as { tags?: string[] }).tags ?? []}
+        userRole={userRole}
+      />
+
       {/* Advanced Product / Material Details */}
       <AdvancedDetailsSection jobCard={jc as unknown as JobCard} userRole={userRole} />
 
@@ -413,6 +437,16 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         userRole={userRole}
         documents={overlayDocs}
         overlayReports={(overlayReports ?? []) as OverlaySummary[]}
+      />
+
+      {/* Rework — sits after the inspection reports, since rework is normally
+          raised off the back of one of them */}
+      <ReworkSection
+        jobCardId={jc.id}
+        jobCardNumber={jc.jc_number}
+        records={(reworkRecords ?? []) as ReworkRecord[]}
+        staff={(staffProfiles ?? []) as { id: string; full_name: string }[]}
+        userRole={userRole}
       />
 
       {/* Customer Submission Dossiers */}

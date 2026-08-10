@@ -4,6 +4,7 @@ import { Activity, Clock, FileSearch, Send, CheckCircle2, AlertTriangle } from "
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/job-cards/status-badge"
+import { QuickSearch } from "@/components/search/quick-search"
 import type { JobCardWithRelations } from "@/types/database"
 
 export const metadata: Metadata = { title: "Dashboard — ValveTrack" }
@@ -141,6 +142,10 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold text-brand-primary">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Overview of active jobs across Raghav Engineering.</p>
       </div>
+
+      {/* Universal search (client request #4) — same server action as /search,
+          so the two can never disagree about what is searchable. */}
+      <QuickSearch />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {stats.map((s) => <StatCard key={s.title} {...s} />)}

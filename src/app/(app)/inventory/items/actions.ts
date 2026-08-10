@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { itemMasterSchema, type ItemMasterInput } from "@/lib/validations/item-master"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -33,6 +34,9 @@ export async function createItemMaster(
       uom:              data.uom.trim(),
       hsn_code:         sanitize(data.hsn_code),
       min_stock_level:  data.min_stock_level,
+      // Only meaningful for consumables; cleared otherwise so a category
+      // change cannot leave a stale conversion factor behind.
+      kg_per_unit:      data.category === "consumable" ? (data.kg_per_unit ?? null) : null,
       description:      sanitize(data.description),
       is_active:        true,
       approval_status:  isAdmin ? "approved" : "pending",
@@ -43,7 +47,7 @@ export async function createItemMaster(
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/items")
   return { id: (row as { id: string }).id, pending: !isAdmin }
@@ -69,7 +73,7 @@ export async function setItemApproval(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/items")
   revalidatePath(`/inventory/items/${id}`)
@@ -98,11 +102,14 @@ export async function updateItemMaster(
       uom:              data.uom.trim(),
       hsn_code:         sanitize(data.hsn_code),
       min_stock_level:  data.min_stock_level,
+      // Only meaningful for consumables; cleared otherwise so a category
+      // change cannot leave a stale conversion factor behind.
+      kg_per_unit:      data.category === "consumable" ? (data.kg_per_unit ?? null) : null,
       description:      sanitize(data.description),
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/items")
   revalidatePath(`/inventory/items/${id}`)
@@ -115,7 +122,7 @@ export async function toggleItemMasterActive(id: string, isActive: boolean): Pro
   const { supabase } = guard
 
   const { error } = await supabase.from("item_master").update({ is_active: isActive }).eq("id", id)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/items")
   return {}
@@ -156,7 +163,7 @@ export async function deleteItemMaster(id: string): Promise<{ error?: string }> 
     .eq("id", id)
     .select("id")
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   if (!deleted || deleted.length === 0) {
     return { error: "Delete was not applied — administrator permission is required." }
   }

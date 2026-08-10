@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { requireRole } from "@/lib/auth"
 import { supplierSchema, type SupplierInput } from "@/lib/validations/supplier"
+import { sanitizeError } from "@/lib/security"
 
 function sanitize(v: string | null | undefined): string | null {
   if (!v || v.trim() === "") return null
@@ -38,7 +39,7 @@ export async function createSupplier(raw: SupplierInput): Promise<{ error?: stri
     .select("id")
     .single()
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/suppliers")
   return { id: (row as { id: string }).id, pending: !isAdmin }
@@ -64,7 +65,7 @@ export async function setSupplierApproval(
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/suppliers")
   return {}
@@ -91,7 +92,7 @@ export async function updateSupplier(id: string, raw: SupplierInput): Promise<{ 
     })
     .eq("id", id)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/suppliers")
   revalidatePath(`/inventory/suppliers/${id}`)
@@ -124,7 +125,7 @@ export async function deleteSupplier(id: string): Promise<{ error?: string }> {
     .eq("id", id)
     .select("id")
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   if (!deleted || deleted.length === 0) {
     return { error: "Delete was not applied — administrator permission is required." }
   }
@@ -139,7 +140,7 @@ export async function toggleSupplierActive(id: string, isActive: boolean): Promi
   const { supabase } = guard
 
   const { error } = await supabase.from("suppliers").update({ is_active: isActive }).eq("id", id)
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
 
   revalidatePath("/inventory/suppliers")
   return {}

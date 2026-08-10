@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/lib/auth"
 import { validateFileSignature } from "@/lib/documents/file-signature"
 import type { DocumentEntityType, DocumentType, UserRole } from "@/types/database"
+import { sanitizeError } from "@/lib/security"
 
 // Files up to this size are downloaded server-side to verify their magic bytes.
 // Larger files are accepted on extension alone (already limited to 50 MB client-side).
@@ -39,6 +40,7 @@ const DOCUMENT_UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
   final_acceptance_document: ["admin", "qa"],
   contract_review:           ["admin"],
   process_layout:            ["admin", "engineer"],
+  rework_photo:              ["admin", "operator", "engineer", "qa"],
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -200,7 +202,7 @@ export async function archiveDocument(
     .update({ is_active: false, is_latest: false })
     .eq("id", documentId)
 
-  if (error) return { error: error.message }
+  if (error) return { error: sanitizeError(error) }
   return { error: null }
 }
 

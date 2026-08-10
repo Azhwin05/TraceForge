@@ -6,6 +6,7 @@ import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lu
 import { buttonVariants } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { jobCardColumns } from "@/components/job-cards/columns"
+import { QuickSearch } from "@/components/search/quick-search"
 import type { JobCardWithRelations } from "@/types/database"
 
 const STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
@@ -89,6 +90,10 @@ export function JobCardsClient({
           <Plus className="h-4 w-4 mr-1" /> New Job Card
         </Link>
       </div>
+
+      {/* Universal search (client request #4). Distinct from the status filter
+          below: this searches every job card, not just the current page. */}
+      <QuickSearch />
 
       {/* Filters */}
       <div className="flex items-center gap-3">

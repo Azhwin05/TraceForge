@@ -116,3 +116,23 @@ export function isValidOrigin(
 export function escapeLike(value: string): string {
   return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
 }
+
+/**
+ * Make a value safe to embed inside a PostgREST `.or()` filter string.
+ *
+ * escapeLike() only handles SQL LIKE metacharacters. PostgREST has a second,
+ * separate syntax layer where `,` `.` `(` `)` are structural — so searching for
+ * `Valve, 6 inch` produced a malformed filter and failed the entire query
+ * rather than returning results.
+ *
+ * The caller must wrap the result in double quotes, e.g.
+ *   `jc_number.ilike."%${escapeOrFilterValue(escapeLike(term))}%"`
+ * Inside a quoted PostgREST value, only `"` and `\` need escaping; the
+ * structural characters lose their meaning.
+ *
+ * Compose it AFTER escapeLike: the backslashes that escapeLike introduces get
+ * doubled here and PostgREST unescapes them back to a valid LIKE pattern.
+ */
+export function escapeOrFilterValue(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+}
