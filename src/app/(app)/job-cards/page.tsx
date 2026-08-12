@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { JobCardsClient } from "@/components/job-cards/job-cards-client"
+import { buildJobCardSearchFilter, MAX_QUERY_LENGTH } from "@/lib/search/job-card-filters"
 import type { JobCardWithRelations, JobCardStatus } from "@/types/database"
 
 export const metadata = { title: "Job Cards — ValveTrack" }
@@ -17,9 +18,9 @@ const VALID_STATUSES: JobCardStatus[] = [
 export default async function JobCardsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string }>
+  searchParams: Promise<{ status?: string; page?: string; q?: string }>
 }) {
-  const { status, page: pageParam } = await searchParams
+  const { status, page: pageParam, q } = await searchParams
 
   // "dispatch" is a combined filter covering both dispatch_ready and dispatched.
   const isDispatchFilter = status === "dispatch"
@@ -51,6 +52,14 @@ export default async function JobCardsPage({
     query = query.eq("status", activeStatus as JobCardStatus)
   }
 
+  // Server-side search across every searchable field, INCLUDING client name and
+  // tags. The table previously had a client-side filter bound to the jc_number
+  // column alone, which only ever saw the 25 rows of the current page — so
+  // searching a client name returned "No results found" for a job that exists.
+  const term = (q ?? "").trim().slice(0, MAX_QUERY_LENGTH)
+  const searchFilter = term ? await buildJobCardSearchFilter(supabase, term) : null
+  if (searchFilter) query = query.or(searchFilter)
+
   const [{ data, count }, { count: activeCount }] = await Promise.all([
     query,
     supabase
@@ -69,6 +78,7 @@ export default async function JobCardsPage({
       totalCount={totalCount}
       activeCount={activeCount ?? 0}
       currentStatus={activeStatus}
+      currentQuery={term}
       page={page}
       pageSize={PAGE_SIZE}
       totalPages={totalPages}
