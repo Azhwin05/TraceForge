@@ -55,6 +55,7 @@ export default async function MaterialIssueDetailPage({
           <p className="text-sm text-muted-foreground mt-0.5 space-x-1">
             {record.job_cards?.jc_number && <span>For job card {record.job_cards.jc_number}</span>}
             {record.issued_to && <span>· Issued to {record.issued_to}</span>}
+            {record.destination && <span>· Sent to {record.destination}</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

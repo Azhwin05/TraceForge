@@ -45,6 +45,7 @@ export function ItemMasterListClient({
 }) {
   const [search, setSearch] = useState("")
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("active")
+  const [typeFilter, setTypeFilter] = useState<"all" | "wire" | "rod" | "powder">("all")
 
   const canCreate = ["admin", "engineer"].includes(userRole)
   const isAdmin = userRole === "admin"
@@ -55,12 +56,13 @@ export function ItemMasterListClient({
       activeFilter === "all" ||
       (activeFilter === "active" && it.is_active) ||
       (activeFilter === "inactive" && !it.is_active)
+    const matchType = typeFilter === "all" || it.consumable_type === typeFilter
     const q = search.toLowerCase()
     const matchSearch =
       !q ||
       it.item_code.toLowerCase().includes(q) ||
       it.item_name.toLowerCase().includes(q)
-    return matchActive && matchSearch
+    return matchActive && matchType && matchSearch
   })
 
   const tabs: { value: typeof activeFilter; label: string }[] = [
@@ -131,14 +133,37 @@ export function ItemMasterListClient({
         ))}
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search item code or name…"
-          className="pl-8"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1.5">
+          {([
+            { key: "all", label: "All" },
+            { key: "wire", label: "Wire" },
+            { key: "rod", label: "Rod" },
+            { key: "powder", label: "Powder" },
+          ] as const).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setTypeFilter(f.key)}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                typeFilter === f.key
+                  ? "bg-brand-primary text-white"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search item code or name…"
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       {filtered.length === 0 ? (

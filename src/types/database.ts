@@ -700,8 +700,8 @@ export interface Database {
         ];
       };
       material_issues: {
-        Row: { id: string; issue_number: string; job_card_id: string | null; issued_by: string | null; issued_to: string | null; issue_date: string; status: string; consumption_status: string; remarks: string | null };
-        Insert: { id?: string; issue_number: string; job_card_id?: string | null; issued_by?: string | null; issued_to?: string | null; issue_date?: string; status?: string; consumption_status?: string; remarks?: string | null };
+        Row: { id: string; issue_number: string; job_card_id: string | null; issued_by: string | null; issued_to: string | null; issue_date: string; status: string; consumption_status: string; remarks: string | null; destination: string | null };
+        Insert: { id?: string; issue_number: string; job_card_id?: string | null; issued_by?: string | null; issued_to?: string | null; issue_date?: string; status?: string; consumption_status?: string; remarks?: string | null; destination?: string | null };
         Update: Partial<Database["public"]["Tables"]["material_issues"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "material_issues_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }

@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { grnSchema, type GrnInput } from "@/lib/validations/material-inward"
 import { generateGrn } from "@/app/(app)/inventory/material-inward/actions"
 import { formatInr } from "@/lib/format"
+import { QuickAddLocationDialog } from "@/components/inventory/quick-add-location-dialog"
 import type { QualityInspection, MaterialInwardItem, ItemMaster } from "@/types/database"
 
 type AcceptedItem = QualityInspection & {
@@ -21,14 +22,18 @@ type AcceptedItem = QualityInspection & {
 }
 
 export function GrnGenerator({
-  materialInwardId, acceptedInspections, storageLocations,
+  materialInwardId, acceptedInspections, storageLocations, canAddLocation = false,
 }: {
   materialInwardId: string
   acceptedInspections: AcceptedItem[]
   storageLocations: { id: string; code: string; name: string }[]
+  canAddLocation?: boolean
 }) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  // Local copy so a location added inline shows up in every row's dropdown
+  // immediately — see QuickAddLocationDialog.
+  const [locations, setLocations] = useState(storageLocations)
 
   const {
     register, control, handleSubmit, watch,
@@ -76,6 +81,11 @@ export function GrnGenerator({
           {serverError}
         </div>
       )}
+      {canAddLocation && (
+        <div className="flex justify-end">
+          <QuickAddLocationDialog onCreated={(loc) => setLocations((prev) => [...prev, loc])} />
+        </div>
+      )}
       <div className="space-y-3">
         {fields.map((field, index) => {
           const qi = acceptedInspections[index]
@@ -93,7 +103,7 @@ export function GrnGenerator({
                 <Label className="text-xs">Storage Location</Label>
                 <Select {...register(`items.${index}.storage_location_id`)} className="mt-1">
                   <option value="">Select…</option>
-                  {storageLocations.map((loc) => (
+                  {locations.map((loc) => (
                     <option key={loc.id} value={loc.id}>{loc.code} — {loc.name}</option>
                   ))}
                 </Select>

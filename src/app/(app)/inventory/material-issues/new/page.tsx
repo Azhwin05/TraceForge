@@ -27,7 +27,12 @@ export default async function NewMaterialIssuePage() {
         </Link>
       </div>
       <h1 className="text-2xl font-bold tracking-tight">New Material Issue</h1>
-      <MaterialIssueForm items={items ?? []} storageLocations={locations ?? []} jobCards={jobCards ?? []} />
+      <MaterialIssueForm
+        items={items ?? []}
+        storageLocations={locations ?? []}
+        jobCards={jobCards ?? []}
+        canAddLocation={profile?.role === "admin"}
+      />
     </div>
   )
 }

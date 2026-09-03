@@ -31,6 +31,7 @@ export async function createMaterialIssue(
       job_card_id:    data.job_card_id ? data.job_card_id : null,
       issued_by:      user.id,
       issued_to:      sanitize(data.issued_to),
+      destination:    sanitize(data.destination),
       remarks:        sanitize(data.remarks),
     })
     .select("id")

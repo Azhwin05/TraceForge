@@ -9,7 +9,7 @@ export default async function StockBalancesPage() {
   const [{ data: balances }, { data: items }, { data: locations }, { data: adjustments }] = await Promise.all([
     supabase
       .from("stock_balances")
-      .select("*, item_master(item_code, item_name, category, uom, min_stock_level, is_active), storage_locations(code, name)")
+      .select("*, item_master(item_code, item_name, category, consumable_type, uom, min_stock_level, is_active), storage_locations(code, name)")
       .order("item_id"),
     supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).eq("approval_status", "approved").order("item_code"),
     supabase.from("storage_locations").select("id, code, name").eq("is_active", true).order("code"),

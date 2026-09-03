@@ -11,6 +11,9 @@ export const materialIssueItemSchema = z.object({
 export const materialIssueSchema = z.object({
   job_card_id:  z.string().uuid().nullish().or(z.literal("")),
   issued_to:    z.string().nullish(),
+  // Where the material is physically going, when that's not "consumed here"
+  // — e.g. "CBE" for the Coimbatore branch. Free text: sites aren't a fixed list.
+  destination:  z.string().nullish(),
   remarks:      z.string().nullish(),
   items:        z.array(materialIssueItemSchema).min(1, "Add at least one item to issue"),
 })

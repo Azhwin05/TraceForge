@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { materialIssueSchema, type MaterialIssueInput } from "@/lib/validations/material-issue"
 import { createMaterialIssue } from "@/app/(app)/inventory/material-issues/actions"
+import { QuickAddLocationDialog } from "@/components/inventory/quick-add-location-dialog"
 
 function FieldError({ message }: { message?: unknown }) {
   if (!message || typeof message !== "string") return null
@@ -23,14 +24,18 @@ type LocationOption = { id: string; code: string; name: string }
 type JobCardOption = { id: string; jc_number: string }
 
 export function MaterialIssueForm({
-  items, storageLocations, jobCards,
+  items, storageLocations, jobCards, canAddLocation = false,
 }: {
   items: ItemOption[]
   storageLocations: LocationOption[]
   jobCards: JobCardOption[]
+  canAddLocation?: boolean
 }) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  // Local copy so a location added inline (see QuickAddLocationDialog) shows
+  // up in every row's dropdown immediately, without a page reload.
+  const [locations, setLocations] = useState<LocationOption[]>(storageLocations)
 
   const {
     register, control, handleSubmit, setValue,
@@ -41,6 +46,7 @@ export function MaterialIssueForm({
     defaultValues: {
       job_card_id: "",
       issued_to: "",
+      destination: "",
       items: [{ item_id: "", storage_location_id: "", issued_qty: "", uom: "" }],
     },
   })
@@ -85,6 +91,15 @@ export function MaterialIssueForm({
           </div>
         </div>
         <div>
+          <Label htmlFor="destination">Destination (if sent elsewhere)</Label>
+          <Input
+            id="destination"
+            {...register("destination")}
+            className="mt-1"
+            placeholder="e.g. CBE — leave blank if consumed on-site"
+          />
+        </div>
+        <div>
           <Label htmlFor="remarks">Remarks</Label>
           <Textarea id="remarks" {...register("remarks")} className="mt-1" rows={2} />
         </div>
@@ -93,14 +108,19 @@ export function MaterialIssueForm({
       <div className="rounded-lg border border-border p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Items to Issue</h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => append({ item_id: "", storage_location_id: "", issued_qty: "", uom: "" })}
-          >
-            <Plus className="mr-1.5 h-4 w-4" /> Add Item
-          </Button>
+          <div className="flex items-center gap-2">
+            {canAddLocation && (
+              <QuickAddLocationDialog onCreated={(loc) => setLocations((prev) => [...prev, loc])} />
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ item_id: "", storage_location_id: "", issued_qty: "", uom: "" })}
+            >
+              <Plus className="mr-1.5 h-4 w-4" /> Add Item
+            </Button>
+          </div>
         </div>
         <FieldError message={(errors.items as { message?: string } | undefined)?.message} />
 
@@ -129,7 +149,7 @@ export function MaterialIssueForm({
                 <Label className="text-xs">Storage Location</Label>
                 <Select {...register(`items.${index}.storage_location_id`)} className="mt-1">
                   <option value="">Select…</option>
-                  {storageLocations.map((loc) => (
+                  {locations.map((loc) => (
                     <option key={loc.id} value={loc.id}>{loc.code} — {loc.name}</option>
                   ))}
                 </Select>

@@ -20,7 +20,7 @@ type BalanceLookup = { item_id: string; storage_location_id: string; balance_qty
 
 export function StockAdjustmentDialog({
   items, locations, balances,
-  initialItemId, initialLocationId,
+  initialItemId, initialLocationId, initialDirection, initialQty,
   open, onOpenChange,
 }: {
   items: ItemOption[]
@@ -28,15 +28,23 @@ export function StockAdjustmentDialog({
   balances: BalanceLookup[]
   initialItemId?: string
   initialLocationId?: string
+  /** Set by the "Clear Stock" shortcut to pre-select a full decrease.
+   *  The reason field is still required — this pre-fills the form, it
+   *  never submits on the user's behalf. */
+  initialDirection?: "in" | "out"
+  initialQty?: number
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
   const router = useRouter()
+  const isClearShortcut = initialDirection === "out" && initialQty != null
   const [itemId, setItemId] = useState(initialItemId ?? "")
   const [locationId, setLocationId] = useState(initialLocationId ?? "")
-  const [direction, setDirection] = useState<"in" | "out">("in")
-  const [qty, setQty] = useState("")
+  const [direction, setDirection] = useState<"in" | "out">(initialDirection ?? "in")
+  const [qty, setQty] = useState(initialQty != null ? String(initialQty) : "")
   const [rate, setRate] = useState("")
+  // Left blank even for the Clear shortcut on purpose — a real, specific
+  // reason is what makes the audit trail worth having, not a boilerplate note.
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +58,9 @@ export function StockAdjustmentDialog({
   function handleClose(next: boolean) {
     if (!next) {
       setItemId(initialItemId ?? ""); setLocationId(initialLocationId ?? "")
-      setDirection("in"); setQty(""); setRate(""); setReason(""); setError(null)
+      setDirection(initialDirection ?? "in")
+      setQty(initialQty != null ? String(initialQty) : "")
+      setRate(""); setReason(""); setError(null)
     }
     onOpenChange(next)
   }
@@ -85,9 +95,15 @@ export function StockAdjustmentDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adjust Stock</DialogTitle>
+          <DialogTitle>{isClearShortcut ? "Clear Stock" : "Adjust Stock"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {isClearShortcut && (
+            <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+              This will reduce the balance to zero for this item at this location. Enter a reason and confirm below —
+              nothing is submitted until you do.
+            </p>
+          )}
           {error && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
@@ -171,7 +187,9 @@ export function StockAdjustmentDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => handleClose(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={busy}>{busy ? "Saving…" : "Save Adjustment"}</Button>
+          <Button onClick={handleSubmit} disabled={busy} variant={isClearShortcut ? "destructive" : "default"}>
+            {busy ? "Saving…" : isClearShortcut ? "Clear Stock" : "Save Adjustment"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -153,6 +153,7 @@ export default async function MaterialInwardDetailPage({
             materialInwardId={record.id}
             acceptedInspections={acceptedForGrn}
             storageLocations={storageLocations ?? []}
+            canAddLocation={userRole === "admin"}
           />
         </div>
       )}

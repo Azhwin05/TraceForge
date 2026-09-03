@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Search, AlertTriangle, Wallet, Boxes, Layers } from "lucide-react"
+import { Search, AlertTriangle, Wallet, Boxes, Cable, CircleDot, Sparkles } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { formatInr, formatQty } from "@/lib/format"
@@ -25,8 +25,9 @@ type Totals = {
   totalValue: number
   itemCount: number
   belowMin: number
-  rawMaterialValue: number
-  consumableValue: number
+  wireValue: number
+  rodValue: number
+  powderValue: number
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -41,10 +42,14 @@ const CONSUMABLE_TYPE_LABELS: Record<string, string> = {
   powder: "Powder", rod: "Rod", wire: "Wire", other: "Other",
 }
 
+// "All" first, then the three consumable types the client actually tracks —
+// replaces the old raw-material/consumable split, which didn't map onto how
+// they think about stock day to day.
 const FILTERS = [
-  { key: "all",          label: "All" },
-  { key: "raw_material", label: "Raw Material" },
-  { key: "consumable",   label: "Consumable" },
+  { key: "all",    label: "All" },
+  { key: "wire",   label: "Wire" },
+  { key: "rod",    label: "Rod" },
+  { key: "powder", label: "Powder" },
 ] as const
 
 function StatCard({
@@ -70,14 +75,21 @@ function StatCard({
   )
 }
 
-export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]; totals: Totals }) {
+export function InventoryDashboardClient({
+  items, totals, isAdmin = false,
+}: {
+  items: ItemStock[]
+  totals: Totals
+  /** Gates the "Clear" action — clearing stock is admin-only (client request). */
+  isAdmin?: boolean
+}) {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<string>("all")
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return items.filter((it) => {
-      if (filter !== "all" && it.category !== filter) return false
+      if (filter !== "all" && it.consumable_type !== filter) return false
       if (!q) return true
       return (
         it.item_code.toLowerCase().includes(q) ||
@@ -94,11 +106,17 @@ export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]
       </div>
 
       {/* Summary tiles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={Wallet} label="Total Stock Value" value={formatInr(totals.totalValue)} sub="Value of everything on hand" />
         <StatCard icon={Boxes} label="Items in Stock" value={String(totals.itemCount)} sub="Distinct items with balance" />
-        <StatCard icon={Layers} label="Raw vs Consumable" value={formatInr(totals.rawMaterialValue)} sub={`Consumables ${formatInr(totals.consumableValue)}`} />
         <StatCard icon={AlertTriangle} label="Below Minimum" value={String(totals.belowMin)} sub="Items under min stock level" tone="warn" />
+      </div>
+
+      {/* Per-type stock value, replacing the old combined raw/consumable tile */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard icon={Cable} label="Wire Stock Value" value={formatInr(totals.wireValue)} sub="Wire consumables on hand" />
+        <StatCard icon={CircleDot} label="Rod Stock Value" value={formatInr(totals.rodValue)} sub="Rod consumables on hand" />
+        <StatCard icon={Sparkles} label="Powder Stock Value" value={formatInr(totals.powderValue)} sub="Powder consumables on hand" />
       </div>
 
       {/* Filters */}
@@ -142,6 +160,7 @@ export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]
                 <th className="px-4 py-2.5 text-right font-medium">Qty on Hand</th>
                 <th className="px-4 py-2.5 text-right font-medium">Avg Unit Cost</th>
                 <th className="px-4 py-2.5 text-right font-medium">Stock Value</th>
+                {isAdmin && <th className="px-4 py-2.5" />}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -182,6 +201,20 @@ export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatInr(it.avg_unit_cost)}</td>
                     <td className="px-4 py-3 text-right font-medium tabular-nums">{formatInr(it.value)}</td>
+                    {isAdmin && (
+                      <td className="px-4 py-3 text-right">
+                        {/* Clearing is per item+location (a dashboard row can span several
+                            locations), so this hands off to Stock Balances — where the
+                            audited clear/adjust action actually lives — pre-filtered to
+                            this item rather than duplicating that logic here. */}
+                        <Link
+                          href={`/inventory/stock?q=${encodeURIComponent(it.item_code)}`}
+                          className="text-xs font-medium text-brand-primary hover:underline"
+                        >
+                          Clear…
+                        </Link>
+                      </td>
+                    )}
                   </tr>
                 )
               })}
@@ -192,6 +225,7 @@ export function InventoryDashboardClient({ items, totals }: { items: ItemStock[]
                 <td className="px-4 py-3 text-right tabular-nums">
                   {formatInr(filtered.reduce((s, it) => s + it.value, 0))}
                 </td>
+                {isAdmin && <td className="px-4 py-3" />}
               </tr>
             </tfoot>
           </table>

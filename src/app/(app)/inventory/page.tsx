@@ -19,7 +19,8 @@ type BalanceRow = {
 }
 
 export default async function InventoryDashboardPage() {
-  const { supabase } = await requireAuth()
+  const { supabase, profile } = await requireAuth()
+  const isAdmin = profile?.role === "admin"
 
   const { data: balances } = await supabase
     .from("stock_balances")
@@ -60,19 +61,25 @@ export default async function InventoryDashboardPage() {
 
   const totalValue = items.reduce((s, it) => s + it.value, 0)
   const belowMin = items.filter((it) => it.min_stock_level > 0 && it.qty < it.min_stock_level).length
-  const rawMaterialValue = items.filter((it) => it.category === "raw_material").reduce((s, it) => s + it.value, 0)
-  const consumableValue = items.filter((it) => it.category === "consumable").reduce((s, it) => s + it.value, 0)
+  // Client-requested breakdown: wire / rod / powder stock value, replacing the
+  // old raw-material-vs-consumable split which didn't match how they actually
+  // think about their stock.
+  const wireValue   = items.filter((it) => it.consumable_type === "wire").reduce((s, it) => s + it.value, 0)
+  const rodValue    = items.filter((it) => it.consumable_type === "rod").reduce((s, it) => s + it.value, 0)
+  const powderValue = items.filter((it) => it.consumable_type === "powder").reduce((s, it) => s + it.value, 0)
 
   return (
     <div className="p-6">
       <InventoryDashboardClient
         items={items}
+        isAdmin={isAdmin}
         totals={{
           totalValue,
           itemCount: items.length,
           belowMin,
-          rawMaterialValue,
-          consumableValue,
+          wireValue,
+          rodValue,
+          powderValue,
         }}
       />
     </div>

@@ -10,9 +10,9 @@ export default async function MaterialIssuesPage() {
   const { data: records } = await supabase
     .from("material_issues")
     .select(`
-      id, issue_number, issue_date, status, consumption_status, issued_to,
+      id, issue_number, issue_date, status, consumption_status, issued_to, destination,
       job_cards(jc_number),
-      material_issue_items(issued_qty, consumed_qty, returned_qty, uom, item_master(item_code, item_name))
+      material_issue_items(issued_qty, consumed_qty, returned_qty, uom, item_master(item_code, item_name, consumable_type))
     `)
     .order("issue_date", { ascending: false })
     .limit(500)

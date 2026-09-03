@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Search, AlertTriangle, SlidersHorizontal, History } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -16,7 +17,7 @@ type BalanceRow = {
   balance_qty: number
   balance_value: number
   avg_unit_cost: number
-  item_master: { item_code: string; item_name: string; category: string; uom: string; min_stock_level: number; is_active: boolean }
+  item_master: { item_code: string; item_name: string; category: string; consumable_type: string | null; uom: string; min_stock_level: number; is_active: boolean }
   storage_locations: { code: string; name: string }
 }
 
@@ -44,13 +45,18 @@ export function StockBalanceListClient({
   recentAdjustments: AdjustmentRow[]
   userRole: UserRole
 }) {
-  const [search, setSearch] = useState("")
+  const searchParams = useSearchParams()
+  // Prefilled when arriving from the Inventory Dashboard's "Clear…" link for a
+  // specific item — read once on mount, same as any other deep-link.
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "")
+  const [typeFilter, setTypeFilter] = useState<"all" | "wire" | "rod" | "powder">("all")
   const [adjustOpen, setAdjustOpen] = useState(false)
-  const [adjustPrefill, setAdjustPrefill] = useState<{ itemId?: string; locationId?: string }>({})
+  const [adjustPrefill, setAdjustPrefill] = useState<{ itemId?: string; locationId?: string; direction?: "in" | "out"; qty?: number }>({})
   const isAdmin = userRole === "admin"
 
   const nonZero = balances.filter((b) => b.balance_qty > 0)
   const filtered = nonZero.filter((b) => {
+    if (typeFilter !== "all" && b.item_master.consumable_type !== typeFilter) return false
     const q = search.toLowerCase()
     return (
       !q ||
@@ -70,6 +76,14 @@ export function StockBalanceListClient({
     setAdjustOpen(true)
   }
 
+  /** "Clear Stock" — pre-fills a full decrease of the current balance. The
+   *  admin still confirms the dialog and must enter a reason: this is a
+   *  shortcut into the existing audited adjustment flow, not a bypass of it. */
+  function openClear(itemId: string, locationId: string, qty: number) {
+    setAdjustPrefill({ itemId, locationId, direction: "out", qty })
+    setAdjustOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -84,9 +98,32 @@ export function StockBalanceListClient({
         )}
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search item or location…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1.5">
+          {([
+            { key: "all", label: "All" },
+            { key: "wire", label: "Wire" },
+            { key: "rod", label: "Rod" },
+            { key: "powder", label: "Powder" },
+          ] as const).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setTypeFilter(f.key)}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                typeFilter === f.key
+                  ? "bg-brand-primary text-white"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search item or location…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -127,9 +164,18 @@ export function StockBalanceListClient({
                     </p>
                   </div>
                   {isAdmin && (
-                    <Button size="sm" variant="outline" onClick={() => openAdjust(b.item_id, b.storage_location_id)}>
-                      Adjust
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button size="sm" variant="outline" onClick={() => openAdjust(b.item_id, b.storage_location_id)}>
+                        Adjust
+                      </Button>
+                      <Button
+                        size="sm" variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => openClear(b.item_id, b.storage_location_id, b.balance_qty)}
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -175,6 +221,8 @@ export function StockBalanceListClient({
           balances={balanceLookup}
           initialItemId={adjustPrefill.itemId}
           initialLocationId={adjustPrefill.locationId}
+          initialDirection={adjustPrefill.direction}
+          initialQty={adjustPrefill.qty}
           open={adjustOpen}
           onOpenChange={setAdjustOpen}
         />
