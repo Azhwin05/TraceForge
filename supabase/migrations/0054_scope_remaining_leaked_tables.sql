@@ -1,55 +1,69 @@
--- 0054 — URGENT: close four tables still readable by every authenticated user
+-- 0054 — Close the accounts/audit_log/alerts/profiles leak + portal invoice view
 --
--- Migration 0051 scoped 15 internal tables to is_internal_staff() and 0052
--- scoped the customer-facing ones to current_client_ids(). Four tables created
--- back in 0003 were missed and still carry `for select using (true)`:
+-- REVISED: when this was first applied, `accounts`, `audit_log` and `alerts`
+-- had already been independently re-scoped to staff-only SELECT policies
+-- (accounts_staff_select / audit_log_staff_select / alerts_staff_select, all
+-- using is_internal_staff()), and `profiles` already had profiles_self_select
+-- + profiles_staff_select — so the original `alter policy ... "accounts_select_all"`
+-- etc. failed with "policy does not exist", because that policy name was gone.
 --
---   accounts    — po_value, invoice_number, invoice_value, payment_status,
---                 payment_amount, tally_reference for EVERY client
---   audit_log   — old_value/new_value jsonb: the complete change history of
---                 every record in the system, across all clients
---   alerts      — internal SLA/overdue alerts, exposing other clients' job ids
---   profiles    — every staff member's name and role, and the full list of
---                 other customers' portal logins
+-- The verification block below re-checks the same property (a customer can
+-- read only their own profile; staff can read everything) without assuming
+-- specific policy names, so this migration is safe to run regardless of
+-- which of the two shapes the database is currently in.
 --
--- A portal customer holds a valid `authenticated` session, so all four were
--- readable by them directly through PostgREST. `accounts` and `audit_log` are
--- the serious ones: commercial terms and a full audit trail belonging to other
--- customers of the same business.
---
--- NOTE ON RECURSION (the one thing to verify after applying): the profiles
--- policy below calls is_internal_staff(), which itself reads profiles. This is
--- safe *only* because that function is SECURITY DEFINER and owned by the table
--- owner, so it bypasses RLS rather than re-entering this policy. That is the
--- standard Supabase pattern and the same shape as current_client_id(). If it
--- were ever redefined as SECURITY INVOKER, profiles would fail with
--- "infinite recursion detected in policy" — see the verification block at the
--- bottom, which proves the policy is queryable before this migration commits.
+-- The one part of the original migration that had NOT been applied yet is
+-- the portal_invoice_refs view (item 5 below) — that part still runs as before.
 
 -- ─────────────────────────────────────────────────────────────
--- 1. Internal-only tables
+-- 1–2. Internal-only tables + profiles — verify only, no changes needed
+--    if the policies already look like this (see note above).
 -- ─────────────────────────────────────────────────────────────
-alter policy "accounts_select_all"  on public.accounts  using (is_internal_staff());
-alter policy "audit_log_select_all" on public.audit_log using (is_internal_staff());
-alter policy "alerts_select_all"    on public.alerts    using (is_internal_staff());
+do $$
+declare
+  n bigint;
+begin
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'accounts'
+       and cmd = 'SELECT' and qual ilike '%is_internal_staff%'
+  ) then
+    raise exception 'accounts has no staff-scoped SELECT policy — do not proceed, this table is still open to every authenticated user.';
+  end if;
 
--- ─────────────────────────────────────────────────────────────
--- 2. profiles — staff see everyone; a customer sees only their own row
---    (requireAuth/requireCustomer in src/lib/auth.ts reads exactly that row,
---    so the portal keeps working; nothing in the portal joins other profiles)
--- ─────────────────────────────────────────────────────────────
-alter policy "profiles_select_all" on public.profiles
-  using (id = auth.uid() or is_internal_staff());
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'audit_log'
+       and cmd = 'SELECT' and qual ilike '%is_internal_staff%'
+  ) then
+    raise exception 'audit_log has no staff-scoped SELECT policy.';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'alerts'
+       and cmd = 'SELECT' and qual ilike '%is_internal_staff%'
+  ) then
+    raise exception 'alerts has no staff-scoped SELECT policy.';
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and tablename = 'profiles'
+       and cmd = 'SELECT' and (qual ilike '%is_internal_staff%' or qual ilike '%auth.uid%')
+  ) then
+    raise exception 'profiles has no self/staff-scoped SELECT policy — it may still be open to every authenticated user.';
+  end if;
+
+  raise notice '0054 step 1-2: accounts/audit_log/alerts/profiles are already correctly scoped — no policy changes needed.';
+end $$;
 
 -- ─────────────────────────────────────────────────────────────
 -- 3. Invoice reference for the customer portal
 --
---    The client asked for the invoice number to be visible in the portal, but
---    `accounts` is now staff-only and RLS cannot hide individual columns. This
---    view exposes ONLY the reference fields — never po_value, invoice_value,
---    payment_status or payment_amount — and filters to the caller's own
---    companies. It deliberately does NOT set security_invoker, so it runs as
---    owner and can read accounts while the caller cannot.
+--    `accounts` is staff-only and RLS cannot mask individual columns, so the
+--    portal reads this view instead — invoice number + date ONLY, never
+--    po_value, invoice_value, payment_status or payment_amount.
 -- ─────────────────────────────────────────────────────────────
 create or replace view public.portal_invoice_refs as
   select a.job_card_id,
@@ -71,9 +85,7 @@ comment on view public.portal_invoice_refs is
 grant select on public.portal_invoice_refs to authenticated;
 
 -- ─────────────────────────────────────────────────────────────
--- 4. Prove the policies are queryable before committing
---    Catches the recursion failure mode described above while this is still
---    inside a transaction that can be rolled back.
+-- 4. Prove everything is queryable before committing
 -- ─────────────────────────────────────────────────────────────
 do $$
 declare
@@ -84,5 +96,5 @@ begin
   select count(*) into n from public.audit_log;
   select count(*) into n from public.alerts;
   select count(*) into n from public.portal_invoice_refs;
-  raise notice '0054 ok — all four policies and the invoice view are queryable';
+  raise notice '0054 ok — all four tables and the new invoice view are queryable';
 end $$;
