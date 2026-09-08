@@ -744,6 +744,15 @@ export interface Database {
           { foreignKeyName: "rework_records_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
         ];
       };
+      // 0058 — admin-to-client PDF handoff, independent of any job card
+      client_documents: {
+        Row: { id: string; client_id: string; title: string; description: string | null; label: string | null; storage_path: string; file_name: string; file_size_bytes: number | null; is_active: boolean; uploaded_by: string | null; uploaded_at: string; removed_by: string | null; removed_at: string | null };
+        Insert: { id?: string; client_id: string; title: string; description?: string | null; label?: string | null; storage_path: string; file_name: string; file_size_bytes?: number | null; is_active?: boolean; uploaded_by?: string | null; uploaded_at?: string; removed_by?: string | null; removed_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["client_documents"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "client_documents_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
+        ];
+      };
     };
     Views: {
       stock_balances: {
@@ -985,5 +994,6 @@ export type StockBalanceWithItem = StockBalance & { item_master: ItemMaster; sto
 
 // ── 0054 / 0055 — client meeting requests ──────────────────────────────────
 export type ReworkRecord = Database["public"]["Tables"]["rework_records"]["Row"];
+export type ClientDocument = Database["public"]["Tables"]["client_documents"]["Row"];
 export type PortalInvoiceRef = Database["public"]["Views"]["portal_invoice_refs"]["Row"];
 export type ReworkWithJob = ReworkRecord & { job_cards: { jc_number: string } | null };

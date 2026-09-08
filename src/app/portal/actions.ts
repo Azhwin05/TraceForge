@@ -52,3 +52,39 @@ export async function getCustomerSignedUrl(
   }
   return { url: data.signedUrl, error: null }
 }
+
+/**
+ * Sign a Client Document for download — the admin-to-client PDF handoff
+ * (migration 0058), unrelated to job cards. Deliberately a separate lookup
+ * from getCustomerSignedUrl above: ownership here is a direct client_id
+ * match on client_documents, not a job-card join, and the row must still be
+ * active (a revoked document must not be downloadable even with a guessed id).
+ */
+export async function getClientDocumentSignedUrl(
+  documentId: string
+): Promise<{ url: string | null; error: string | null }> {
+  const { supabase } = await requireCustomer()
+
+  const { data: doc, error: lookupError } = await supabase
+    .from("client_documents")
+    .select("storage_path")
+    .eq("id", documentId)
+    .eq("is_active", true)
+    .maybeSingle()
+
+  if (lookupError) {
+    console.error("[portal] client document ownership lookup failed:", lookupError)
+    return { url: null, error: "Could not verify access to this document" }
+  }
+  if (!doc) return { url: null, error: "Document not found or access denied" }
+
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(doc.storage_path, 3600)
+
+  if (error || !data?.signedUrl) {
+    console.error("[portal] client document signing failed:", doc.storage_path, error)
+    return { url: null, error: "Could not generate download link" }
+  }
+  return { url: data.signedUrl, error: null }
+}

@@ -22,6 +22,7 @@ import {
   Users,
   PackageCheck,
   Wrench,
+  Send,
   Truck,
   Warehouse,
   Boxes,
@@ -105,6 +106,7 @@ export const MODULES: Module[] = [
           { href: "/overlay-reports",   label: "Overlay Reports",   icon: Layers     },
           { href: "/rework",            label: "Rework",            icon: Wrench     },
           { href: "/documents",         label: "Document Center",   icon: FolderOpen },
+          { href: "/client-documents",  label: "Client Documents",  icon: Send, roles: ["admin"] },
           {
             href: "/dossiers",
             label: "Dossiers",

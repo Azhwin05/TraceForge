@@ -32,6 +32,7 @@ export default async function PortalLayout({ children }: { children: React.React
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/portal" className="text-muted-foreground hover:text-foreground">Overview</Link>
             <Link href="/portal/jobs" className="text-muted-foreground hover:text-foreground">My Jobs</Link>
+            <Link href="/portal/documents" className="text-muted-foreground hover:text-foreground">Documents</Link>
             <PortalHeaderActions name={profile.full_name ?? "Account"} />
           </nav>
         </div>
