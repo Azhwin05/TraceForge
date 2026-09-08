@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
 import { deleteMaterialInward } from "@/app/(app)/inventory/material-inward/actions"
-import type { MaterialInward, Supplier, UserRole } from "@/types/database"
+import type { MaterialInward, Supplier, Client, UserRole } from "@/types/database"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   pending_inspection:        { label: "Pending Inspection",  className: "bg-slate-100 text-slate-600" },
@@ -19,7 +19,7 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   grn_generated:              { label: "GRN Generated",       className: "bg-emerald-100 text-emerald-800" },
 }
 
-type Row = MaterialInward & { suppliers: Pick<Supplier, "name"> | null }
+type Row = MaterialInward & { suppliers: Pick<Supplier, "name"> | null; clients: Pick<Client, "name"> | null }
 
 export function MaterialInwardListClient({ records, userRole }: { records: Row[]; userRole: UserRole }) {
   const [search, setSearch] = useState("")
@@ -28,14 +28,18 @@ export function MaterialInwardListClient({ records, userRole }: { records: Row[]
 
   const filtered = records.filter((r) => {
     const q = search.toLowerCase()
-    return !q || r.inward_number.toLowerCase().includes(q) || r.dc_number.toLowerCase().includes(q) || (r.suppliers?.name ?? "").toLowerCase().includes(q)
+    return !q
+      || r.inward_number.toLowerCase().includes(q)
+      || r.dc_number.toLowerCase().includes(q)
+      || (r.suppliers?.name ?? "").toLowerCase().includes(q)
+      || (r.clients?.name ?? "").toLowerCase().includes(q)
   })
 
   return (
     <div className="space-y-4">
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search DC number or supplier…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search DC number, supplier or client…" className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       {filtered.length === 0 ? (
@@ -52,7 +56,12 @@ export function MaterialInwardListClient({ records, userRole }: { records: Row[]
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{r.inward_number}</span>
                     <span className="text-muted-foreground">—</span>
-                    <span>{r.suppliers?.name ?? "Unknown supplier"}</span>
+                    <span>{r.source_type === "customer" ? (r.clients?.name ?? "Unknown client") : (r.suppliers?.name ?? "Unknown supplier")}</span>
+                    {r.source_type === "customer" && (
+                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                        Client-supplied
+                      </span>
+                    )}
                     <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", status.className)}>
                       {status.label}
                     </span>

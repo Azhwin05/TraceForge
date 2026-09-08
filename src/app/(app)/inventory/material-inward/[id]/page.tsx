@@ -29,7 +29,7 @@ export default async function MaterialInwardDetailPage({
   const { data: record, error } = await supabase
     .from("material_inward")
     .select(`
-      *, suppliers(name, contact_name, contact_phone),
+      *, suppliers(name, contact_name, contact_phone), clients(name),
       material_inward_items(*, item_master(item_code, item_name)),
       incoming_inspections(*),
       quality_inspections(*),
@@ -76,9 +76,16 @@ export default async function MaterialInwardDetailPage({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{record.inward_number}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">DC {record.dc_number} · {record.suppliers?.name}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            DC {record.dc_number} · {record.source_type === "customer" ? record.clients?.name : record.suppliers?.name}
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {record.source_type === "customer" && (
+            <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-700">
+              Client-supplied
+            </span>
+          )}
           <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", status.className)}>
             {status.label}
           </span>
@@ -95,7 +102,9 @@ export default async function MaterialInwardDetailPage({
           <div><dt className="text-muted-foreground">DC Date</dt><dd>{new Date(record.dc_date).toLocaleDateString("en-IN")}</dd></div>
           {record.po_number && <div><dt className="text-muted-foreground">PO Number</dt><dd>{record.po_number}</dd></div>}
           {record.vehicle_no && <div><dt className="text-muted-foreground">Vehicle No.</dt><dd>{record.vehicle_no}</dd></div>}
-          {record.suppliers?.contact_name && <div><dt className="text-muted-foreground">Supplier Contact</dt><dd>{record.suppliers.contact_name}</dd></div>}
+          {record.source_type === "customer"
+            ? <div><dt className="text-muted-foreground">Source</dt><dd>{record.clients?.name ?? "—"} (client-supplied)</dd></div>
+            : record.suppliers?.contact_name && <div><dt className="text-muted-foreground">Supplier Contact</dt><dd>{record.suppliers.contact_name}</dd></div>}
         </dl>
         {record.remarks && <p className="mt-3 text-sm text-muted-foreground">Remarks: {record.remarks}</p>}
       </div>
@@ -154,6 +163,7 @@ export default async function MaterialInwardDetailPage({
             acceptedInspections={acceptedForGrn}
             storageLocations={storageLocations ?? []}
             canAddLocation={userRole === "admin"}
+            sourceType={record.source_type}
           />
         </div>
       )}
@@ -162,7 +172,10 @@ export default async function MaterialInwardDetailPage({
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-5">
           <h2 className="font-semibold text-destructive mb-1">Material Rejected</h2>
           <p className="text-sm text-destructive/90">
-            One or more items failed quality inspection. Return to supplier with rejection documentation.
+            One or more items failed quality inspection.{" "}
+            {record.source_type === "customer"
+              ? "Return to the client with rejection documentation."
+              : "Return to supplier with rejection documentation."}
           </p>
         </div>
       )}

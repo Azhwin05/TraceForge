@@ -13,8 +13,10 @@ export default async function NewMaterialInwardPage() {
     redirect("/inventory/material-inward")
   }
 
-  const [{ data: suppliers }, { data: items }] = await Promise.all([
+  const [{ data: suppliers }, { data: clients }, { data: jobCards }, { data: items }] = await Promise.all([
     supabase.from("suppliers").select("id, name").eq("is_active", true).eq("approval_status", "approved").order("name"),
+    supabase.from("clients").select("id, name").order("name"),
+    supabase.from("job_cards").select("id, jc_number").is("deleted_at", null).order("created_at", { ascending: false }).limit(200),
     supabase.from("item_master").select("id, item_code, item_name, uom").eq("is_active", true).eq("approval_status", "approved").order("item_code"),
   ])
 
@@ -26,7 +28,12 @@ export default async function NewMaterialInwardPage() {
         </Link>
       </div>
       <h1 className="text-2xl font-bold tracking-tight">New Material Inward</h1>
-      <MaterialInwardForm suppliers={suppliers ?? []} items={items ?? []} />
+      <MaterialInwardForm
+        suppliers={suppliers ?? []}
+        clients={clients ?? []}
+        jobCards={jobCards ?? []}
+        items={items ?? []}
+      />
     </div>
   )
 }

@@ -37,7 +37,14 @@ export async function createMaterialInward(
       inward_number: inwardNumber as string,
       dc_number:    data.dc_number.trim(),
       dc_date:      data.dc_date,
-      supplier_id:  data.supplier_id,
+      source_type:  data.source_type,
+      // The schema's discriminated union already guarantees exactly one of
+      // these is set correctly for the chosen source_type; the database's
+      // own material_inward_source_matches_type check is the second,
+      // independent guarantee behind it.
+      supplier_id:  data.source_type === "supplier" ? data.supplier_id : null,
+      client_id:    data.source_type === "customer" ? data.client_id : null,
+      job_card_id:  data.job_card_id || null,
       po_number:    sanitize(data.po_number),
       vehicle_no:   sanitize(data.vehicle_no),
       remarks:      sanitize(data.remarks),
@@ -197,7 +204,9 @@ export async function updateMaterialInward(
     .update({
       dc_number:   data.dc_number.trim(),
       dc_date:     data.dc_date,
-      supplier_id: data.supplier_id,
+      // source_type/supplier_id/client_id are deliberately not editable here
+      // — see the doc comment above.
+      job_card_id: data.job_card_id || null,
       po_number:   sanitize(data.po_number),
       vehicle_no:  sanitize(data.vehicle_no),
       remarks:     sanitize(data.remarks),

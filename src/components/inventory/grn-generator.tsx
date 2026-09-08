@@ -13,7 +13,7 @@ import { grnSchema, type GrnInput } from "@/lib/validations/material-inward"
 import { generateGrn } from "@/app/(app)/inventory/material-inward/actions"
 import { formatInr } from "@/lib/format"
 import { QuickAddLocationDialog } from "@/components/inventory/quick-add-location-dialog"
-import type { QualityInspection, MaterialInwardItem, ItemMaster } from "@/types/database"
+import type { QualityInspection, MaterialInwardItem, ItemMaster, MaterialInwardSourceType } from "@/types/database"
 
 type AcceptedItem = QualityInspection & {
   material_inward_items: Pick<MaterialInwardItem, "item_id" | "uom"> & {
@@ -23,11 +23,17 @@ type AcceptedItem = QualityInspection & {
 
 export function GrnGenerator({
   materialInwardId, acceptedInspections, storageLocations, canAddLocation = false,
+  sourceType = "supplier",
 }: {
   materialInwardId: string
   acceptedInspections: AcceptedItem[]
   storageLocations: { id: string; code: string; name: string }[]
   canAddLocation?: boolean
+  /** Client-supplied material defaults to ₹0 — it is not Raghav's owned
+   *  stock, and valuing it like purchased material would overstate the
+   *  dashboard's Total Stock Value. Still editable, not locked, in case a
+   *  handling charge genuinely needs to be recorded. */
+  sourceType?: MaterialInwardSourceType
 }) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -50,7 +56,7 @@ export function GrnGenerator({
         accepted_qty:              qi.accepted_qty,
         uom:                       qi.material_inward_items.uom,
         storage_location_id:       "",
-        unit_rate:                 "",
+        unit_rate:                 sourceType === "customer" ? "0" : "",
       })),
     },
   })
@@ -79,6 +85,12 @@ export function GrnGenerator({
       {serverError && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {serverError}
+        </div>
+      )}
+      {sourceType === "customer" && (
+        <div className="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+          This material was sent by the client, not purchased. Rate defaults to ₹0 so it isn&rsquo;t counted as
+          Raghav Engineering&rsquo;s owned stock value — change it only if a handling charge genuinely applies.
         </div>
       )}
       {canAddLocation && (

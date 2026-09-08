@@ -18,13 +18,16 @@ function FieldError({ message }: { message?: unknown }) {
   return <p className="mt-1 text-xs text-destructive">{message}</p>
 }
 
-type SupplierOption = { id: string; name: string }
+type JobCardOption = { id: string; jc_number: string }
 
 export function MaterialInwardEditForm({
-  record, suppliers,
+  record, sourceLabel, jobCards,
 }: {
   record: MaterialInward
-  suppliers: SupplierOption[]
+  /** Resolved supplier or client name — display only. Source is not editable
+   *  here; see the doc comment on updateMaterialInward. */
+  sourceLabel: string
+  jobCards: JobCardOption[]
 }) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
@@ -38,7 +41,7 @@ export function MaterialInwardEditForm({
     defaultValues: {
       dc_number:   record.dc_number,
       dc_date:     record.dc_date.slice(0, 10),
-      supplier_id: record.supplier_id,
+      job_card_id: record.job_card_id ?? "",
       po_number:   record.po_number ?? "",
       vehicle_no:  record.vehicle_no ?? "",
       remarks:     record.remarks ?? "",
@@ -74,17 +77,13 @@ export function MaterialInwardEditForm({
             <FieldError message={errors.dc_date?.message} />
           </div>
           <div>
-            <Label htmlFor="supplier_id">Supplier <span className="text-destructive">*</span></Label>
-            <Select id="supplier_id" {...register("supplier_id")} className="mt-1">
-              <option value="">Select supplier…</option>
-              {suppliers.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </Select>
-            <FieldError message={errors.supplier_id?.message} />
+            <Label>Source</Label>
+            <p className="mt-1 flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+              {sourceLabel} ({record.source_type === "customer" ? "client-supplied" : "supplier"})
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <Label htmlFor="po_number">PO Number</Label>
             <Input id="po_number" {...register("po_number")} className="mt-1" />
@@ -92,6 +91,15 @@ export function MaterialInwardEditForm({
           <div>
             <Label htmlFor="vehicle_no">Vehicle No.</Label>
             <Input id="vehicle_no" {...register("vehicle_no")} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="job_card_id">Job Card</Label>
+            <Select id="job_card_id" {...register("job_card_id")} className="mt-1">
+              <option value="">Not tied to a specific job</option>
+              {jobCards.map((jc) => (
+                <option key={jc.id} value={jc.id}>{jc.jc_number}</option>
+              ))}
+            </Select>
           </div>
         </div>
         <div>

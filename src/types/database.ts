@@ -30,6 +30,8 @@ export type ItemCategory = "raw_material" | "consumable" | "component" | "finish
 export type MaterialInwardStatus =
   | "pending_inspection" | "incoming_inspection_done" | "qc_accepted" | "qc_rejected" | "grn_generated";
 export type QualityInspectionResult = "accepted" | "rejected";
+// 0059 — where a material_inward delivery came from
+export type MaterialInwardSourceType = "supplier" | "customer";
 export type GrnRecordStatus = "active" | "cancelled";
 export type MaterialIssueStatus = "issued" | "cancelled";
 export type StockTransactionType = "grn_in" | "issue_out" | "adjustment_in" | "adjustment_out";
@@ -648,11 +650,15 @@ export interface Database {
         Relationships: [];
       };
       material_inward: {
-        Row: { id: string; inward_number: string; dc_number: string; dc_date: string; supplier_id: string; po_number: string | null; vehicle_no: string | null; remarks: string | null; status: string; received_by: string | null; created_at: string; updated_at: string };
-        Insert: { id?: string; inward_number?: string; dc_number: string; dc_date?: string; supplier_id: string; po_number?: string | null; vehicle_no?: string | null; remarks?: string | null; status?: string; received_by?: string | null; created_at?: string; updated_at?: string };
+        // 0059 — source_type/client_id/job_card_id: material can now arrive
+        // from a client (their own material for a job), not only a supplier.
+        Row: { id: string; inward_number: string; dc_number: string; dc_date: string; supplier_id: string | null; source_type: MaterialInwardSourceType; client_id: string | null; job_card_id: string | null; po_number: string | null; vehicle_no: string | null; remarks: string | null; status: string; received_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; inward_number?: string; dc_number: string; dc_date?: string; supplier_id?: string | null; source_type?: MaterialInwardSourceType; client_id?: string | null; job_card_id?: string | null; po_number?: string | null; vehicle_no?: string | null; remarks?: string | null; status?: string; received_by?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["material_inward"]["Insert"]>;
         Relationships: [
-          { foreignKeyName: "material_inward_supplier_id_fkey"; columns: ["supplier_id"]; isOneToOne: false; referencedRelation: "suppliers"; referencedColumns: ["id"] }
+          { foreignKeyName: "material_inward_supplier_id_fkey"; columns: ["supplier_id"]; isOneToOne: false; referencedRelation: "suppliers"; referencedColumns: ["id"] },
+          { foreignKeyName: "material_inward_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] },
+          { foreignKeyName: "material_inward_job_card_id_fkey"; columns: ["job_card_id"]; isOneToOne: false; referencedRelation: "job_cards"; referencedColumns: ["id"] }
         ];
       };
       material_inward_items: {

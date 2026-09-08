@@ -13,7 +13,7 @@ export default async function MaterialInwardPage() {
 
   const { data: records } = await supabase
     .from("material_inward")
-    .select("*, suppliers(name)")
+    .select("*, suppliers(name), clients(name)")
     .order("created_at", { ascending: false })
     .limit(200)
 

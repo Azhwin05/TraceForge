@@ -17,12 +17,16 @@ export default async function EditMaterialInwardPage({
     redirect(`/inventory/material-inward/${params.id}`)
   }
 
-  const [{ data: record, error }, { data: suppliers }] = await Promise.all([
-    supabase.from("material_inward").select("*").eq("id", params.id).single(),
-    supabase.from("suppliers").select("id, name").eq("is_active", true).eq("approval_status", "approved").order("name"),
+  const [{ data: record, error }, { data: jobCards }] = await Promise.all([
+    supabase.from("material_inward").select("*, suppliers(name), clients(name)").eq("id", params.id).single(),
+    supabase.from("job_cards").select("id, jc_number").is("deleted_at", null).order("created_at", { ascending: false }).limit(200),
   ])
 
   if (error || !record) notFound()
+
+  const sourceLabel = record.source_type === "customer"
+    ? (record.clients?.name ?? "Unknown client")
+    : (record.suppliers?.name ?? "Unknown supplier")
 
   return (
     <div className="p-6 max-w-3xl space-y-4">
@@ -32,7 +36,11 @@ export default async function EditMaterialInwardPage({
         </Link>
       </div>
       <h1 className="text-2xl font-bold tracking-tight">Edit Material Inward</h1>
-      <MaterialInwardEditForm record={record} suppliers={suppliers ?? []} />
+      <MaterialInwardEditForm
+        record={record}
+        sourceLabel={sourceLabel}
+        jobCards={jobCards ?? []}
+      />
     </div>
   )
 }

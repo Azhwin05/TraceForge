@@ -7,29 +7,44 @@ export const materialInwardItemSchema = z.object({
   remarks:      z.string().nullish(),
 })
 
-export const materialInwardSchema = z.object({
+// Material can now arrive from an outside supplier OR from the client
+// sending their own material for a specific job — a discriminated union so
+// "customer source with a supplier_id" (or vice versa) is rejected by the
+// schema itself, not just by the database constraint.
+const materialInwardHeaderBase = {
   dc_number:   z.string().min(1, "DC number is required"),
   dc_date:     z.string().min(1, "DC date is required"),
-  supplier_id: z.string().uuid("Select a supplier"),
   po_number:   z.string().nullish(),
   vehicle_no:  z.string().nullish(),
   remarks:     z.string().nullish(),
-  items:       z.array(materialInwardItemSchema).min(1, "Add at least one item"),
-})
+  // Optional for either source — which job this delivery is earmarked for.
+  job_card_id: z.string().uuid().nullish().or(z.literal("")),
+}
+
+const materialInwardHeaderSchema = z.discriminatedUnion("source_type", [
+  z.object({ source_type: z.literal("supplier"), supplier_id: z.string().uuid("Select a supplier"), client_id: z.string().nullish(), ...materialInwardHeaderBase }),
+  z.object({ source_type: z.literal("customer"), client_id: z.string().uuid("Select a client"), supplier_id: z.string().nullish(), ...materialInwardHeaderBase }),
+])
+
+export const materialInwardSchema = materialInwardHeaderSchema.and(
+  z.object({ items: z.array(materialInwardItemSchema).min(1, "Add at least one item") })
+)
 
 export type MaterialInwardItemInput = z.infer<typeof materialInwardItemSchema>
 export type MaterialInwardInput = z.infer<typeof materialInwardSchema>
 
 // Editing an existing inward record only touches the DC header — not the
 // items, which already feed the inspection/GRN workflow and quantities that
-// have been checked against.
+// have been checked against. Source type is NOT editable here — changing who
+// sent material after QC has started against it is a new delivery, not an
+// edit; see the comment on updateMaterialInward.
 export const materialInwardEditSchema = z.object({
   dc_number:   z.string().min(1, "DC number is required"),
   dc_date:     z.string().min(1, "DC date is required"),
-  supplier_id: z.string().uuid("Select a supplier"),
   po_number:   z.string().nullish(),
   vehicle_no:  z.string().nullish(),
   remarks:     z.string().nullish(),
+  job_card_id: z.string().uuid().nullish().or(z.literal("")),
 })
 
 export type MaterialInwardEditInput = z.infer<typeof materialInwardEditSchema>
