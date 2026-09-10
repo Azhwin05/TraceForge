@@ -3,6 +3,7 @@ import Link from "next/link"
 import { requireCustomer } from "@/lib/auth"
 import { PortalHeaderActions } from "@/components/portal/portal-header-actions"
 import { PortalNav } from "@/components/portal/portal-nav"
+import { BrandMark } from "@/components/layout/brand-lockup"
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const { supabase, profile, clientId, clientIds } = await requireCustomer()
@@ -27,9 +28,7 @@ export default async function PortalLayout({ children }: { children: React.React
             href="/portal"
             className="flex min-w-0 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
-              RE
-            </span>
+            <BrandMark size={32} />
             <span className="min-w-0 leading-tight">
               <span className="block truncate text-sm font-semibold text-foreground">
                 Raghav Engineering

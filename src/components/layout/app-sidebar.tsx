@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { BrandLockup, BrandMark } from "./brand-lockup"
 import type { UserRole } from "@/types/database"
 
 type NavItem = {
@@ -363,12 +364,7 @@ export function AppSidebar({
           collapsed ? "justify-center px-0" : "px-4"
         )}
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sm font-bold text-sidebar-accent-foreground">
-          VT
-        </span>
-        {!collapsed && (
-          <span className="truncate text-base font-semibold tracking-tight">ValveTrack</span>
-        )}
+        {collapsed ? <BrandMark size={32} plate /> : <BrandLockup />}
       </Link>
 
       <ModuleSwitcher activeModuleId={activeModule.id} collapsed={collapsed} />

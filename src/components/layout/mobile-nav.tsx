@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { BrandLockup } from "./brand-lockup"
 import { ModuleSwitcher, SidebarNav, resolveActiveModule } from "./app-sidebar"
 import type { UserRole } from "@/types/database"
 
@@ -75,11 +76,8 @@ export function MobileNav({
             )}
           >
             <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
-              <Link href="/home" className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sm font-bold text-sidebar-accent-foreground">
-                  VT
-                </span>
-                <span className="text-base font-semibold tracking-tight">ValveTrack</span>
+              <Link href="/home" className="min-w-0">
+                <BrandLockup />
               </Link>
               <button
                 type="button"

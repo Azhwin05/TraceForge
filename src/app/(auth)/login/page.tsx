@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ClipboardCheck, Warehouse, ShieldCheck } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { BrandLockup } from "@/components/layout/brand-lockup";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -59,12 +60,7 @@ export default async function LoginPage() {
           style={{ background: "rgb(var(--sidebar-accent))" }}
         />
 
-        <div className="relative flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-accent text-sm font-bold text-sidebar-accent-foreground">
-            VT
-          </span>
-          <span className="text-lg font-semibold tracking-tight">ValveTrack</span>
-        </div>
+        <BrandLockup className="relative" size={38} />
 
         <div className="relative">
           <h2 className="max-w-md text-3xl font-semibold leading-tight tracking-tight">
@@ -100,9 +96,7 @@ export default async function LoginPage() {
       <section className="flex flex-1 items-center justify-center px-5 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-7 lg:hidden">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground">
-              VT
-            </span>
+            <BrandLockup tone="dark" size={38} />
           </div>
 
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
