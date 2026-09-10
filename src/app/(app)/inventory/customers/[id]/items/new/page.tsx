@@ -36,7 +36,7 @@ export default async function NewCustomerItemsPage({
         </Link>
       </div>
       <div>
-        <h1 className="text-xl font-bold">Add Items — {customer.name}</h1>
+        <h1 className="text-xl font-semibold">Add Items — {customer.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Add as many items as you like in one go. If details for an item aren&rsquo;t ready yet,
           check &ldquo;Add details later&rdquo; and just give it a name — you can complete it any time.

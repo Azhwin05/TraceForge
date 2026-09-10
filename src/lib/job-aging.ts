@@ -52,9 +52,9 @@ export function dueInfo(
 }
 
 export const DUE_LEVEL_STYLE: Record<DueLevel, { dot: string; badge: string; label: string }> = {
-  overdue:     { dot: "bg-red-500",    badge: "bg-red-100 text-red-700",       label: "Overdue" },
-  due_soon:    { dot: "bg-amber-500",  badge: "bg-amber-100 text-amber-700",   label: "Due soon" },
-  on_schedule: { dot: "bg-green-500",  badge: "bg-green-100 text-green-700",   label: "On schedule" },
-  done:        { dot: "bg-slate-400",  badge: "bg-slate-100 text-slate-600",   label: "Done" },
-  none:        { dot: "bg-slate-300",  badge: "bg-slate-100 text-slate-500",   label: "No due date" },
+  overdue:     { dot: "bg-danger",    badge: "bg-danger-surface text-danger",       label: "Overdue" },
+  due_soon:    { dot: "bg-warning",  badge: "bg-warning-surface text-warning",   label: "Due soon" },
+  on_schedule: { dot: "bg-success",  badge: "bg-success-surface text-success",   label: "On schedule" },
+  done:        { dot: "bg-muted",  badge: "bg-muted text-muted-foreground",   label: "Done" },
+  none:        { dot: "bg-muted",  badge: "bg-muted text-muted-foreground",   label: "No due date" },
 }

@@ -134,7 +134,7 @@ export function ConsumptionConfirm({ issueId, lines }: { issueId: string; lines:
                 </div>
                 <div>
                   <Label className="text-xs">Returns to stock</Label>
-                  <p className={`mt-1 py-2 text-sm font-medium tabular-nums ${returned > 0 ? "text-green-700" : "text-muted-foreground"}`}>
+                  <p className={`mt-1 py-2 text-sm font-medium tabular-nums ${returned > 0 ? "text-success" : "text-muted-foreground"}`}>
                     {formatQty(returned)} {l.uom}
                   </p>
                 </div>
@@ -173,7 +173,7 @@ export function ConsumptionConfirm({ issueId, lines }: { issueId: string; lines:
                 </div>
               </div>
 
-              {note && <p className="text-xs text-amber-700">{note}</p>}
+              {note && <p className="text-xs text-warning">{note}</p>}
             </div>
           )
         })}

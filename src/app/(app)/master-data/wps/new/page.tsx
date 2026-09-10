@@ -22,7 +22,7 @@ export default async function NewWpsMasterPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to WPS Master
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">New WPS Master</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">New WPS Master</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Creates a Draft record. Admin must approve before it can be linked to job cards.
         </p>

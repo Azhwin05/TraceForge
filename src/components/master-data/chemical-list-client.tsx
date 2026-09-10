@@ -13,7 +13,7 @@ function ActiveBadge({ isActive }: { isActive: boolean }) {
     <span
       className={cn(
         "rounded-full px-2 py-0.5 text-xs font-medium",
-        isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+        isActive ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
       )}
     >
       {isActive ? "Active" : "Inactive"}
@@ -30,11 +30,11 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_BADGE_COLORS: Record<string, string> = {
-  penetrant: "bg-red-100 text-red-700",
-  developer: "bg-blue-100 text-blue-700",
-  cleaner:   "bg-yellow-100 text-yellow-700",
-  remover:   "bg-orange-100 text-orange-700",
-  other:     "bg-slate-100 text-slate-600",
+  penetrant: "bg-danger-surface text-danger",
+  developer: "bg-info-surface text-info",
+  cleaner:   "bg-warning-surface text-warning",
+  remover:   "bg-warning-surface text-warning",
+  other:     "bg-muted text-muted-foreground",
 }
 
 export function ChemicalListClient({
@@ -78,7 +78,7 @@ export function ChemicalListClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Chemical Master</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Chemical Master</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {records.filter((c) => c.is_active).length} active ·{" "}
             {records.length} total
@@ -149,7 +149,7 @@ export function ChemicalListClient({
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
-                      TYPE_BADGE_COLORS[c.type] ?? "bg-slate-100 text-slate-600"
+                      TYPE_BADGE_COLORS[c.type] ?? "bg-muted text-muted-foreground"
                     )}
                   >
                     {TYPE_LABELS[c.type] ?? c.type}
@@ -159,8 +159,8 @@ export function ChemicalListClient({
                   <span className={cn(
                     "mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
                     new Date(c.expiry_date!) < new Date()
-                      ? "bg-red-100 text-red-700"
-                      : "bg-orange-100 text-orange-700"
+                      ? "bg-danger-surface text-danger"
+                      : "bg-warning-surface text-warning"
                   )}>
                     <AlertTriangle className="h-3 w-3" />
                     {new Date(c.expiry_date!) < new Date() ? "Expired" : "Expiring soon"}

@@ -67,14 +67,14 @@ export default async function ItemMasterDetailPage({
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{record.item_name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{record.item_name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{record.item_code}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-xs font-medium",
-              record.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+              record.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
             )}
           >
             {record.is_active ? "Active" : "Inactive"}

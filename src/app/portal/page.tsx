@@ -1,7 +1,9 @@
 import Link from "next/link"
+import { ArrowRight, PackageSearch } from "lucide-react"
 import { requireCustomer } from "@/lib/auth"
 import { must } from "@/lib/db"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { STATUS_LABEL, statusBadgeClass } from "@/lib/portal/status"
 import type { JobCardStatus } from "@/types/database"
@@ -44,35 +46,62 @@ export default async function PortalHome() {
         <p className="text-sm text-muted-foreground">Live status of all your jobs at Raghav Engineering.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((c) => (
-          <Card key={c.label}>
-            <CardContent className="p-4">
-              <div className="text-3xl font-semibold">{c.value}</div>
-              <div className="text-xs text-muted-foreground">{c.label}</div>
-            </CardContent>
-          </Card>
+          <div
+            key={c.label}
+            className="rounded-xl border border-border bg-card p-4 shadow-sm"
+          >
+            <p className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {c.label}
+            </p>
+            <p className="mt-1.5 text-3xl font-semibold leading-none tracking-tight text-foreground tabular">
+              {c.value}
+            </p>
+          </div>
         ))}
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Recent jobs</CardTitle>
-          <Link href="/portal/jobs" className="text-sm text-blue-600 hover:underline">View all →</Link>
+        <CardHeader>
+          <CardTitle>Recent jobs</CardTitle>
+          <CardAction>
+            <Link
+              href="/portal/jobs"
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              View all
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardAction>
         </CardHeader>
         <CardContent>
           {jobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No jobs on record yet.</p>
+            <EmptyState
+              compact
+              icon={PackageSearch}
+              title="No jobs on record yet"
+              description="Once Raghav Engineering receives your first valve, its live status will appear here."
+            />
           ) : (
-            <div className="divide-y">
+            <div className="space-y-1.5">
               {jobs.slice(0, 8).map((j) => (
-                <Link key={j.id} href={`/portal/jobs/${j.id}`}
-                  className="flex items-center justify-between py-3 hover:bg-muted/40 -mx-2 px-2 rounded">
-                  <div>
-                    <div className="font-mono text-sm font-medium">{j.jc_number}</div>
-                    <div className="text-xs text-muted-foreground line-clamp-1">{j.description}</div>
+                <Link
+                  key={j.id}
+                  href={`/portal/jobs/${j.id}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 transition-colors hover:border-border-strong hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate font-mono text-sm font-medium text-foreground">
+                      {j.jc_number}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {j.description}
+                    </div>
                   </div>
-                  <Badge className={statusBadgeClass(j.status)}>{STATUS_LABEL[j.status]}</Badge>
+                  <Badge variant="outline" className={statusBadgeClass(j.status)}>
+                    {STATUS_LABEL[j.status]}
+                  </Badge>
                 </Link>
               ))}
             </div>

@@ -11,10 +11,10 @@ import type { CustomerDossier, DossierStatus, DossierDocument, UserRole } from "
 export const metadata = { title: "Dossier — ValveTrack" }
 
 const STATUS_BADGE: Record<DossierStatus, { label: string; className: string }> = {
-  draft:     { label: "Draft",     className: "bg-gray-100 text-gray-700" },
-  generated: { label: "Generated", className: "bg-blue-100 text-blue-700" },
-  submitted: { label: "Submitted", className: "bg-green-100 text-green-700" },
-  archived:  { label: "Archived",  className: "bg-slate-100 text-slate-500" },
+  draft:     { label: "Draft",     className: "bg-muted text-foreground" },
+  generated: { label: "Generated", className: "bg-info-surface text-info" },
+  submitted: { label: "Submitted", className: "bg-success-surface text-success" },
+  archived:  { label: "Archived",  className: "bg-muted text-muted-foreground" },
 }
 
 const DOC_TYPE_LABELS: Record<string, string> = {
@@ -105,12 +105,12 @@ export default async function DossierDetailPage({
         </Link>
         <div className="flex items-center gap-3 flex-wrap">
           <PackageCheck className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-xl font-bold font-mono">{dossier.dossier_number}</h1>
+          <h1 className="text-xl font-semibold font-mono">{dossier.dossier_number}</h1>
           <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", badge.className)}>
             {badge.label}
           </span>
           {dossier.submitted_to_customer && (
-            <span className="text-xs text-green-700 font-medium">✓ Submitted to Customer</span>
+            <span className="text-xs text-success font-medium">✓ Submitted to Customer</span>
           )}
         </div>
       </div>

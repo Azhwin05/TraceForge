@@ -13,7 +13,7 @@ function ActiveBadge({ isActive }: { isActive: boolean }) {
     <span
       className={cn(
         "rounded-full px-2 py-0.5 text-xs font-medium",
-        isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+        isActive ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
       )}
     >
       {isActive ? "Active" : "Inactive"}
@@ -73,7 +73,7 @@ export function ConsumableListClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Consumable Master</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Consumable Master</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {records.filter((c) => c.is_active).length} active ·{" "}
             {records.length} total
@@ -147,8 +147,8 @@ export function ConsumableListClient({
                     <span className={cn(
                       "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
                       new Date(c.expiry_date!) < new Date()
-                        ? "bg-red-100 text-red-700"
-                        : "bg-orange-100 text-orange-700"
+                        ? "bg-danger-surface text-danger"
+                        : "bg-warning-surface text-warning"
                     )}>
                       <AlertTriangle className="h-3 w-3" />
                       {new Date(c.expiry_date!) < new Date() ? "Expired" : "Expiring soon"}

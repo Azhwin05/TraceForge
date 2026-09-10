@@ -109,7 +109,7 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Storage Locations</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Storage Locations</h1>
           <p className="mt-1 text-sm text-muted-foreground">{records.length} total</p>
         </div>
         {canCreate && (
@@ -140,7 +140,7 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
-                      l.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                      l.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
                     )}
                   >
                     {l.is_active ? "Active" : "Inactive"}

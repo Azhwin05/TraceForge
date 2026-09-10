@@ -38,7 +38,7 @@ export default async function EditInstrumentPage({
           <ChevronLeft className="h-4 w-4" /> {record.instrument_name}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit Instrument</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit Instrument</h1>
       <InstrumentForm mode="edit" instrumentId={record.id} defaultValues={defaultValues} />
     </div>
   )

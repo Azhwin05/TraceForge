@@ -88,7 +88,7 @@ export function GrnGenerator({
         </div>
       )}
       {sourceType === "customer" && (
-        <div className="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-800">
+        <div className="rounded-lg border border-info-border bg-info-surface px-4 py-3 text-sm text-info">
           This material was sent by the client, not purchased. Rate defaults to ₹0 so it isn&rsquo;t counted as
           Raghav Engineering&rsquo;s owned stock value — change it only if a handling charge genuinely applies.
         </div>
@@ -141,9 +141,9 @@ export function GrnGenerator({
         })}
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-        <span className="text-sm font-medium text-emerald-800">Total Stock Value entering inventory</span>
-        <span className="text-lg font-bold text-emerald-800 tabular-nums">{formatInr(totalValue)}</span>
+      <div className="flex items-center justify-between rounded-lg border border-success-border bg-success-surface px-4 py-3">
+        <span className="text-sm font-medium text-success">Total Stock Value entering inventory</span>
+        <span className="text-lg font-bold text-success tabular-nums">{formatInr(totalValue)}</span>
       </div>
 
       <div>

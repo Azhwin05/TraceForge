@@ -13,13 +13,13 @@ import type { Profile, UserRole } from "@/types/database"
 const ROLES: UserRole[] = ["admin", "operator", "engineer", "qa", "accounts", "management"]
 
 const ROLE_COLORS: Record<UserRole, string> = {
-  admin: "bg-purple-100 text-purple-700",
-  operator: "bg-blue-100 text-blue-700",
-  engineer: "bg-cyan-100 text-cyan-700",
-  qa: "bg-amber-100 text-amber-700",
-  accounts: "bg-green-100 text-green-700",
-  management: "bg-rose-100 text-rose-700",
-  customer: "bg-slate-100 text-slate-700",
+  admin: "bg-info-surface text-info",
+  operator: "bg-info-surface text-info",
+  engineer: "bg-info-surface text-info",
+  qa: "bg-warning-surface text-warning",
+  accounts: "bg-success-surface text-success",
+  management: "bg-danger-surface text-danger",
+  customer: "bg-muted text-foreground",
 }
 
 export function UsersClient({
@@ -65,7 +65,7 @@ export function UsersClient({
     <>
       <div className="space-y-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage users and roles.</p>
         </div>
 
@@ -119,7 +119,7 @@ export function UsersClient({
                             size="sm"
                             onClick={() => handleToggleActive(profile)}
                             disabled={isPending}
-                            className={profile.is_active ? "text-destructive hover:text-destructive" : "text-green-700 hover:text-green-700"}
+                            className={profile.is_active ? "text-destructive hover:text-destructive" : "text-success hover:text-success"}
                           >
                             {profile.is_active ? "Deactivate" : "Activate"}
                           </Button>

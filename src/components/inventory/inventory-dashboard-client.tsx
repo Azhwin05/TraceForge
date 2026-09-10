@@ -64,10 +64,10 @@ function StatCard({
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon className={cn("h-4 w-4", tone === "warn" && "text-orange-500")} />
+        <Icon className={cn("h-4 w-4", tone === "warn" && "text-warning")} />
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
-      <p className={cn("mt-2 text-2xl font-bold tabular-nums", tone === "warn" && value !== "0" && "text-orange-600")}>
+      <p className={cn("mt-2 text-2xl font-semibold tabular-nums", tone === "warn" && value !== "0" && "text-warning")}>
         {value}
       </p>
       {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
@@ -101,7 +101,7 @@ export function InventoryDashboardClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Inventory Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Inventory Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">Live stock quantity and value, derived from the stock ledger</p>
       </div>
 
@@ -129,7 +129,7 @@ export function InventoryDashboardClient({
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                 filter === f.key
-                  ? "bg-brand-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
@@ -173,7 +173,7 @@ export function InventoryDashboardClient({
                         {it.item_code}
                       </Link>
                       {!it.is_active && (
-                        <span className="ml-1.5 inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                        <span className="ml-1.5 inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                           Deactivated
                         </span>
                       )}
@@ -183,19 +183,19 @@ export function InventoryDashboardClient({
                       <span className="inline-flex items-center gap-1.5">
                         {CATEGORY_LABELS[it.category] ?? it.category}
                         {it.consumable_type && (
-                          <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-700">
+                          <span className="rounded-full bg-info-surface px-2 py-0.5 text-[10px] font-medium text-info">
                             {CONSUMABLE_TYPE_LABELS[it.consumable_type] ?? it.consumable_type}
                           </span>
                         )}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
-                      <span className={cn(belowMin && "text-orange-600 font-medium")}>
+                      <span className={cn(belowMin && "text-warning font-medium")}>
                         {formatQty(it.qty)} {it.uom}
                       </span>
                       {belowMin && (
                         <span title="Below minimum" className="ml-1 inline-flex align-middle">
-                          <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-warning" />
                         </span>
                       )}
                     </td>

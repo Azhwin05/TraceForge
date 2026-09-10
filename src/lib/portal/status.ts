@@ -27,13 +27,13 @@ export const STATUS_LABEL: Record<JobCardStatus, string> = {
 
 export function statusBadgeClass(status: JobCardStatus): string {
   switch (status) {
-    case "closed": return "bg-green-100 text-green-700"
+    case "closed": return "bg-success-surface text-success"
     case "dispatched":
-    case "accounts_processing": return "bg-emerald-100 text-emerald-700"
+    case "accounts_processing": return "bg-success-surface text-success"
     case "dispatch_ready":
-    case "reports_complete": return "bg-blue-100 text-blue-700"
-    case "on_hold": return "bg-red-100 text-red-700"
-    case "created": return "bg-gray-100 text-gray-700"
-    default: return "bg-amber-100 text-amber-700"
+    case "reports_complete": return "bg-info-surface text-info"
+    case "on_hold": return "bg-danger-surface text-danger"
+    case "created": return "bg-muted text-foreground"
+    default: return "bg-warning-surface text-warning"
   }
 }

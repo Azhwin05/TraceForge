@@ -23,7 +23,7 @@ export default async function NewConsumablePage() {
           <ChevronLeft className="h-4 w-4" /> Consumables
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Consumable</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Consumable</h1>
       <ConsumableForm mode="create" />
     </div>
   )

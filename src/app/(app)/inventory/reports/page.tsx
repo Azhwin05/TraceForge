@@ -86,7 +86,7 @@ export default async function MaterialReportPage({
     <div className="mx-auto max-w-5xl space-y-5 p-6 print:max-w-none print:p-0">
       <div className="flex items-center justify-between print:hidden">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Material Report</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Material Report</h1>
           <p className="mt-1 text-sm text-muted-foreground">Stock movement for a chosen date range, printable.</p>
         </div>
         <PrintButton label="Print Report" />
@@ -95,7 +95,7 @@ export default async function MaterialReportPage({
       <MaterialReportDateRange from={from} to={to} />
 
       <header className="hidden border-b-2 border-foreground pb-3 print:block">
-        <h1 className="text-xl font-bold">MATERIAL REPORT</h1>
+        <h1 className="text-xl font-semibold">MATERIAL REPORT</h1>
         <p className="text-sm text-muted-foreground">
           Raghav Engineering · {new Date(from).toLocaleDateString("en-IN")} to {new Date(to).toLocaleDateString("en-IN")}
         </p>
@@ -128,10 +128,10 @@ export default async function MaterialReportPage({
                     <span className="font-medium">{it.item_code}</span>
                     <span className="ml-1.5 text-muted-foreground">{it.item_name}</span>
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-green-700">
+                  <td className="px-3 py-2 text-right tabular-nums text-success">
                     {it.receivedQty > 0 ? `+${formatQty(it.receivedQty)} ${it.uom}` : "—"}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-red-700">
+                  <td className="px-3 py-2 text-right tabular-nums text-danger">
                     {it.issuedQty > 0 ? `−${formatQty(it.issuedQty)} ${it.uom}` : "—"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">

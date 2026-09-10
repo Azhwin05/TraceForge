@@ -46,7 +46,7 @@ export default async function EditWpsMasterPage({
         >
           <ArrowLeft className="h-4 w-4" /> Back to WPS Detail
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Edit WPS Master</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Edit WPS Master</h1>
         <p className="mt-1 text-sm font-mono text-muted-foreground">{record.wps_no}</p>
       </div>
 

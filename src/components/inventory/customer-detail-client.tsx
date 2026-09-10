@@ -137,7 +137,7 @@ export function CustomerDetailClient({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{customer.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{customer.name}</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {[customer.contact_name, customer.contact_phone, customer.contact_email].filter(Boolean).join(" · ") || "No contact details on file"}
           </p>
@@ -150,15 +150,15 @@ export function CustomerDetailClient({
       </div>
 
       {pendingItems.length > 0 && (
-        <Card className="border-amber-300 bg-amber-50/50">
+        <Card className="border-warning-border bg-warning-surface/50">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2 text-amber-800">
+            <CardTitle className="text-base flex items-center gap-2 text-warning">
               <Clock className="h-4 w-4" /> {pendingItems.length} item{pendingItems.length > 1 ? "s" : ""} awaiting details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {pendingItems.map((it) => (
-              <div key={it.id} className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-white px-3 py-2">
+              <div key={it.id} className="flex items-center justify-between gap-3 rounded-lg border border-warning-border bg-white px-3 py-2">
                 <div>
                   <p className="text-sm font-medium">{it.item_name}</p>
                   <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">

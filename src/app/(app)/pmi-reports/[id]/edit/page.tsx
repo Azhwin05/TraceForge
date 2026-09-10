@@ -52,7 +52,7 @@ export default async function EditPmiReportPage({
           <ChevronLeft className="h-4 w-4" /> {r.report_number ?? "PMI Report"}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit PMI Report</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit PMI Report</h1>
       <PmiReportForm
         mode="edit"
         jobCardId={r.job_card_id}

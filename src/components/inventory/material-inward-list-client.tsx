@@ -12,11 +12,11 @@ import { deleteMaterialInward } from "@/app/(app)/inventory/material-inward/acti
 import type { MaterialInward, Supplier, Client, UserRole } from "@/types/database"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  pending_inspection:        { label: "Pending Inspection",  className: "bg-slate-100 text-slate-600" },
-  incoming_inspection_done:  { label: "Incoming Done",       className: "bg-blue-100 text-blue-700" },
-  qc_accepted:                { label: "QC Accepted",         className: "bg-green-100 text-green-700" },
-  qc_rejected:                { label: "QC Rejected",         className: "bg-red-100 text-red-700" },
-  grn_generated:              { label: "GRN Generated",       className: "bg-emerald-100 text-emerald-800" },
+  pending_inspection:        { label: "Pending Inspection",  className: "bg-muted text-muted-foreground" },
+  incoming_inspection_done:  { label: "Incoming Done",       className: "bg-info-surface text-info" },
+  qc_accepted:                { label: "QC Accepted",         className: "bg-success-surface text-success" },
+  qc_rejected:                { label: "QC Rejected",         className: "bg-danger-surface text-danger" },
+  grn_generated:              { label: "GRN Generated",       className: "bg-success-surface text-success" },
 }
 
 type Row = MaterialInward & { suppliers: Pick<Supplier, "name"> | null; clients: Pick<Client, "name"> | null }
@@ -49,7 +49,7 @@ export function MaterialInwardListClient({ records, userRole }: { records: Row[]
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((r) => {
-            const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-slate-100 text-slate-600" }
+            const status = STATUS_LABELS[r.status] ?? { label: r.status, className: "bg-muted text-muted-foreground" }
             return (
               <div key={r.id} className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-muted/40 transition-colors">
                 <Link href={`/inventory/material-inward/${r.id}`} className="min-w-0 flex-1 space-y-0.5">
@@ -58,7 +58,7 @@ export function MaterialInwardListClient({ records, userRole }: { records: Row[]
                     <span className="text-muted-foreground">—</span>
                     <span>{r.source_type === "customer" ? (r.clients?.name ?? "Unknown client") : (r.suppliers?.name ?? "Unknown supplier")}</span>
                     {r.source_type === "customer" && (
-                      <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                      <span className="rounded-full bg-info-surface px-2 py-0.5 text-xs font-medium text-info">
                         Client-supplied
                       </span>
                     )}

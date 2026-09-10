@@ -16,7 +16,7 @@ function ActiveBadge({ isActive }: { isActive: boolean }) {
     <span
       className={cn(
         "rounded-full px-2 py-0.5 text-xs font-medium",
-        isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+        isActive ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
       )}
     >
       {isActive ? "Active" : "Inactive"}
@@ -75,7 +75,7 @@ export function ItemMasterListClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Item Master</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Item Master</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {records.filter((it) => it.is_active).length} active ·{" "}
             {records.length} total
@@ -89,8 +89,8 @@ export function ItemMasterListClient({
       </div>
 
       {isAdmin && pendingItems.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+        <div className="rounded-lg border border-warning-border bg-warning-surface p-4">
+          <h2 className="mb-3 text-sm font-semibold text-warning">
             {pendingItems.length} item{pendingItems.length > 1 ? "s" : ""} awaiting your approval
           </h2>
           <div className="divide-y divide-amber-200">
@@ -147,7 +147,7 @@ export function ItemMasterListClient({
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                 typeFilter === f.key
-                  ? "bg-brand-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
@@ -189,7 +189,7 @@ export function ItemMasterListClient({
                   <ActiveBadge isActive={it.is_active} />
                   <ApprovalBadge status={it.approval_status} />
                   {it.min_stock_level > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-warning-surface px-2 py-0.5 text-xs font-medium text-warning">
                       <AlertTriangle className="h-3 w-3" />
                       Min {it.min_stock_level} {it.uom}
                     </span>
@@ -198,7 +198,7 @@ export function ItemMasterListClient({
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span>{CATEGORY_LABELS[it.category] ?? it.category}</span>
                   {it.consumable_type && (
-                    <span className="rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-700">
+                    <span className="rounded-full bg-info-surface px-2 py-0.5 font-medium text-info">
                       {CONSUMABLE_TYPE_LABELS[it.consumable_type] ?? it.consumable_type}
                     </span>
                   )}

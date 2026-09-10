@@ -274,7 +274,7 @@ export function WpsSection({
                     </p>
                     <div className="flex items-center gap-2 shrink-0">
                       {wps.approval_status === "approved" && (
-                        <span className="flex items-center gap-1 text-xs text-green-600">
+                        <span className="flex items-center gap-1 text-xs text-success">
                           <CheckCircle className="h-3.5 w-3.5" /> Approved
                         </span>
                       )}

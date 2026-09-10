@@ -10,6 +10,9 @@ export default createJestConfig({
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  // Build outputs contain their own package.json files, which Jest's module
+  // resolver reports as duplicate-name collisions on every run.
+  modulePathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/.next-preview/", "<rootDir>/.next-verify/"],
   testMatch: [
     "<rootDir>/src/__tests__/**/*.test.ts",
     "<rootDir>/src/__tests__/**/*.test.tsx",

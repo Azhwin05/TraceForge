@@ -237,7 +237,7 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{jc.jc_number}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">{jc.jc_number}</h1>
               <StatusBadge status={jc.status} className="text-sm px-2.5 py-1" />
               {daysAtStage > 0 && (
                 <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">

@@ -13,9 +13,9 @@ export const metadata = { title: "Rework — ValveTrack" }
 const LIST_LIMIT = 200
 
 const STATUS_BADGE: Record<ReworkStatus, { label: string; className: string }> = {
-  open:        { label: "Open",        className: "bg-red-100 text-red-700" },
-  in_progress: { label: "In Progress", className: "bg-amber-100 text-amber-700" },
-  completed:   { label: "Completed",   className: "bg-green-100 text-green-700" },
+  open:        { label: "Open",        className: "bg-danger-surface text-danger" },
+  in_progress: { label: "In Progress", className: "bg-warning-surface text-warning" },
+  completed:   { label: "Completed",   className: "bg-success-surface text-success" },
 }
 
 type ReworkListRow = {
@@ -52,7 +52,7 @@ export default async function ReworkPage({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
           <Wrench className="h-6 w-6" /> Rework
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ export default async function ReworkPage({
               </span>
             )}
             {!statusFilter && openCount > 0 && (
-              <span className="ml-2 text-xs font-normal text-red-600">{openCount} still open</span>
+              <span className="ml-2 text-xs font-normal text-danger">{openCount} still open</span>
             )}
           </CardTitle>
         </CardHeader>

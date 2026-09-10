@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { Factory } from "lucide-react"
+
 import { requireCustomer } from "@/lib/auth"
 import { PortalHeaderActions } from "@/components/portal/portal-header-actions"
+import { PortalNav } from "@/components/portal/portal-nav"
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const { supabase, profile, clientId, clientIds } = await requireCustomer()
@@ -20,25 +21,47 @@ export default async function PortalLayout({ children }: { children: React.React
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <Link href="/portal" className="flex items-center gap-2">
-            <Factory className="h-5 w-5 text-orange-500" />
-            <div className="leading-tight">
-              <div className="text-sm font-semibold">Raghav Engineering · Customer Portal</div>
-              <div className="text-xs text-muted-foreground" title={allCompanies}>{clientName}</div>
-            </div>
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 md:px-6">
+          <Link
+            href="/portal"
+            className="flex min-w-0 items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+              RE
+            </span>
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate text-sm font-semibold text-foreground">
+                Raghav Engineering
+              </span>
+              <span
+                className="block truncate text-xs text-muted-foreground"
+                title={allCompanies}
+              >
+                {clientName}
+              </span>
+            </span>
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href="/portal" className="text-muted-foreground hover:text-foreground">Overview</Link>
-            <Link href="/portal/jobs" className="text-muted-foreground hover:text-foreground">My Jobs</Link>
-            <Link href="/portal/documents" className="text-muted-foreground hover:text-foreground">Documents</Link>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:block">
+              <PortalNav />
+            </div>
             <PortalHeaderActions name={profile.full_name ?? "Account"} />
-          </nav>
+          </div>
+        </div>
+
+        {/* Below sm the nav moves to its own row so the company name keeps room */}
+        <div className="border-t border-border px-4 py-1.5 sm:hidden">
+          <PortalNav />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</main>
-      <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8">
+        {children}
+      </main>
+
+      <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
         ValveTrack · Data shown is scoped to {clientName} only.
       </footer>
     </div>

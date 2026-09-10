@@ -84,11 +84,11 @@ export default async function TravellerPage({ params }: { params: Promise<{ id: 
       <header className="border-b-2 border-foreground pb-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold">TRAVEL CARD</h1>
+            <h1 className="text-xl font-semibold">TRAVEL CARD</h1>
             <p className="text-sm text-muted-foreground">Raghav Engineering</p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-2xl font-bold">{jc.jc_number}</p>
+            <p className="font-mono text-2xl font-semibold">{jc.jc_number}</p>
             <p className="text-sm">{STATUS_LABEL[jc.status as JobCardStatus] ?? jc.status}</p>
           </div>
         </div>

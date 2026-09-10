@@ -105,7 +105,7 @@ export default async function NewOverlayReportPage({
         <span className="text-muted-foreground text-sm">/ New Report</span>
       </div>
       <div>
-        <h1 className="text-xl font-bold">New Overlay Welding Report</h1>
+        <h1 className="text-xl font-semibold">New Overlay Welding Report</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Job Card: <span className="font-medium text-foreground">{(jobCard as JobCard).jc_number}</span>
         </p>

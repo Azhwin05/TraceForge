@@ -124,7 +124,7 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
         <CardHeader><CardTitle className="text-base">Process Status</CardTitle></CardHeader>
         <CardContent>
           {status === "on_hold" ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            <div className="rounded-md border border-danger-border bg-danger-surface p-3 text-sm text-danger">
               This job is currently <strong>On Hold</strong>. Please contact Raghav Engineering for details.
             </div>
           ) : (
@@ -135,7 +135,7 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
                 return (
                   <li key={s} className={`flex items-center gap-2 text-sm ${current ? "font-semibold" : done ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
                     {done || current
-                      ? <CheckCircle2 className={`h-4 w-4 ${current ? "text-blue-600" : "text-green-600"}`} />
+                      ? <CheckCircle2 className={`h-4 w-4 ${current ? "text-info" : "text-success"}`} />
                       : <Circle className="h-4 w-4" />}
                     {STATUS_LABEL[s]}
                   </li>
@@ -161,7 +161,7 @@ export default async function PortalJobDetail({ params }: { params: Promise<{ id
                     <td className="p-2">{r.type}</td>
                     <td className="p-2 font-mono">{r.num ?? "—"}</td>
                     <td className="p-2">
-                      <Badge className={r.status === "approved" || r.status === "submitted" ? "bg-green-100 text-green-700" : r.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}>
+                      <Badge className={r.status === "approved" || r.status === "submitted" ? "bg-success-surface text-success" : r.status === "rejected" ? "bg-danger-surface text-danger" : "bg-warning-surface text-warning"}>
                         {r.status}
                       </Badge>
                     </td>

@@ -26,7 +26,7 @@ export default async function NewMaterialIssuePage() {
           <ChevronLeft className="h-4 w-4" /> Material Issues
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Material Issue</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Material Issue</h1>
       <MaterialIssueForm
         items={items ?? []}
         storageLocations={locations ?? []}

@@ -40,10 +40,10 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
     cell: ({ row }) => (
       <Link
         href={`/job-cards/${row.original.id}`}
-        className="flex items-center gap-1 font-medium text-brand-primary hover:underline dark:text-brand-accent"
+        className="group inline-flex items-center gap-1 whitespace-nowrap font-medium text-brand-700 hover:underline dark:text-brand-600"
       >
         {row.getValue("jc_number")}
-        <ExternalLink className="h-3 w-3 opacity-50" />
+        <ExternalLink className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-60" />
       </Link>
     ),
   },
@@ -52,7 +52,14 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
     id: "client_name",
     header: "Client",
     cell: ({ row }) => (
-      <span className="text-sm">{row.original.client?.name ?? "—"}</span>
+      // Long company names ("INVENT CAST PVT LTD") wrapped to four lines and
+      // tripled the row height; the table scrolls sideways instead.
+      <span
+        className="block max-w-[12rem] truncate text-sm"
+        title={row.original.client?.name ?? undefined}
+      >
+        {row.original.client?.name ?? "—"}
+      </span>
     ),
   },
   {
@@ -74,11 +81,32 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
     header: "Process",
     cell: ({ getValue }) => {
       const types = (getValue() as ProcessType[] | null) ?? []
+      if (types.length === 0) return <span className="text-muted-foreground">—</span>
+
+      // A job routinely carries 4 processes. Wrapping them all stacked four
+      // chips per row and tripled the height of the whole table, so overflow
+      // collapses into a +N chip that names the rest on hover.
+      const shown = types.slice(0, 2)
+      const rest = types.slice(2)
+
       return (
-        <div className="flex flex-wrap gap-1">
-          {types.map((t) => (
-            <span key={t} className="text-xs bg-muted rounded px-1.5 py-0.5">{PROCESS_LABELS[t]}</span>
+        <div className="flex items-center gap-1">
+          {shown.map((t) => (
+            <span
+              key={t}
+              className="whitespace-nowrap rounded border border-border bg-muted px-1.5 py-0.5 text-2xs font-medium text-muted-foreground"
+            >
+              {PROCESS_LABELS[t]}
+            </span>
           ))}
+          {rest.length > 0 && (
+            <span
+              title={rest.map((t) => PROCESS_LABELS[t]).join(", ")}
+              className="whitespace-nowrap rounded border border-border bg-muted px-1.5 py-0.5 text-2xs font-medium text-muted-foreground"
+            >
+              +{rest.length}
+            </span>
+          )}
         </div>
       )
     },
@@ -140,10 +168,10 @@ export const jobCardColumns: ColumnDef<JobCardWithRelations>[] = [
               {row.original.due_date ? new Date(row.original.due_date).toLocaleDateString("en-IN") : "—"}
             </span>
             {info.level === "overdue" && (
-              <span className="text-xs text-red-600">{info.overdueDays}d overdue</span>
+              <span className="text-xs text-danger">{info.overdueDays}d overdue</span>
             )}
             {info.level === "due_soon" && (
-              <span className="text-xs text-amber-600">
+              <span className="text-xs text-warning">
                 {info.daysToDue === 0 ? "Due today" : `Due in ${info.daysToDue}d`}
               </span>
             )}

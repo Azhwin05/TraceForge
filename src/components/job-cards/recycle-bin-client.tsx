@@ -103,7 +103,7 @@ export function RecycleBinClient({ jobCards }: { jobCards: DeletedJobCard[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Trash2 className="h-6 w-6 text-muted-foreground" /> Recycle Bin
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -136,11 +136,11 @@ export function RecycleBinClient({ jobCards }: { jobCards: DeletedJobCard[] }) {
                       <span className="font-medium">{jc.jc_number}</span>
                       <StatusBadge status={jc.status} />
                       {overdue ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-danger-surface px-2 py-0.5 text-xs font-medium text-danger">
                           <AlertTriangle className="h-3 w-3" /> Overdue for purge
                         </span>
                       ) : (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <span className="rounded-full bg-warning-surface px-2 py-0.5 text-xs font-medium text-warning">
                           {remaining} day{remaining === 1 ? "" : "s"} left
                         </span>
                       )}

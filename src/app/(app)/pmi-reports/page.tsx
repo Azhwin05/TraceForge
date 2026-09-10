@@ -9,10 +9,10 @@ import type { UserRole } from "@/types/database"
 const LIST_LIMIT = 200
 
 const STATUS_BADGE = {
-  draft:     { label: "Draft",     className: "bg-amber-100 text-amber-700" },
-  approved:  { label: "Approved",  className: "bg-green-100 text-green-700" },
-  rejected:  { label: "Rejected",  className: "bg-red-100 text-red-700" },
-  submitted: { label: "Submitted", className: "bg-blue-100 text-blue-700" },
+  draft:     { label: "Draft",     className: "bg-warning-surface text-warning" },
+  approved:  { label: "Approved",  className: "bg-success-surface text-success" },
+  rejected:  { label: "Rejected",  className: "bg-danger-surface text-danger" },
+  submitted: { label: "Submitted", className: "bg-info-surface text-info" },
 } as const
 
 export default async function PmiReportsPage() {
@@ -45,7 +45,7 @@ export default async function PmiReportsPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">PMI Reports</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">PMI Reports</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {totalCount} report{totalCount !== 1 ? "s" : ""} total
             {reports.length < totalCount && ` — showing the latest ${reports.length}`}
@@ -85,7 +85,7 @@ export default async function PmiReportsPage() {
                     </span>
                     <span className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
-                      r.result === "acceptable" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                      r.result === "acceptable" ? "bg-success-surface text-success" : "bg-danger-surface text-danger"
                     )}>
                       {r.result === "acceptable" ? "Accepted" : "Not Accepted"}
                     </span>

@@ -141,7 +141,7 @@ export function StockAdjustmentDialog({
               type="button"
               onClick={() => setDirection("in")}
               className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-                direction === "in" ? "border-green-400 bg-green-50 text-green-700" : "border-input text-muted-foreground"
+                direction === "in" ? "border-success-border bg-success-surface text-success" : "border-input text-muted-foreground"
               }`}
             >
               Increase (found stock)
@@ -150,7 +150,7 @@ export function StockAdjustmentDialog({
               type="button"
               onClick={() => setDirection("out")}
               className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-                direction === "out" ? "border-red-400 bg-red-50 text-red-700" : "border-input text-muted-foreground"
+                direction === "out" ? "border-danger-border bg-danger-surface text-danger" : "border-input text-muted-foreground"
               }`}
             >
               Decrease (damaged / lost)

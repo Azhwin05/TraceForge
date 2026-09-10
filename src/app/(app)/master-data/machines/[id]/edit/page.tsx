@@ -38,7 +38,7 @@ export default async function EditMachinePage({
           <ChevronLeft className="h-4 w-4" /> {record.name}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit Machine</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit Machine</h1>
       <MachineForm mode="edit" machineId={record.id} defaultValues={defaultValues} />
     </div>
   )

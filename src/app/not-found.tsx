@@ -1,4 +1,7 @@
 import Link from "next/link"
+import { FileQuestion, ArrowLeft, Search } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 
 /**
  * App-wide 404. Without this, a mistyped URL or a notFound() call (used by the
@@ -7,18 +10,36 @@ import Link from "next/link"
  */
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="font-mono text-sm text-muted-foreground">404</p>
-      <h1 className="text-lg font-semibold">We couldn&rsquo;t find that page</h1>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        The record may have been deleted, or the link may be out of date.
-      </p>
-      <Link
-        href="/home"
-        className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
-      >
-        Back to ValveTrack
-      </Link>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md text-center">
+        <span
+          aria-hidden
+          className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-surface text-muted-foreground shadow-xs"
+        >
+          <FileQuestion className="h-5 w-5" />
+        </span>
+
+        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          404
+        </p>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
+          We couldn&rsquo;t find that page
+        </h1>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          The record may have been deleted, or the link may be out of date.
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button render={<Link href="/home" />}>
+            <ArrowLeft />
+            Back to ValveTrack
+          </Button>
+          <Button variant="outline" render={<Link href="/search" />}>
+            <Search />
+            Search job cards
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

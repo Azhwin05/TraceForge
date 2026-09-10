@@ -35,7 +35,7 @@ export default async function EditMaterialInwardPage({
           <ChevronLeft className="h-4 w-4" /> {record.inward_number}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit Material Inward</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit Material Inward</h1>
       <MaterialInwardEditForm
         record={record}
         sourceLabel={sourceLabel}

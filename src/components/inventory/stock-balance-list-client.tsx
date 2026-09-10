@@ -96,7 +96,7 @@ export function StockBalanceListClient({
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Stock Balances</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Stock Balances</h1>
           <p className="mt-1 text-sm text-muted-foreground">Live balance derived from the stock ledger</p>
         </div>
         {isAdmin && (
@@ -125,7 +125,7 @@ export function StockBalanceListClient({
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                 typeFilter === f.key
-                  ? "bg-brand-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
@@ -154,12 +154,12 @@ export function StockBalanceListClient({
                     <span className="font-medium">{b.item_master.item_code}</span>
                     <span className="text-muted-foreground">— {b.item_master.item_name}</span>
                     {belowMin && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning-surface px-2 py-0.5 text-xs font-medium text-warning">
                         <AlertTriangle className="h-3 w-3" /> Below minimum
                       </span>
                     )}
                     {!b.item_master.is_active && (
-                      <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                         Deactivated
                       </span>
                     )}
@@ -168,7 +168,7 @@ export function StockBalanceListClient({
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <span className={cn("text-sm font-medium", belowMin && "text-orange-700")}>
+                    <span className={cn("text-sm font-medium", belowMin && "text-warning")}>
                       {formatQty(b.balance_qty)} {b.item_master.uom}
                     </span>
                     <p className="text-xs text-muted-foreground tabular-nums">
@@ -212,7 +212,7 @@ export function StockBalanceListClient({
               <div key={a.id} className="flex items-start justify-between gap-3 border-b border-border py-2 last:border-0 text-sm">
                 <div className="min-w-0">
                   <p>
-                    <span className={a.direction === "in" ? "text-green-700 font-medium" : "text-red-700 font-medium"}>
+                    <span className={a.direction === "in" ? "text-success font-medium" : "text-danger font-medium"}>
                       {a.direction === "in" ? "+" : "−"}{formatQty(a.qty)}
                     </span>{" "}
                     {a.item_master?.item_code} — {a.item_master?.item_name}

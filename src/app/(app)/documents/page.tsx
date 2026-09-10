@@ -59,8 +59,8 @@ const SOURCE_MODULE_LABELS: Record<string, string> = {
 }
 
 const CATEGORY_BADGE = {
-  generated: { label: "Generated", className: "bg-blue-50 text-blue-700" },
-  uploaded:  { label: "Uploaded",  className: "bg-gray-100 text-gray-700" },
+  generated: { label: "Generated", className: "bg-info-surface text-info" },
+  uploaded:  { label: "Uploaded",  className: "bg-muted text-foreground" },
 } as const
 
 // ── Source entity link ────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export default async function DocumentCenterPage({
   return (
     <div className="space-y-5 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Document Center</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Document Center</h1>
         <p className="text-muted-foreground text-sm mt-1">
           All uploaded and generated documents across every module
         </p>

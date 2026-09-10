@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils"
 import type { UserRole, PmiReport, PmiReadings } from "@/types/database"
 
 const STATUS_BADGE = {
-  draft:     { label: "Draft",     className: "bg-amber-100 text-amber-700" },
-  approved:  { label: "Approved",  className: "bg-green-100 text-green-700" },
-  rejected:  { label: "Rejected",  className: "bg-red-100 text-red-700" },
-  submitted: { label: "Submitted", className: "bg-blue-100 text-blue-700" },
+  draft:     { label: "Draft",     className: "bg-warning-surface text-warning" },
+  approved:  { label: "Approved",  className: "bg-success-surface text-success" },
+  rejected:  { label: "Rejected",  className: "bg-danger-surface text-danger" },
+  submitted: { label: "Submitted", className: "bg-info-surface text-info" },
 } as const
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -95,7 +95,7 @@ export default async function PmiReportDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight">
             {r.report_number ?? "PMI Report"}
           </h1>
           {r.report_date && (
@@ -108,7 +108,7 @@ export default async function PmiReportDetailPage({
           </span>
           <span className={cn(
             "rounded-full px-2.5 py-1 text-xs font-medium",
-            r.result === "acceptable" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            r.result === "acceptable" ? "bg-success-surface text-success" : "bg-danger-surface text-danger"
           )}>
             {r.result === "acceptable" ? "Accepted" : "Not Accepted"}
           </span>

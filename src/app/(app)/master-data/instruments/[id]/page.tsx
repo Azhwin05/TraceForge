@@ -45,8 +45,8 @@ function calibrationAlert(calibration_due: string | null | undefined) {
       className={cn(
         "flex items-center gap-2 rounded-lg border px-4 py-3 text-sm",
         isOverdue
-          ? "border-red-200 bg-red-50 text-red-700"
-          : "border-orange-200 bg-orange-50 text-orange-700"
+          ? "border-danger-border bg-danger-surface text-danger"
+          : "border-warning-border bg-warning-surface text-warning"
       )}
     >
       <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -101,7 +101,7 @@ export default async function InstrumentDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{record.instrument_name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{record.instrument_name}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {TYPE_LABELS[record.instrument_type] ?? record.instrument_type}
           </p>
@@ -110,7 +110,7 @@ export default async function InstrumentDetailPage({
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-xs font-medium",
-              record.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+              record.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
             )}
           >
             {record.is_active ? "Active" : "Inactive"}

@@ -13,10 +13,10 @@ const LIST_LIMIT = 200
 export const metadata = { title: "Dossiers — ValveTrack" }
 
 const STATUS_BADGE: Record<DossierStatus, { label: string; className: string }> = {
-  draft:     { label: "Draft",     className: "bg-gray-100 text-gray-700" },
-  generated: { label: "Generated", className: "bg-blue-100 text-blue-700" },
-  submitted: { label: "Submitted", className: "bg-green-100 text-green-700" },
-  archived:  { label: "Archived",  className: "bg-slate-100 text-slate-500" },
+  draft:     { label: "Draft",     className: "bg-muted text-foreground" },
+  generated: { label: "Generated", className: "bg-info-surface text-info" },
+  submitted: { label: "Submitted", className: "bg-success-surface text-success" },
+  archived:  { label: "Archived",  className: "bg-muted text-muted-foreground" },
 }
 
 function fmtDate(d?: string | null) {
@@ -74,7 +74,7 @@ export default async function DossiersPage({
     <div className="space-y-5 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customer Submission Dossiers</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Customer Submission Dossiers</h1>
           <p className="text-muted-foreground text-sm mt-1">Compiled document packs for customer delivery</p>
         </div>
         {canCreate && (
@@ -164,7 +164,7 @@ export default async function DossiersPage({
                             {badge.label}
                           </span>
                           {d.submitted_to_customer && (
-                            <span className="ml-1 text-xs text-green-700">✓</span>
+                            <span className="ml-1 text-xs text-success">✓</span>
                           )}
                         </td>
                         <td className="py-2.5">

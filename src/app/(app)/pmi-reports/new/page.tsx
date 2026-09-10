@@ -56,7 +56,7 @@ export default async function NewPmiReportPage({
           <ChevronLeft className="h-4 w-4" /> Job Card {(jobCard as { jc_number: string }).jc_number}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New PMI Report</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New PMI Report</h1>
       <PmiReportForm
         mode="create"
         jobCardId={jobCardId}

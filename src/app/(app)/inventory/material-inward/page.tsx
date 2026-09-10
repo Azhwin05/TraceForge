@@ -21,7 +21,7 @@ export default async function MaterialInwardPage() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Material Inward</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Material Inward</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Delivery challan receipts → inspection → GRN
           </p>

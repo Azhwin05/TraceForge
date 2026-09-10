@@ -1,45 +1,27 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import { Activity, Clock, FileSearch, Send, CheckCircle2, AlertTriangle } from "lucide-react"
+import {
+  Activity,
+  Clock,
+  FileSearch,
+  Send,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/ui/stat-card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { StatusBadge } from "@/components/job-cards/status-badge"
 import { QuickSearch } from "@/components/search/quick-search"
 import type { JobCardWithRelations } from "@/types/database"
 
 export const metadata: Metadata = { title: "Dashboard — ValveTrack" }
 export const revalidate = 60
-
-const STAT_ICONS = [Activity, Clock, FileSearch, Send, CheckCircle2]
-const STAT_COLORS = [
-  "text-blue-600 bg-blue-50",
-  "text-orange-600 bg-orange-50",
-  "text-amber-600 bg-amber-50",
-  "text-teal-600 bg-teal-50",
-  "text-green-600 bg-green-50",
-]
-
-function StatCard({ title, value, sub, icon: Icon, color }: {
-  title: string; value: number | string; sub?: string
-  icon: React.ElementType; color: string
-}) {
-  return (
-    <Card>
-      <CardContent className="pt-5 pb-5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">{title}</p>
-            <p className="text-3xl font-bold tracking-tight text-foreground mt-1.5">{value}</p>
-            {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
-          </div>
-          <div className={`rounded-lg p-2.5 shrink-0 ${color}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -127,45 +109,53 @@ export default async function DashboardPage() {
   const recent = (recentRaw ?? []) as unknown as JobCardWithRelations[]
   const blocked = (blockedRaw ?? []) as unknown as JobCardWithRelations[]
 
+  // Overdue leads because it is the only number that demands action today.
   const stats = [
-    { title: "Active Jobs",     value: totalActive ?? 0,     sub: "excl. closed", icon: STAT_ICONS[0], color: STAT_COLORS[0] },
-    { title: "Overdue",         value: overdueCount ?? 0,    sub: "past due date", icon: AlertTriangle, color: "text-red-600 bg-red-50" },
-    { title: "In Process",      value: inProcess ?? 0,       sub: "in progress",  icon: STAT_ICONS[1], color: STAT_COLORS[1] },
-    { title: "Reports Pending", value: awaitingReports ?? 0, sub: "awaiting QA",  icon: STAT_ICONS[2], color: STAT_COLORS[2] },
-    { title: "Dispatched",      value: dispatchedMonth ?? 0, sub: "this month",   icon: STAT_ICONS[3], color: STAT_COLORS[3] },
-    { title: "Closed",          value: closedMonth ?? 0,     sub: "this month",   icon: STAT_ICONS[4], color: STAT_COLORS[4] },
+    { label: "Overdue", value: overdueCount ?? 0, hint: "past due date", icon: AlertTriangle, tone: (overdueCount ?? 0) > 0 ? ("danger" as const) : ("success" as const), href: "/job-cards?filter=overdue" },
+    { label: "Active Jobs", value: totalActive ?? 0, hint: "excluding closed", icon: Activity, tone: "brand" as const, href: "/job-cards" },
+    { label: "In Process", value: inProcess ?? 0, hint: "on the shop floor", icon: Clock, tone: "info" as const, href: "/job-cards" },
+    { label: "Reports Due", value: awaitingReports ?? 0, hint: "awaiting QA", icon: FileSearch, tone: "warning" as const, href: "/job-cards" },
+    { label: "Dispatched", value: dispatchedMonth ?? 0, hint: "this month", icon: Send, tone: "neutral" as const },
+    { label: "Closed", value: closedMonth ?? 0, hint: "this month", icon: CheckCircle2, tone: "success" as const },
   ]
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-brand-primary">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Overview of active jobs across Raghav Engineering.</p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Overview of active jobs across Raghav Engineering."
+      />
 
       {/* Universal search (client request #4) — same server action as /search,
           so the two can never disagree about what is searchable. */}
       <QuickSearch />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {stats.map((s) => <StatCard key={s.title} {...s} />)}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        {stats.map((s) => (
+          <StatCard key={s.label} {...s} />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between">
-              Blocked / Overdue
-              <span className="text-sm font-normal text-muted-foreground">
+          <CardHeader>
+            <CardTitle>Blocked / Overdue</CardTitle>
+            <CardAction>
+              <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-2xs font-medium text-muted-foreground">
                 {blocked.length} job{blocked.length !== 1 ? "s" : ""}
               </span>
-            </CardTitle>
+            </CardAction>
           </CardHeader>
           <CardContent>
             {blocked.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No blocked jobs — all clear.</p>
+              <EmptyState
+                compact
+                icon={ShieldCheck}
+                title="Nothing is stuck"
+                description="No job is on hold or sitting in the same stage for more than 7 days."
+              />
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {blocked.slice(0, 6).map((jc) => {
                   const days = Math.floor(
                     (Date.now() - new Date(jc.stage_entered_at).getTime()) / (1000 * 60 * 60 * 24)
@@ -174,22 +164,35 @@ export default async function DashboardPage() {
                     <Link
                       key={jc.id}
                       href={`/job-cards/${jc.id}`}
-                      className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors"
+                      className="group flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-lg border border-border px-3 py-2.5 text-sm transition-colors hover:border-border-strong hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                     >
-                      <div>
-                        <p className="font-medium">{jc.jc_number}</p>
-                        <p className="text-xs text-muted-foreground">{jc.client?.name}</p>
+                      {/* basis-full below sm so the JC number — the identifier —
+                          never truncates to make room for the status chip. */}
+                      <div className="min-w-0 basis-full sm:basis-auto">
+                        <p className="truncate font-medium text-foreground">{jc.jc_number}</p>
+                        <p className="truncate text-xs text-muted-foreground">{jc.client?.name}</p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         <StatusBadge status={jc.status} />
-                        <span className="text-xs text-muted-foreground">{days}d</span>
+                        <span
+                          className={cn(
+                            "w-9 text-right text-xs tabular",
+                            days >= 14 ? "font-medium text-danger" : "text-muted-foreground"
+                          )}
+                        >
+                          {days}d
+                        </span>
                       </div>
                     </Link>
                   )
                 })}
                 {blocked.length > 6 && (
-                  <Link href="/job-cards" className="block text-center text-xs text-muted-foreground hover:underline pt-1">
-                    +{blocked.length - 6} more →
+                  <Link
+                    href="/job-cards"
+                    className="flex items-center justify-center gap-1 pt-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {blocked.length - 6} more
+                    <ArrowRight className="h-3 w-3" />
                   </Link>
                 )}
               </div>
@@ -198,33 +201,44 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center justify-between">
-              Recent Job Cards
-              <Link href="/job-cards" className="text-sm font-normal text-muted-foreground hover:underline">
+          <CardHeader>
+            <CardTitle>Recent Job Cards</CardTitle>
+            <CardAction>
+              <Link
+                href="/job-cards"
+                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
                 View all
+                <ArrowRight className="h-3 w-3" />
               </Link>
-            </CardTitle>
+            </CardAction>
           </CardHeader>
           <CardContent>
             {recent.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No job cards yet.{" "}
-                <Link href="/job-cards/new" className="text-brand-primary hover:underline">
-                  Create the first one.
-                </Link>
-              </p>
+              <EmptyState
+                compact
+                title="No job cards yet"
+                description="Job cards track a valve from receipt through inspection to dispatch."
+                action={
+                  <Link
+                    href="/job-cards/new"
+                    className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-600"
+                  >
+                    Create the first job card
+                  </Link>
+                }
+              />
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {recent.map((jc) => (
                   <Link
                     key={jc.id}
                     href={`/job-cards/${jc.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-sm hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5 text-sm transition-colors hover:border-border-strong hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
                   >
-                    <div>
-                      <p className="font-medium">{jc.jc_number}</p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[180px]">{jc.description}</p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">{jc.jc_number}</p>
+                      <p className="truncate text-xs text-muted-foreground">{jc.description}</p>
                     </div>
                     <StatusBadge status={jc.status} />
                   </Link>

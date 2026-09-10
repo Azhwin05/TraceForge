@@ -13,7 +13,7 @@ function ActiveBadge({ isActive }: { isActive: boolean }) {
     <span
       className={cn(
         "rounded-full px-2 py-0.5 text-xs font-medium",
-        isActive ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+        isActive ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
       )}
     >
       {isActive ? "Active" : "Inactive"}
@@ -64,7 +64,7 @@ export function MachineListClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Machines</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Machines</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {records.filter((m) => m.is_active).length} active · {records.length} total
           </p>

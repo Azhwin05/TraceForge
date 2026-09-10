@@ -142,7 +142,7 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Suppliers</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Suppliers</h1>
           <p className="mt-1 text-sm text-muted-foreground">{records.length} total</p>
         </div>
         {canCreate && (
@@ -153,8 +153,8 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
       </div>
 
       {isAdmin && pendingSuppliers.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-amber-800">
+        <div className="rounded-lg border border-warning-border bg-warning-surface p-4">
+          <h2 className="mb-3 text-sm font-semibold text-warning">
             {pendingSuppliers.length} supplier{pendingSuppliers.length > 1 ? "s" : ""} awaiting your approval
           </h2>
           <div className="divide-y divide-amber-200">
@@ -192,7 +192,7 @@ export function SupplierListClient({ records, userRole }: { records: Supplier[];
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
-                      s.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                      s.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
                     )}
                   >
                     {s.is_active ? "Active" : "Inactive"}

@@ -63,7 +63,7 @@ export default async function PortalUsersPage() {
       </div>
 
       {!isAdminConfigured() && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="rounded-md border border-warning-border bg-warning-surface p-3 text-sm text-warning">
           <strong>Provisioning disabled:</strong> set <code>SUPABASE_SERVICE_ROLE_KEY</code> in the
           environment to create portal logins. Existing customer accounts still work; you just
           can&apos;t create new ones from here until the key is configured.
@@ -107,8 +107,8 @@ export default async function PortalUsersPage() {
                     </td>
                     <td className="p-2">
                       {c.is_active
-                        ? <Badge className="bg-green-100 text-green-700">Active</Badge>
-                        : <Badge className="bg-gray-100 text-gray-600">Disabled</Badge>}
+                        ? <Badge className="bg-success-surface text-success">Active</Badge>
+                        : <Badge className="bg-muted text-muted-foreground">Disabled</Badge>}
                     </td>
                     <td className="p-2 text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="p-2">

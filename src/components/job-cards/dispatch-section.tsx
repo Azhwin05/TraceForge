@@ -89,9 +89,9 @@ export function DispatchSection({
           <div className="rounded-lg border border-border p-3 space-y-2">
             {isValidated ? (
               <div className="flex items-start gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-600 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-success shrink-0" />
                 <div>
-                  <p className="font-medium text-green-700 dark:text-green-400">
+                  <p className="font-medium text-success">
                     Ready to Dispatch — physically verified
                   </p>
                   <p className="text-xs text-muted-foreground">

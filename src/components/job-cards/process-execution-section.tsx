@@ -25,10 +25,10 @@ const PROCESS_LABELS: Record<ProcessType, string> = {
 }
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  assigned:    { label: "Assigned",    className: "bg-blue-100 text-blue-700" },
-  in_progress: { label: "In Progress", className: "bg-amber-100 text-amber-700" },
-  completed:   { label: "Completed",   className: "bg-green-100 text-green-700" },
-  skipped:     { label: "Skipped",     className: "bg-slate-100 text-slate-600" },
+  assigned:    { label: "Assigned",    className: "bg-info-surface text-info" },
+  in_progress: { label: "In Progress", className: "bg-warning-surface text-warning" },
+  completed:   { label: "Completed",   className: "bg-success-surface text-success" },
+  skipped:     { label: "Skipped",     className: "bg-muted text-muted-foreground" },
 }
 
 const WELDING_OPS: ProcessType[] = ["welding", "cladding", "overlay"]
@@ -38,8 +38,8 @@ function fmtExpiry(date?: string | null) {
   const d = new Date(date)
   const today = new Date()
   const daysLeft = Math.ceil((d.getTime() - today.getTime()) / 86400000)
-  if (daysLeft < 0) return { label: "Expired", className: "bg-red-100 text-red-700" }
-  if (daysLeft <= 30) return { label: `Exp: ${d.toLocaleDateString("en-IN")}`, className: "bg-amber-100 text-amber-700" }
+  if (daysLeft < 0) return { label: "Expired", className: "bg-danger-surface text-danger" }
+  if (daysLeft <= 30) return { label: `Exp: ${d.toLocaleDateString("en-IN")}`, className: "bg-warning-surface text-warning" }
   return null
 }
 
@@ -263,7 +263,7 @@ export function ProcessExecutionSection({
                     */}
                     {exec.override_reason && exec.override_reason !== "Admin out-of-order override" && (
                       <span
-                        className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700"
+                        className="inline-flex items-center gap-1 rounded-full bg-warning-surface px-2 py-0.5 text-xs text-warning"
                         title={exec.override_reason}
                       >
                         <AlertTriangle className="h-3 w-3" /> Override

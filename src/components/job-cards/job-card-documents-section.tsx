@@ -86,8 +86,8 @@ export function JobCardDocumentsSection({ documents }: Props) {
                 <span className={cn(
                   "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
                   doc.document_category === "generated"
-                    ? "bg-blue-50 text-blue-700"
-                    : "bg-gray-100 text-gray-600"
+                    ? "bg-info-surface text-info"
+                    : "bg-muted text-muted-foreground"
                 )}>
                   {typeLabel}
                 </span>

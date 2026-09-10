@@ -23,7 +23,7 @@ export default async function NewInstrumentPage() {
           <ChevronLeft className="h-4 w-4" /> Instruments
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Instrument</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Instrument</h1>
       <InstrumentForm mode="create" />
     </div>
   )

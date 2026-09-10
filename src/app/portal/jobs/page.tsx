@@ -48,7 +48,7 @@ export default async function PortalJobs() {
               {jobs.map((j) => (
                 <tr key={j.id} className="border-b last:border-0 hover:bg-muted/40">
                   <td className="p-3">
-                    <Link href={`/portal/jobs/${j.id}`} className="font-mono font-medium text-blue-600 hover:underline">
+                    <Link href={`/portal/jobs/${j.id}`} className="font-mono font-medium text-info hover:underline">
                       {j.jc_number}
                     </Link>
                   </td>

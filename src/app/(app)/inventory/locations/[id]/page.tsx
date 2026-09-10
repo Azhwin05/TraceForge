@@ -60,12 +60,12 @@ export default async function StorageLocationDetailPage({
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{location.code} — {location.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{location.code} — {location.name}</h1>
           {location.description && <p className="mt-0.5 text-sm text-muted-foreground">{location.description}</p>}
         </div>
         <div className="text-right">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Value Here</p>
-          <p className="text-xl font-bold tabular-nums">{formatInr(totalValue)}</p>
+          <p className="text-xl font-semibold tabular-nums">{formatInr(totalValue)}</p>
         </div>
       </div>
 
@@ -94,17 +94,17 @@ export default async function StorageLocationDetailPage({
                       <span className="font-medium">{im?.item_code ?? "—"}</span>
                       <span className="ml-1.5 text-muted-foreground">{im?.item_name}</span>
                       {im?.consumable_type && (
-                        <span className="ml-1.5 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-700">
+                        <span className="ml-1.5 rounded-full bg-info-surface px-2 py-0.5 text-[10px] font-medium text-info">
                           {im.consumable_type}
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
-                      <span className={cn(belowMin && "font-medium text-orange-600")}>
+                      <span className={cn(belowMin && "font-medium text-warning")}>
                         {formatQty(b.balance_qty)} {im?.uom}
                       </span>
                       {belowMin && (
-                        <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-orange-500" />
+                        <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-warning" />
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatInr(b.avg_unit_cost)}</td>

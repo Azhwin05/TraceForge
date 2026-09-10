@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
 import type { UserRole, DossierStatus } from "@/types/database"
 
 const STATUS_BADGE: Record<DossierStatus, { label: string; className: string }> = {
-  draft:     { label: "Draft",     className: "bg-gray-100 text-gray-700" },
-  generated: { label: "Generated", className: "bg-blue-100 text-blue-700" },
-  submitted: { label: "Submitted", className: "bg-green-100 text-green-700" },
-  archived:  { label: "Archived",  className: "bg-red-100 text-red-700" },
+  draft:     { label: "Draft",     className: "bg-muted text-foreground" },
+  generated: { label: "Generated", className: "bg-info-surface text-info" },
+  submitted: { label: "Submitted", className: "bg-success-surface text-success" },
+  archived:  { label: "Archived",  className: "bg-danger-surface text-danger" },
 }
 
 type DossierSummary = {
@@ -79,7 +79,7 @@ export function DossierSection({ jobCardId, userRole, dossiers }: Props) {
                         {badge.label}
                       </span>
                       {d.submitted_to_customer && (
-                        <span className="text-xs text-green-700">✓ Submitted</span>
+                        <span className="text-xs text-success">✓ Submitted</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">

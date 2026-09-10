@@ -157,7 +157,7 @@ export function DossierStatusActions({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-blue-500/40 text-blue-700 hover:bg-blue-50 w-full sm:w-auto"
+                className="border-info-border/40 text-info hover:bg-info-surface w-full sm:w-auto"
                 onClick={() => setShowEmailForm(true)}
               >
                 <Mail className="mr-1.5 h-3.5 w-3.5" /> Email to Customer
@@ -169,8 +169,8 @@ export function DossierStatusActions({
               )}
             </div>
           ) : (
-            <div className="rounded-md border border-blue-200 bg-blue-50 p-3 space-y-2">
-              <p className="text-xs font-medium text-blue-800">Email document package</p>
+            <div className="rounded-md border border-info-border bg-info-surface p-3 space-y-2">
+              <p className="text-xs font-medium text-info">Email document package</p>
               <input
                 type="email"
                 value={emailTo}
@@ -186,7 +186,7 @@ export function DossierStatusActions({
                 className="w-full rounded border border-input bg-background px-2 py-1 text-sm"
               />
               <div className="flex gap-2">
-                <Button size="sm" className="bg-blue-700 hover:bg-blue-800" onClick={handleEmail} disabled={isPending}>
+                <Button size="sm" onClick={handleEmail} disabled={isPending}>
                   {isPending ? "Sending…" : "Send"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowEmailForm(false)}>Cancel</Button>
@@ -203,14 +203,14 @@ export function DossierStatusActions({
             <Button
               variant="outline"
               size="sm"
-              className="border-green-500/40 text-green-700 hover:bg-green-50 w-full sm:w-auto"
+              className="border-success-border/40 text-success hover:bg-success-surface w-full sm:w-auto"
               onClick={() => setShowSubmitForm(true)}
             >
               <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> Mark Submitted to Customer
             </Button>
           ) : (
-            <div className="rounded-md border border-green-200 bg-green-50 p-3 space-y-2">
-              <p className="text-xs font-medium text-green-800">Confirm submission</p>
+            <div className="rounded-md border border-success-border bg-success-surface p-3 space-y-2">
+              <p className="text-xs font-medium text-success">Confirm submission</p>
               <input
                 value={submittedBy}
                 onChange={(e) => setSubmittedBy(e.target.value)}
@@ -218,7 +218,7 @@ export function DossierStatusActions({
                 className="w-full h-7 rounded border border-input bg-background px-2 text-sm"
               />
               <div className="flex gap-2">
-                <Button size="sm" className="bg-green-700 hover:bg-green-800" onClick={handleSubmit} disabled={isPending}>
+                <Button size="sm" variant="success" onClick={handleSubmit} disabled={isPending}>
                   {isPending ? "Saving…" : "Confirm Submitted"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowSubmitForm(false)}>Cancel</Button>

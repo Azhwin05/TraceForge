@@ -33,10 +33,10 @@ type RunJob = {
 }
 
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
-  draft:     { label: "Draft",     className: "bg-gray-100 text-gray-700" },
-  submitted: { label: "Submitted", className: "bg-blue-100 text-blue-700" },
-  approved:  { label: "Approved",  className: "bg-green-100 text-green-700" },
-  rejected:  { label: "Rejected",  className: "bg-red-100 text-red-700" },
+  draft:     { label: "Draft",     className: "bg-muted text-foreground" },
+  submitted: { label: "Submitted", className: "bg-info-surface text-info" },
+  approved:  { label: "Approved",  className: "bg-success-surface text-success" },
+  rejected:  { label: "Rejected",  className: "bg-danger-surface text-danger" },
 }
 
 const CHANNEL_COLORS = ["#0070f3", "#e6552e", "#0e9f6e", "#7c3aed", "#d97706", "#0891b2"]
@@ -226,7 +226,7 @@ export function PwhtRunDetailClient({
           <Link href="/pwht-runs">
             <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button>
           </Link>
-          <Flame className="h-6 w-6 text-orange-500" />
+          <Flame className="h-6 w-6 text-warning" />
           <div>
             <h1 className="text-xl font-semibold">Chart {run.chart_number}</h1>
             <p className="text-sm text-muted-foreground">
@@ -235,7 +235,7 @@ export function PwhtRunDetailClient({
           </div>
           <Badge className={badge.className}>{badge.label}</Badge>
           {run.submitted_to_customer && (
-            <Badge className="bg-purple-100 text-purple-700"><Lock className="mr-1 h-3 w-3" />Sent to customer</Badge>
+            <Badge className="bg-info-surface text-info"><Lock className="mr-1 h-3 w-3" />Sent to customer</Badge>
           )}
         </div>
 
@@ -250,7 +250,7 @@ export function PwhtRunDetailClient({
           )}
           {canApprove && run.approval_status === "submitted" && (
             <>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={doApprove} disabled={isPending}>
+              <Button size="sm" variant="success" onClick={doApprove} disabled={isPending}>
                 <CheckCircle className="mr-1 h-4 w-4" /> Approve
               </Button>
               <Button size="sm" variant="destructive" onClick={() => setRejectOpen(true)} disabled={isPending}>
@@ -262,7 +262,7 @@ export function PwhtRunDetailClient({
       </div>
 
       {run.approval_status === "rejected" && run.rejection_reason && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div className="rounded-md border border-danger-border bg-danger-surface p-3 text-sm text-danger">
           <strong>Rejected:</strong> {run.rejection_reason}
         </div>
       )}
@@ -349,7 +349,7 @@ export function PwhtRunDetailClient({
                 {runJobs.map((rj) => (
                   <li key={rj.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
                     <div>
-                      <Link href={`/job-cards/${rj.job_card_id}`} className="font-mono font-medium text-blue-600 hover:underline">
+                      <Link href={`/job-cards/${rj.job_card_id}`} className="font-mono font-medium text-info hover:underline">
                         {rj.job_cards?.jc_number ?? rj.job_card_id.slice(0, 8)}
                       </Link>
                       <p className="text-xs text-muted-foreground line-clamp-1">{rj.job_cards?.description}</p>
@@ -470,7 +470,7 @@ export function PwhtRunDetailClient({
                     {canEdit && (
                       <td className="p-2">
                         <Button variant="ghost" size="sm" onClick={() => removeReading(r.id)} disabled={isPending}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4 text-danger" />
                         </Button>
                       </td>
                     )}

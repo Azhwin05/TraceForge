@@ -38,7 +38,7 @@ export default async function EditChemicalPage({
           <ChevronLeft className="h-4 w-4" /> {record.chemical_name}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit Chemical</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit Chemical</h1>
       <ChemicalForm mode="edit" chemicalId={record.id} defaultValues={defaultValues} />
     </div>
   )

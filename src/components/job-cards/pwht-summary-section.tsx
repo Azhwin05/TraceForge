@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { PwhtRunJobWithRun } from "@/types/database"
 
 const RESULT_CONFIG = {
-  pass:    { label: "Pass",    icon: CheckCircle, className: "text-green-600" },
+  pass:    { label: "Pass",    icon: CheckCircle, className: "text-success" },
   fail:    { label: "Fail",    icon: XCircle,     className: "text-destructive" },
-  pending: { label: "Pending", icon: Clock,       className: "text-amber-500" },
+  pending: { label: "Pending", icon: Clock,       className: "text-warning" },
 }
 
 const COOLING_LABELS: Record<string, string> = {
@@ -39,7 +39,7 @@ export function PwhtSummarySection({
         <CardTitle className="text-base flex items-center gap-2">
           <Flame className="h-4 w-4" /> PWHT Summary
           {pwhtRequired && pwhtJobs.length === 0 && (
-            <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs ml-2">
+            <span className="rounded-full bg-warning-surface text-warning px-2 py-0.5 text-xs ml-2">
               Required — Pending
             </span>
           )}

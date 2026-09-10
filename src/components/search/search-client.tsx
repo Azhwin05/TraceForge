@@ -49,7 +49,7 @@ export function SearchClient() {
   return (
     <div className="space-y-4 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Search</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Search</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Search job cards by JC number, NBDN, client, description, PO, heat, or part number.
         </p>

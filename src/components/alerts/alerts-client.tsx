@@ -52,7 +52,7 @@ export function AlertsClient({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Alerts</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {overdueJobs.length} overdue job{overdueJobs.length !== 1 ? "s" : ""} · {unacked.length} unacknowledged alert{unacked.length !== 1 ? "s" : ""}
         </p>
@@ -62,14 +62,14 @@ export function AlertsClient({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertTriangle className="h-4 w-4 text-warning" />
             Overdue &amp; On Hold
             <span className="ml-auto text-sm font-normal text-muted-foreground">{overdueJobs.length} job{overdueJobs.length !== 1 ? "s" : ""}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           {overdueJobs.length === 0 ? (
-            <div className="flex items-center gap-2 py-4 text-sm text-green-700">
+            <div className="flex items-center gap-2 py-4 text-sm text-success">
               <CheckCircle2 className="h-4 w-4" />
               All jobs are on track — nothing overdue.
             </div>
@@ -79,7 +79,7 @@ export function AlertsClient({
                 <div key={jc.id} className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     <div className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold shrink-0 ${
-                      jc.status === "on_hold" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                      jc.status === "on_hold" ? "bg-danger-surface text-danger" : "bg-warning-surface text-warning"
                     }`}>
                       {jc.status === "on_hold" ? "!" : `${jc.daysAtStage}d`}
                     </div>
@@ -110,7 +110,7 @@ export function AlertsClient({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <AlertTriangle className="h-4 w-4 text-danger" />
               Unacknowledged Alerts
               <span className="ml-auto text-sm font-normal text-muted-foreground">{unacked.length}</span>
             </CardTitle>
@@ -150,7 +150,7 @@ export function AlertsClient({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Acknowledged Alerts
               <span className="ml-auto text-sm font-normal text-muted-foreground">{acked.length}</span>
             </CardTitle>
@@ -175,7 +175,7 @@ export function AlertsClient({
       {overdueJobs.length === 0 && dbAlerts.length === 0 && (
         <Card>
           <CardContent className="py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500 mx-auto mb-3" />
+            <CheckCircle2 className="h-10 w-10 text-success mx-auto mb-3" />
             <p className="text-muted-foreground">No alerts — everything is running smoothly.</p>
           </CardContent>
         </Card>

@@ -15,16 +15,16 @@ export const metadata = { title: "Dimension Reports — ValveTrack" }
 export const revalidate = 30
 
 const STATUS_BADGE = {
-  draft:     "bg-amber-100 text-amber-700",
-  approved:  "bg-green-100 text-green-700",
-  rejected:  "bg-red-100 text-red-700",
-  submitted: "bg-blue-100 text-blue-700",
+  draft:     "bg-warning-surface text-warning",
+  approved:  "bg-success-surface text-success",
+  rejected:  "bg-danger-surface text-danger",
+  submitted: "bg-info-surface text-info",
 } as const
 
 const RESULT_BADGE = {
-  accepted: "bg-green-50 text-green-700",
-  rejected: "bg-red-50 text-red-700",
-  hold:     "bg-yellow-50 text-yellow-700",
+  accepted: "bg-success-surface text-success",
+  rejected: "bg-danger-surface text-danger",
+  hold:     "bg-warning-surface text-warning",
 } as const
 
 type DimListRow = {
@@ -57,7 +57,7 @@ export default async function DimensionReportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             <Ruler className="h-6 w-6" /> Dimension Reports
           </h1>
           <p className="text-muted-foreground text-sm mt-1">Dimensional inspection records for job cards</p>

@@ -152,7 +152,7 @@ export function DocumentCard({
           href={effectiveLegacyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+          className="flex items-center gap-1 text-xs text-info hover:underline"
         >
           <ExternalLink className="h-3 w-3" />
           External link
@@ -170,7 +170,7 @@ export function DocumentCard({
           href={effectiveLegacyUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+          className="flex items-center gap-1.5 text-sm text-info hover:underline"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           View external document (legacy link)

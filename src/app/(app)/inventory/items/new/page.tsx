@@ -20,7 +20,7 @@ export default async function NewItemMasterPage() {
           <ChevronLeft className="h-4 w-4" /> Items
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Item</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Item</h1>
       <ItemMasterForm mode="create" />
     </div>
   )

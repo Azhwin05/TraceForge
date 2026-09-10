@@ -54,7 +54,7 @@ export default async function PortalDocumentsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <span className="font-medium">{d.title}</span>
-                      {d.label && <Badge className="bg-purple-100 text-purple-700">{d.label}</Badge>}
+                      {d.label && <Badge className="bg-info-surface text-info">{d.label}</Badge>}
                     </div>
                     {d.description && <p className="text-xs text-muted-foreground">{d.description}</p>}
                     <p className="text-xs text-muted-foreground">

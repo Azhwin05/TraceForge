@@ -71,7 +71,7 @@ export default async function NewDossierPage({
       </div>
 
       <div>
-        <h1 className="text-xl font-bold">New Customer Submission Dossier</h1>
+        <h1 className="text-xl font-semibold">New Customer Submission Dossier</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Job Card: <span className="font-medium text-foreground font-mono">{jcNumber}</span>
           {jc.client?.name && (

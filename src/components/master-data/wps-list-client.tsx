@@ -16,9 +16,9 @@ const STATUS_TABS: { value: WpsMasterStatus | "all"; label: string }[] = [
 ]
 
 const STATUS_BADGE: Record<WpsMasterStatus, { label: string; className: string }> = {
-  draft:      { label: "Draft",      className: "bg-amber-100 text-amber-700" },
-  approved:   { label: "Approved",   className: "bg-green-100 text-green-700" },
-  superseded: { label: "Superseded", className: "bg-slate-100 text-slate-600" },
+  draft:      { label: "Draft",      className: "bg-warning-surface text-warning" },
+  approved:   { label: "Approved",   className: "bg-success-surface text-success" },
+  superseded: { label: "Superseded", className: "bg-muted text-muted-foreground" },
 }
 
 function StatusBadge({ status }: { status: WpsMasterStatus }) {
@@ -59,7 +59,7 @@ export function WpsListClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">WPS Master</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">WPS Master</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {wpsRecords.length} record{wpsRecords.length !== 1 ? "s" : ""} total
           </p>

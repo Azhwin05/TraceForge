@@ -27,7 +27,7 @@ export default async function NewMaterialInwardPage() {
           <ChevronLeft className="h-4 w-4" /> Material Inward
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Material Inward</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Material Inward</h1>
       <MaterialInwardForm
         suppliers={suppliers ?? []}
         clients={clients ?? []}

@@ -23,7 +23,7 @@ export default async function NewMachinePage() {
           <ChevronLeft className="h-4 w-4" /> Machines
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Machine</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Machine</h1>
       <MachineForm mode="create" />
     </div>
   )

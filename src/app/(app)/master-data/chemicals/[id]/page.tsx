@@ -16,11 +16,11 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_BADGE_COLORS: Record<string, string> = {
-  penetrant: "bg-red-100 text-red-700",
-  developer: "bg-blue-100 text-blue-700",
-  cleaner:   "bg-yellow-100 text-yellow-700",
-  remover:   "bg-orange-100 text-orange-700",
-  other:     "bg-slate-100 text-slate-600",
+  penetrant: "bg-danger-surface text-danger",
+  developer: "bg-info-surface text-info",
+  cleaner:   "bg-warning-surface text-warning",
+  remover:   "bg-warning-surface text-warning",
+  other:     "bg-muted text-muted-foreground",
 }
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -65,12 +65,12 @@ export default async function ChemicalDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{record.chemical_name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{record.chemical_name}</h1>
           <div className="mt-1 flex items-center gap-2">
             <span
               className={cn(
                 "rounded-full px-2 py-0.5 text-xs font-medium",
-                TYPE_BADGE_COLORS[record.type] ?? "bg-slate-100 text-slate-600"
+                TYPE_BADGE_COLORS[record.type] ?? "bg-muted text-muted-foreground"
               )}
             >
               {TYPE_LABELS[record.type] ?? record.type}
@@ -81,7 +81,7 @@ export default async function ChemicalDetailPage({
           <span
             className={cn(
               "rounded-full px-2.5 py-1 text-xs font-medium",
-              record.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+              record.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
             )}
           >
             {record.is_active ? "Active" : "Inactive"}

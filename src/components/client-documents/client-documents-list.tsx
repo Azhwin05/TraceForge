@@ -43,7 +43,7 @@ function BillDateEditor({ id, billDate }: { id: string; billDate: string | null 
     return (
       <span className="inline-flex items-center gap-1">
         <Input type="date" value={value} onChange={(e) => setValue(e.target.value)} className="h-6 w-32 text-xs" />
-        <button onClick={save} disabled={busy} aria-label="Save bill date"><Check className="h-3.5 w-3.5 text-green-600" /></button>
+        <button onClick={save} disabled={busy} aria-label="Save bill date"><Check className="h-3.5 w-3.5 text-success" /></button>
         <button onClick={() => { setValue(billDate ?? ""); setEditing(false) }} aria-label="Cancel"><X className="h-3.5 w-3.5 text-muted-foreground" /></button>
       </span>
     )
@@ -99,12 +99,12 @@ export function ClientDocumentsList({ records }: { records: ClientDocRow[] }) {
               <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="font-medium">{r.title}</span>
               {r.label && (
-                <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                <span className="rounded-full bg-info-surface px-2 py-0.5 text-xs font-medium text-info">
                   {r.label}
                 </span>
               )}
               {!r.is_active && (
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                   Revoked
                 </span>
               )}

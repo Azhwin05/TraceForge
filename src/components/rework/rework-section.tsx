@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils"
 import type { ReworkRecord, UserRole } from "@/types/database"
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  open:        { label: "Open",        className: "bg-red-100 text-red-700" },
-  in_progress: { label: "In Progress", className: "bg-amber-100 text-amber-700" },
-  completed:   { label: "Completed",   className: "bg-green-100 text-green-700" },
+  open:        { label: "Open",        className: "bg-danger-surface text-danger" },
+  in_progress: { label: "In Progress", className: "bg-warning-surface text-warning" },
+  completed:   { label: "Completed",   className: "bg-success-surface text-success" },
 }
 
 const WRITE_ROLES: UserRole[] = ["admin", "operator", "engineer", "qa"]

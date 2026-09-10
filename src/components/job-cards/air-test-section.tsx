@@ -16,9 +16,9 @@ import { upsertAirTestRecord } from "@/app/(app)/job-cards/traveller-actions"
 import type { AirTestRecord, UserRole } from "@/types/database"
 
 const RESULT_BADGE: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  pass:    "bg-green-100 text-green-700",
-  fail:    "bg-red-100 text-red-700",
+  pending: "bg-warning-surface text-warning",
+  pass:    "bg-success-surface text-success",
+  fail:    "bg-danger-surface text-danger",
 }
 
 function recordToForm(r: AirTestRecord): AirTestInput {

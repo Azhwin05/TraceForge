@@ -32,7 +32,7 @@ function CalibrationBadge({ calibration_due }: { calibration_due: string | null 
   if (status === "none") return null
   if (status === "ok") {
     return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+      <span className="rounded-full bg-success-surface px-2 py-0.5 text-xs font-medium text-success">
         Cal: {new Date(calibration_due!).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}
       </span>
     )
@@ -41,7 +41,7 @@ function CalibrationBadge({ calibration_due }: { calibration_due: string | null 
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-        status === "overdue" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+        status === "overdue" ? "bg-danger-surface text-danger" : "bg-warning-surface text-warning"
       )}
     >
       <AlertTriangle className="h-3 w-3" />
@@ -92,11 +92,11 @@ export function InstrumentListClient({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Instrument Master</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Instrument Master</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {records.filter((i) => i.is_active).length} active · {records.length} total
             {overdueCount > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 text-orange-600">
+              <span className="ml-2 inline-flex items-center gap-1 text-warning">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 {overdueCount} calibration alert{overdueCount !== 1 ? "s" : ""}
               </span>
@@ -164,13 +164,13 @@ export function InstrumentListClient({
               <div className="min-w-0 space-y-0.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{i.instrument_name}</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {TYPE_LABELS[i.instrument_type] ?? i.instrument_type}
                   </span>
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-xs font-medium",
-                      i.is_active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                      i.is_active ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
                     )}
                   >
                     {i.is_active ? "Active" : "Inactive"}

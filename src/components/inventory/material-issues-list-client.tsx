@@ -119,7 +119,7 @@ export function MaterialIssuesListClient({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Material Issues</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Material Issues</h1>
           <p className="mt-1 text-sm text-muted-foreground">Stock issued from stores for production</p>
         </div>
         <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export function MaterialIssuesListClient({
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                 typeFilter === f.key
-                  ? "bg-brand-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               )}
             >
@@ -190,7 +190,7 @@ export function MaterialIssuesListClient({
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",
-                        r.status === "issued" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                        r.status === "issued" ? "bg-success-surface text-success" : "bg-muted text-muted-foreground"
                       )}
                     >
                       {r.status === "issued" ? "Issued" : "Cancelled"}
@@ -198,7 +198,7 @@ export function MaterialIssuesListClient({
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",
-                        r.consumption_status === "confirmed" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+                        r.consumption_status === "confirmed" ? "bg-info-surface text-info" : "bg-warning-surface text-warning"
                       )}
                     >
                       {r.consumption_status === "confirmed" ? "Usage confirmed" : "Usage pending"}

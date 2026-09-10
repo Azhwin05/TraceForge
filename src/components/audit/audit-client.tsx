@@ -10,18 +10,18 @@ import type { AuditLog } from "@/types/database"
 type AuditEntry = AuditLog & { performer: { full_name: string } | null }
 
 const ENTITY_COLORS: Record<string, string> = {
-  job_card: "bg-blue-100 text-blue-700",
-  wps_qualification: "bg-amber-100 text-amber-700",
-  pwht_run: "bg-purple-100 text-purple-700",
-  dispatch: "bg-teal-100 text-teal-700",
-  account: "bg-green-100 text-green-700",
-  profile: "bg-rose-100 text-rose-700",
+  job_card: "bg-info-surface text-info",
+  wps_qualification: "bg-warning-surface text-warning",
+  pwht_run: "bg-info-surface text-info",
+  dispatch: "bg-info-surface text-info",
+  account: "bg-success-surface text-success",
+  profile: "bg-danger-surface text-danger",
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  INSERT: "bg-green-100 text-green-700",
-  UPDATE: "bg-amber-100 text-amber-700",
-  DELETE: "bg-red-100 text-red-700",
+  INSERT: "bg-success-surface text-success",
+  UPDATE: "bg-warning-surface text-warning",
+  DELETE: "bg-danger-surface text-danger",
 }
 
 function formatValue(val: Record<string, unknown> | null) {
@@ -57,7 +57,7 @@ export function AuditClient({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Audit Trail</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Audit Trail</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {totalCount} total event{totalCount !== 1 ? "s" : ""} · page {page} of {totalPages}
         </p>
@@ -70,7 +70,7 @@ export function AuditClient({
             onClick={() => setEntityFilter(type)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               entityFilter === type
-                ? "bg-brand-primary text-white"
+                ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/70"
             }`}
           >
@@ -102,10 +102,10 @@ export function AuditClient({
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="flex flex-col gap-1 shrink-0 mt-0.5">
-                      <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${ENTITY_COLORS[entry.entity_type] ?? "bg-gray-100 text-gray-700"}`}>
+                      <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${ENTITY_COLORS[entry.entity_type] ?? "bg-muted text-foreground"}`}>
                         {entry.entity_type.replace(/_/g, " ")}
                       </span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${ACTION_COLORS[entry.action] ?? "bg-gray-100 text-gray-700"}`}>
+                      <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${ACTION_COLORS[entry.action] ?? "bg-muted text-foreground"}`}>
                         {entry.action}
                       </span>
                     </div>

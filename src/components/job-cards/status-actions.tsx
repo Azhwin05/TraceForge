@@ -159,7 +159,7 @@ export function StatusActions({
         <Button
           variant="outline"
           size="sm"
-          className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="border-danger-border text-danger hover:bg-danger-surface dark:hover:bg-danger/20"
           disabled={isPending}
           onClick={() =>
             setConfirmState({

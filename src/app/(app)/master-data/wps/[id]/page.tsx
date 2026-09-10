@@ -14,9 +14,9 @@ export const metadata = { title: "WPS Detail — ValveTrack" }
 export const revalidate = 30
 
 const STATUS_BADGE: Record<WpsMasterStatus, { label: string; className: string }> = {
-  draft:      { label: "Draft",      className: "bg-amber-100 text-amber-700" },
-  approved:   { label: "Approved",   className: "bg-green-100 text-green-700" },
-  superseded: { label: "Superseded", className: "bg-slate-100 text-slate-600" },
+  draft:      { label: "Draft",      className: "bg-warning-surface text-warning" },
+  approved:   { label: "Approved",   className: "bg-success-surface text-success" },
+  superseded: { label: "Superseded", className: "bg-muted text-muted-foreground" },
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -145,7 +145,7 @@ export default async function WpsMasterDetailPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold font-mono tracking-tight">{record.wps_no}</h1>
+              <h1 className="text-2xl font-semibold font-mono tracking-tight">{record.wps_no}</h1>
               <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", badge.className)}>
                 {badge.label}
               </span>

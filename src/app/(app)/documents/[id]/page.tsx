@@ -46,10 +46,10 @@ const DOC_TYPE_LABELS: Record<DocumentType, string> = {
 }
 
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
-  none:     { label: "N/A",      className: "bg-gray-100 text-gray-600" },
-  pending:  { label: "Pending",  className: "bg-amber-100 text-amber-700" },
-  approved: { label: "Approved", className: "bg-green-100 text-green-700" },
-  rejected: { label: "Rejected", className: "bg-red-100 text-red-700" },
+  none:     { label: "N/A",      className: "bg-muted text-muted-foreground" },
+  pending:  { label: "Pending",  className: "bg-warning-surface text-warning" },
+  approved: { label: "Approved", className: "bg-success-surface text-success" },
+  rejected: { label: "Rejected", className: "bg-danger-surface text-danger" },
 }
 
 function getSourceLink(entityType: DocumentEntityType, entityId: string, jobCardId: string | null): { href: string; label: string } | null {
@@ -125,7 +125,7 @@ export default async function DocumentDetailPage({
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-muted-foreground" />
-            <h1 className="text-xl font-bold tracking-tight">
+            <h1 className="text-xl font-semibold tracking-tight">
               {doc.document_name ?? doc.file_name}
             </h1>
           </div>
@@ -169,8 +169,8 @@ export default async function DocumentDetailPage({
               <span className={cn(
                 "rounded-full px-2 py-0.5 text-xs",
                 doc.document_category === "generated"
-                  ? "bg-blue-50 text-blue-700"
-                  : "bg-gray-100 text-gray-700"
+                  ? "bg-info-surface text-info"
+                  : "bg-muted text-foreground"
               )}>
                 {doc.document_category === "generated" ? "Generated" : "Uploaded"}
               </span>

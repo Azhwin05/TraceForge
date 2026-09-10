@@ -1,95 +1,313 @@
-@import "tw-animate-css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   ValveTrack design tokens
+
+   Colours are stored as space-separated RGB channels — NOT as full colour
+   values — because Tailwind v3 can only apply opacity modifiers (bg-primary/80,
+   ring-ring/50) to a token when the config can inject <alpha-value> into it.
+   Storing "#1A5276" here silently kills every /opacity utility in the codebase.
+   ------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    /* Neutral ramp — cool slate, sits under the blue brand without clashing */
+    --neutral-0: 255 255 255;
+    --neutral-50: 248 250 252;
+    --neutral-100: 241 245 249;
+    --neutral-200: 226 232 240;
+    --neutral-300: 203 213 225;
+    --neutral-400: 148 163 184;
+    --neutral-500: 100 116 139;
+    --neutral-600: 71 85 105;
+    --neutral-700: 51 65 85;
+    --neutral-800: 30 41 59;
+    --neutral-900: 15 23 42;
+    --neutral-950: 8 15 30;
+
+    /* Brand ramp — anchored on the existing Raghav blues */
+    --brand-50: 239 246 252;
+    --brand-100: 217 233 246;
+    --brand-200: 181 213 237;
+    --brand-300: 133 187 225;
+    --brand-400: 78 155 209;
+    --brand-500: 46 134 193;
+    --brand-600: 32 105 158;
+    --brand-700: 26 82 118;
+    --brand-800: 20 66 100;
+    --brand-900: 15 51 82;
+    --brand-950: 9 34 56;
+
+    /* Surfaces */
+    --background: 247 249 251;
+    --foreground: 15 23 42;
+    --surface: 255 255 255;
+    --surface-foreground: 15 23 42;
+    --surface-raised: 255 255 255;
+    --surface-sunken: 241 245 249;
+
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+
+    --primary: 26 82 118;
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249;
+    --secondary-foreground: 30 41 59;
+    --muted: 241 245 249;
+    --muted-foreground: 92 107 130;
+    --accent: 46 134 193;
+    --accent-foreground: 255 255 255;
+
+    --border: 226 232 240;
+    --border-strong: 203 213 225;
+    --input: 226 232 240;
+    --ring: 46 134 193;
+
+    /* Semantic tones — each has a surface / border / foreground so status
+       chips stay legible in both themes instead of hardcoding bg-green-100. */
+    --success: 22 128 92;
+    --success-surface: 236 250 244;
+    --success-border: 167 226 205;
+    /* 166 96 9 rather than a brighter amber: anything lighter drops the chip
+       below 4.5:1 against its own surface. */
+    --warning: 166 96 9;
+    --warning-surface: 254 247 235;
+    --warning-border: 246 213 156;
+    --danger: 199 46 46;
+    --danger-surface: 254 242 242;
+    --danger-border: 250 190 190;
+    --info: 32 105 158;
+    --info-surface: 238 247 253;
+    --info-border: 174 210 235;
+    --neutral-tone: 71 85 105;
+    --neutral-surface: 241 245 249;
+    --neutral-border: 216 225 235;
+
+    --destructive: 199 46 46;
+    --destructive-foreground: 255 255 255;
+
+    /* Data visualisation — ordered for categorical distinctness */
+    --chart-1: 46 134 193;
+    --chart-2: 22 128 92;
+    --chart-3: 180 105 10;
+    --chart-4: 124 92 196;
+    --chart-5: 199 46 46;
+    --chart-6: 14 140 160;
+
+    /* Sidebar — deep neutral ink rather than a saturated blue slab. Reserving
+       the brand colour for active/accent states reads far less "admin template". */
+    --sidebar: 12 18 32;
+    --sidebar-foreground: 226 232 240;
+    --sidebar-muted: 148 163 184;
+    --sidebar-accent: 38 118 175;
+    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-border: 30 41 59;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --neutral-0: 8 11 20;
+    --neutral-50: 15 20 32;
+    --neutral-100: 22 29 44;
+    --neutral-200: 32 42 60;
+    --neutral-300: 51 65 88;
+    --neutral-400: 100 116 139;
+    --neutral-500: 129 145 170;
+    --neutral-600: 160 174 196;
+    --neutral-700: 195 206 222;
+    --neutral-800: 222 230 241;
+    --neutral-900: 241 245 249;
+    --neutral-950: 255 255 255;
+
+    --brand-50: 9 34 56;
+    --brand-100: 15 51 82;
+    --brand-200: 20 66 100;
+    --brand-300: 26 82 118;
+    --brand-400: 32 105 158;
+    --brand-500: 56 146 205;
+    --brand-600: 96 174 224;
+    --brand-700: 141 200 238;
+    --brand-800: 186 222 246;
+    --brand-900: 219 238 251;
+    --brand-950: 240 248 254;
+
+    /* Layered surfaces — each step lifts, so depth reads without heavy shadows */
+    --background: 9 12 20;
+    --foreground: 226 232 240;
+    --surface: 17 22 34;
+    --surface-foreground: 226 232 240;
+    --surface-raised: 23 30 44;
+    --surface-sunken: 12 16 26;
+
+    --card: 17 22 34;
+    --card-foreground: 226 232 240;
+    --popover: 23 30 44;
+    --popover-foreground: 226 232 240;
+
+    --primary: 56 146 205;
+    --primary-foreground: 8 20 32;
+    --secondary: 30 39 56;
+    --secondary-foreground: 226 232 240;
+    --muted: 28 36 52;
+    --muted-foreground: 141 155 178;
+    --accent: 56 146 205;
+    --accent-foreground: 8 20 32;
+
+    --border: 35 45 64;
+    --border-strong: 51 65 88;
+    --input: 42 54 75;
+    --ring: 76 163 219;
+
+    --success: 74 202 148;
+    --success-surface: 12 42 33;
+    --success-border: 22 78 60;
+    --warning: 233 173 74;
+    --warning-surface: 48 34 10;
+    --warning-border: 92 65 20;
+    --danger: 248 128 128;
+    --danger-surface: 52 20 20;
+    --danger-border: 96 36 36;
+    --info: 96 174 224;
+    --info-surface: 13 34 52;
+    --info-border: 26 64 95;
+    --neutral-tone: 160 174 196;
+    --neutral-surface: 28 36 52;
+    --neutral-border: 45 57 78;
+
+    --destructive: 235 106 106;
+    --destructive-foreground: 12 16 24;
+
+    --chart-1: 96 174 224;
+    --chart-2: 74 202 148;
+    --chart-3: 233 173 74;
+    --chart-4: 167 139 250;
+    --chart-5: 248 128 128;
+    --chart-6: 58 191 208;
+
+    --sidebar: 12 16 26;
+    --sidebar-foreground: 226 232 240;
+    --sidebar-muted: 130 145 168;
+    --sidebar-accent: 76 163 219;
+    --sidebar-accent-foreground: 8 20 32;
+    --sidebar-border: 32 42 60;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    font-variant-ligatures: contextual;
+  }
+
+  /* One consistent focus treatment for every interactive element. The previous
+     primitives asked for `ring-3`, which does not exist in Tailwind v3 — the
+     entire app shipped with no visible keyboard focus indicator at all. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring/60 ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    background-color: rgb(var(--brand-500) / 0.22);
+  }
+
+  /* Numeric data must not shift width as values change */
+  th,
+  td,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight text-balance;
+  }
+}
+
+@layer base {
+  /* Scrollbars — thin and theme-aware, instead of the default chrome */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--neutral-300)) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--neutral-300));
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--neutral-400));
+    background-clip: content-box;
+  }
+}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Hairline that survives fractional device pixel ratios */
+  .border-hairline {
+    border-width: 1px;
+    border-color: rgb(var(--border));
+  }
+
+  /* Subtle top highlight — the detail that makes a surface read as physical
+     rather than as a flat rectangle. Used sparingly on raised elements. */
+  .surface-highlight {
+    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+  }
+  .dark .surface-highlight {
+    box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+  }
+
+  .grid-fade {
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
 }
 
-@layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+/* Honour the OS reduced-motion setting rather than animating regardless */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  :root {
-    --background: #F4F6F8;
-    --foreground: oklch(0.145 0 0);
-    --card: #FFFFFF;
-    --card-foreground: oklch(0.145 0 0);
-    --popover: #FFFFFF;
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: #1A5276;
-    --primary-foreground: #FFFFFF;
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: #1A5276;
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: #2E86C1;
-    --accent-foreground: #FFFFFF;
-    --destructive: #E74C3C;
-    --destructive-foreground: #FFFFFF;
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: #2E86C1;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: #0D3B66;
-    --sidebar-foreground: #FFFFFF;
-    --sidebar-primary: #2E86C1;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #1A5276;
-    --sidebar-accent-foreground: #FFFFFF;
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: #2E86C1;
-  }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border;
-  }
+}
+
+@media print {
   body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+    background: #fff;
   }
 }

@@ -2,15 +2,20 @@
 
 import * as React from "react"
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
+
 import { cn } from "@/lib/utils"
 
 const Tabs = TabsPrimitive.Root
 
-function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
+/** Segmented control — for switching a view in place. */
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
       className={cn(
-        "inline-flex h-9 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground",
+        "inline-flex h-8 items-center justify-start gap-0.5 rounded-lg border border-border bg-surface-sunken p-0.5 text-muted-foreground",
         className
       )}
       {...props}
@@ -18,11 +23,20 @@ function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimi
   )
 }
 
-function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Tab>) {
+function TabsTrigger({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Tab>) {
   return (
     <TabsPrimitive.Tab
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[selected]:bg-background data-[selected]:text-foreground data-[selected]:shadow",
+        "inline-flex h-7 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-medium",
+        "transition-[background-color,color,box-shadow] duration-120 ease-out",
+        "hover:text-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+        "disabled:pointer-events-none disabled:opacity-50",
+        "data-[selected]:bg-surface data-[selected]:text-foreground data-[selected]:shadow-xs",
+        "[&_svg]:h-3.5 [&_svg]:w-3.5",
         className
       )}
       {...props}
@@ -30,10 +44,16 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   )
 }
 
-function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Panel>) {
+function TabsContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Panel>) {
   return (
     <TabsPrimitive.Panel
-      className={cn("mt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className)}
+      className={cn(
+        "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className
+      )}
       {...props}
     />
   )

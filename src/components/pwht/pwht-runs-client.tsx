@@ -23,9 +23,9 @@ type PwhtRunWithJobs = PwhtRun & { pwht_run_jobs: RunJob[] }
 type EligibleJC = JobCard & { clients: { name: string } | null }
 
 const STATUS_COLOR: Record<PwhtJobStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  passed: "bg-green-100 text-green-700",
-  failed: "bg-red-100 text-red-700",
+  pending: "bg-warning-surface text-warning",
+  passed: "bg-success-surface text-success",
+  failed: "bg-danger-surface text-danger",
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
@@ -110,7 +110,7 @@ export function PwhtRunsClient({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">PWHT Runs</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">PWHT Runs</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {totalCount} run{totalCount !== 1 ? "s" : ""} total · page {page} of {Math.max(1, totalPages)}
             </p>
@@ -147,15 +147,15 @@ export function PwhtRunsClient({
                         <span className="text-muted-foreground font-normal ml-3 text-sm">Furnace: {run.furnace_id}</span>
                         <Link
                           href={`/pwht-runs/${run.id}`}
-                          className="ml-3 text-xs font-normal text-blue-600 hover:underline"
+                          className="ml-3 text-xs font-normal text-info hover:underline"
                         >
                           Chart recorder →
                         </Link>
                       </div>
                       <div className="flex items-center gap-2 text-sm font-normal">
-                        {pendCount > 0 && <span className="bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 text-xs">{pendCount} pending</span>}
-                        {passCount > 0 && <span className="bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-xs">{passCount} passed</span>}
-                        {failCount > 0 && <span className="bg-red-100 text-red-700 rounded-full px-2 py-0.5 text-xs">{failCount} failed</span>}
+                        {pendCount > 0 && <span className="bg-warning-surface text-warning rounded-full px-2 py-0.5 text-xs">{pendCount} pending</span>}
+                        {passCount > 0 && <span className="bg-success-surface text-success rounded-full px-2 py-0.5 text-xs">{passCount} passed</span>}
+                        {failCount > 0 && <span className="bg-danger-surface text-danger rounded-full px-2 py-0.5 text-xs">{failCount} failed</span>}
                       </div>
                     </CardTitle>
                   </CardHeader>
@@ -195,7 +195,7 @@ export function PwhtRunsClient({
                                 <div className="flex gap-1">
                                   <button
                                     onClick={() => handleStatusUpdate(job.id, "passed")}
-                                    className="text-xs text-green-700 hover:underline"
+                                    className="text-xs text-success hover:underline"
                                     disabled={isPending}
                                   >
                                     Pass
@@ -203,7 +203,7 @@ export function PwhtRunsClient({
                                   <span className="text-muted-foreground">·</span>
                                   <button
                                     onClick={() => handleStatusUpdate(job.id, "failed")}
-                                    className="text-xs text-red-700 hover:underline"
+                                    className="text-xs text-danger hover:underline"
                                     disabled={isPending}
                                   >
                                     Fail

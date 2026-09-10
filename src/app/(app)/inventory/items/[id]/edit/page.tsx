@@ -35,7 +35,7 @@ export default async function EditItemMasterPage({
           <ChevronLeft className="h-4 w-4" /> {record.item_name}
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">Edit Item</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Edit Item</h1>
       <ItemMasterForm mode="edit" itemId={record.id} defaultValues={defaultValues} />
     </div>
   )

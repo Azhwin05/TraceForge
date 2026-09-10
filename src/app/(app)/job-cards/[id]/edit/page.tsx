@@ -109,7 +109,7 @@ export default async function EditJobCardPage({ params }: { params: Promise<{ id
         <Link href={`/job-cards/${id}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="h-4 w-4" /> Back to Job Card
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Edit Job Card · {jc.jc_number}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Edit Job Card · {jc.jc_number}</h1>
         <p className="text-sm text-muted-foreground mt-1">Update any Job Card field, including the welding details.</p>
       </div>
 

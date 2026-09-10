@@ -52,7 +52,7 @@ export default async function EditDimensionReportPage({
         <span className="text-muted-foreground text-sm">/ Edit</span>
       </div>
       <div>
-        <h1 className="text-xl font-bold">Edit Dimension Report</h1>
+        <h1 className="text-xl font-semibold">Edit Dimension Report</h1>
         <p className="text-muted-foreground text-sm mt-1">{r.report_number}</p>
       </div>
       <DimensionReportForm

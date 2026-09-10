@@ -31,14 +31,16 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar role={role} alertCount={alertCount ?? 0} />
-      <div className="flex flex-1 flex-col">
+      {/* min-w-0 stops a wide table inside main from stretching the flex row
+          and pushing the sidebar off-screen. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <AppHeader
           email={user.email ?? ""}
           fullName={profile.full_name ?? user.email ?? "User"}
           role={role}
           alertCount={alertCount ?? 0}
         />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 px-4 py-5 md:px-6 md:py-6">{children}</main>
       </div>
     </div>
   )

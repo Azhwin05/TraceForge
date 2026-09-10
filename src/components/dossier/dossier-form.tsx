@@ -268,8 +268,8 @@ export function DossierForm({ jobCardId, jobCardNumber, defaultValues, documents
                         <span className={cn(
                           "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
                           doc.document_category === "generated"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-info-surface text-info"
+                            : "bg-muted text-muted-foreground"
                         )}>
                           {typeLabel}
                         </span>
@@ -281,7 +281,7 @@ export function DossierForm({ jobCardId, jobCardNumber, defaultValues, documents
                       </div>
                     </div>
                     {DEFAULT_SELECTED_TYPES.has(doc.document_type) && (
-                      <span className="shrink-0 text-[10px] font-medium text-green-700 bg-green-50 rounded-full px-1.5 py-0.5">
+                      <span className="shrink-0 text-[10px] font-medium text-success bg-success-surface rounded-full px-1.5 py-0.5">
                         Recommended
                       </span>
                     )}

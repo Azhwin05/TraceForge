@@ -88,7 +88,7 @@ export function CustomerItemsForm({ clientId }: { clientId: string }) {
                       onChange={(e) => f.onChange(e.target.checked)}
                       className="h-4 w-4 rounded border border-input"
                     />
-                    <span className="flex items-center gap-1 text-amber-700">
+                    <span className="flex items-center gap-1 text-warning">
                       <Clock className="h-3.5 w-3.5" /> Add details later — save with just the name for now
                     </span>
                   </label>

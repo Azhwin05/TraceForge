@@ -11,11 +11,11 @@ import { GrnGenerator } from "@/components/inventory/grn-generator"
 import { MaterialInwardDetailActions } from "@/components/inventory/material-inward-detail-actions"
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  pending_inspection:        { label: "Pending Inspection",  className: "bg-slate-100 text-slate-600" },
-  incoming_inspection_done:  { label: "Incoming Done",       className: "bg-blue-100 text-blue-700" },
-  qc_accepted:                { label: "QC Accepted",         className: "bg-green-100 text-green-700" },
-  qc_rejected:                { label: "QC Rejected",         className: "bg-red-100 text-red-700" },
-  grn_generated:              { label: "GRN Generated",       className: "bg-emerald-100 text-emerald-800" },
+  pending_inspection:        { label: "Pending Inspection",  className: "bg-muted text-muted-foreground" },
+  incoming_inspection_done:  { label: "Incoming Done",       className: "bg-info-surface text-info" },
+  qc_accepted:                { label: "QC Accepted",         className: "bg-success-surface text-success" },
+  qc_rejected:                { label: "QC Rejected",         className: "bg-danger-surface text-danger" },
+  grn_generated:              { label: "GRN Generated",       className: "bg-success-surface text-success" },
 }
 
 export default async function MaterialInwardDetailPage({
@@ -46,7 +46,7 @@ export default async function MaterialInwardDetailPage({
     .eq("is_active", true)
     .order("code")
 
-  const status = STATUS_LABELS[record.status] ?? { label: record.status, className: "bg-slate-100 text-slate-600" }
+  const status = STATUS_LABELS[record.status] ?? { label: record.status, className: "bg-muted text-muted-foreground" }
   const canInwardOps = ["admin", "operator", "engineer"].includes(userRole)
   const canQc = ["admin", "qa"].includes(userRole)
   const canGrn = ["admin", "engineer"].includes(userRole)
@@ -75,14 +75,14 @@ export default async function MaterialInwardDetailPage({
 
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{record.inward_number}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{record.inward_number}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             DC {record.dc_number} · {record.source_type === "customer" ? record.clients?.name : record.suppliers?.name}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {record.source_type === "customer" && (
-            <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-700">
+            <span className="rounded-full bg-info-surface px-2.5 py-1 text-xs font-medium text-info">
               Client-supplied
             </span>
           )}
@@ -181,11 +181,11 @@ export default async function MaterialInwardDetailPage({
       )}
 
       {grnRecord && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-5">
-          <h2 className="font-semibold text-emerald-800 mb-3">GRN {grnRecord.grn_number}</h2>
+        <div className="rounded-lg border border-success-border bg-success-surface p-5">
+          <h2 className="font-semibold text-success mb-3">GRN {grnRecord.grn_number}</h2>
           <div className="divide-y divide-emerald-200">
             {grnRecord.grn_items.map((gi: { id: string; accepted_qty: number; uom: string }) => (
-              <div key={gi.id} className="flex items-center justify-between py-2 text-sm text-emerald-900">
+              <div key={gi.id} className="flex items-center justify-between py-2 text-sm text-success">
                 <span>Accepted into stock</span>
                 <span>{gi.accepted_qty} {gi.uom}</span>
               </div>

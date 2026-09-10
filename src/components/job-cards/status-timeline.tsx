@@ -21,9 +21,9 @@ const STEPS: { label: string; statuses: JobCardStatus[] }[] = [
 export function StatusTimeline({ status }: { status: JobCardStatus }) {
   if (status === "on_hold") {
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 dark:bg-red-900/10 dark:border-red-800">
-        <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        <span className="text-sm font-medium text-red-700 dark:text-red-400">Job card is on hold</span>
+      <div className="flex items-center gap-2 rounded-lg bg-danger-surface border border-danger-border px-4 py-3">
+        <span className="h-2 w-2 rounded-full bg-danger animate-pulse" />
+        <span className="text-sm font-medium text-danger">Job card is on hold</span>
       </div>
     )
   }
@@ -45,8 +45,8 @@ export function StatusTimeline({ status }: { status: JobCardStatus }) {
                 <div
                   className={cn(
                     "flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors",
-                    isDone && "border-brand-accent bg-brand-accent text-white",
-                    isCurrent && "border-brand-primary bg-brand-primary text-white shadow-md",
+                    isDone && "border-brand-accent bg-accent text-accent-foreground",
+                    isCurrent && "border-brand-primary bg-primary text-primary-foreground shadow-md",
                     isUpcoming && "border-muted-foreground/30 bg-background text-muted-foreground/50"
                   )}
                 >

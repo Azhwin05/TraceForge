@@ -37,7 +37,7 @@ export function ApprovalActions({ kind, id }: { kind: "item" | "supplier"; id: s
         size="sm"
         variant="outline"
         disabled={busy}
-        className="border-green-300 text-green-700 hover:bg-green-50"
+        className="border-success-border text-success hover:bg-success-surface"
         onClick={() => decide("approved")}
       >
         <Check className="mr-1 h-3.5 w-3.5" /> Approve
@@ -59,11 +59,11 @@ export function ApprovalActions({ kind, id }: { kind: "item" | "supplier"; id: s
 export function ApprovalBadge({ status }: { status: string }) {
   if (status === "approved") return null
   const map: Record<string, string> = {
-    pending:  "bg-amber-100 text-amber-700",
-    rejected: "bg-red-100 text-red-700",
+    pending:  "bg-warning-surface text-warning",
+    rejected: "bg-danger-surface text-danger",
   }
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${map[status] ?? "bg-slate-100 text-slate-600"}`}>
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${map[status] ?? "bg-muted text-muted-foreground"}`}>
       {status === "pending" ? "Pending approval" : status}
     </span>
   )

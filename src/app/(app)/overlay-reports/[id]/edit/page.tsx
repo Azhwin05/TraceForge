@@ -79,7 +79,7 @@ export default async function EditOverlayReportPage({
         <span className="text-muted-foreground text-sm">/ Edit</span>
       </div>
       <div>
-        <h1 className="text-xl font-bold">Edit Overlay Welding Report</h1>
+        <h1 className="text-xl font-semibold">Edit Overlay Welding Report</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Job Card: <span className="font-medium text-foreground">{(jobCard as JobCard).jc_number}</span>
         </p>

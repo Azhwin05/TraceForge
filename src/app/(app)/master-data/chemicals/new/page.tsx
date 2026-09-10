@@ -23,7 +23,7 @@ export default async function NewChemicalPage() {
           <ChevronLeft className="h-4 w-4" /> Chemicals
         </Link>
       </div>
-      <h1 className="text-2xl font-bold tracking-tight">New Chemical</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">New Chemical</h1>
       <ChemicalForm mode="create" />
     </div>
   )

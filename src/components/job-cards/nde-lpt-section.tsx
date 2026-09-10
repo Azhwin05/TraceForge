@@ -16,9 +16,9 @@ import { upsertNdeRecord } from "@/app/(app)/job-cards/traveller-actions"
 import type { NdeRecord, ChemicalMaster, JobCardStatus, UserRole } from "@/types/database"
 
 const RESULT_BADGE = {
-  pending:  "bg-amber-100 text-amber-700",
-  accepted: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending:  "bg-warning-surface text-warning",
+  accepted: "bg-success-surface text-success",
+  rejected: "bg-danger-surface text-danger",
 }
 
 function ndeToForm(r: NdeRecord): NdeRecordInput {

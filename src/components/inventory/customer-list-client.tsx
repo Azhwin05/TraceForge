@@ -133,7 +133,7 @@ export function CustomerListClient({ records, userRole }: { records: CustomerRow
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
           <p className="mt-1 text-sm text-muted-foreground">{records.length} total — shared with Job Tracker</p>
         </div>
         {isCreator && (
@@ -166,7 +166,7 @@ export function CustomerListClient({ records, userRole }: { records: CustomerRow
                       {liveItems.length} item{liveItems.length === 1 ? "" : "s"}
                     </span>
                     {pendingCount > 0 && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      <span className="rounded-full bg-warning-surface px-2 py-0.5 text-xs font-medium text-warning">
                         {pendingCount} pending
                       </span>
                     )}
