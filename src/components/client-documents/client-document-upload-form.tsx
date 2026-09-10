@@ -28,11 +28,12 @@ export function ClientDocumentUploadForm({ clients }: { clients: ClientOption[] 
   const [title, setTitle] = useState("")
   const [label, setLabel] = useState("")
   const [description, setDescription] = useState("")
+  const [billDate, setBillDate] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   function reset() {
-    setClientId(""); setTitle(""); setLabel(""); setDescription(""); setFile(null); setError(null)
+    setClientId(""); setTitle(""); setLabel(""); setDescription(""); setBillDate(""); setFile(null); setError(null)
     if (inputRef.current) inputRef.current.value = ""
   }
 
@@ -82,6 +83,7 @@ export function ClientDocumentUploadForm({ clients }: { clients: ClientOption[] 
         title: title.trim(),
         label: label.trim() || null,
         description: description.trim() || null,
+        bill_date: billDate || null,
         storagePath,
         fileName: file.name,
         fileSize: file.size,
@@ -125,9 +127,16 @@ export function ClientDocumentUploadForm({ clients }: { clients: ClientOption[] 
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="cd-label">Label (optional)</Label>
-        <Input id="cd-label" value={label} onChange={(e) => setLabel(e.target.value)} className="mt-1" placeholder="e.g. Certificate, Report, Contract" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="cd-label">Label (optional)</Label>
+          <Input id="cd-label" value={label} onChange={(e) => setLabel(e.target.value)} className="mt-1" placeholder="e.g. Certificate, Report, Contract" />
+        </div>
+        <div>
+          <Label htmlFor="cd-bill-date">Bill Date (optional)</Label>
+          <Input id="cd-bill-date" type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} className="mt-1" />
+          <p className="mt-1 text-xs text-muted-foreground">Shown to the client — independent of today&rsquo;s upload date.</p>
+        </div>
       </div>
 
       <div>

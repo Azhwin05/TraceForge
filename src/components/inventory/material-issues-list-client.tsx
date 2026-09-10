@@ -13,6 +13,7 @@ type IssueItem = {
   consumed_qty: number | null
   returned_qty: number
   uom: string
+  remarks: string | null
   item_master: { item_code: string; item_name: string; consumable_type: string | null } | null
 }
 
@@ -24,6 +25,7 @@ export type IssueRow = {
   consumption_status: string
   issued_to: string | null
   destination: string | null
+  remarks: string | null
   job_cards: { jc_number: string } | null
   material_issue_items: IssueItem[]
 }
@@ -51,26 +53,26 @@ function csvEscape(v: string | number | null | undefined): string {
  */
 function exportCsv(records: IssueRow[], typeFilter: TypeFilter) {
   const header = [
-    "Issue No", "Date", "Job Card", "Issued To", "Destination", "Status", "Usage",
-    "Item Code", "Item Name", "Type", "Issued Qty", "Consumed Qty", "Returned Qty", "UOM",
+    "Issue No", "Date", "Job Card", "Issued To", "Destination", "Status", "Usage", "Issue Remarks",
+    "Item Code", "Item Name", "Type", "Issued Qty", "Consumed Qty", "Returned Qty", "UOM", "Item Remarks",
   ]
   const rows: string[] = [header.join(",")]
   for (const r of records) {
     const date = new Date(r.issue_date).toLocaleDateString("en-IN")
-    const base = [r.issue_number, date, r.job_cards?.jc_number ?? "", r.issued_to ?? "", r.destination ?? "", r.status, r.consumption_status]
+    const base = [r.issue_number, date, r.job_cards?.jc_number ?? "", r.issued_to ?? "", r.destination ?? "", r.status, r.consumption_status, r.remarks ?? ""]
     const lines = typeFilter === "all"
       ? r.material_issue_items
       : r.material_issue_items.filter((it) => it.item_master?.consumable_type === typeFilter)
 
     if (lines.length === 0) {
-      if (typeFilter === "all") rows.push([...base, "", "", "", "", "", ""].map(csvEscape).join(","))
+      if (typeFilter === "all") rows.push([...base, "", "", "", "", "", "", ""].map(csvEscape).join(","))
       continue
     }
     for (const it of lines) {
       rows.push([
         ...base,
         it.item_master?.item_code ?? "", it.item_master?.item_name ?? "", it.item_master?.consumable_type ?? "",
-        it.issued_qty, it.consumed_qty ?? "", it.returned_qty, it.uom,
+        it.issued_qty, it.consumed_qty ?? "", it.returned_qty, it.uom, it.remarks ?? "",
       ].map(csvEscape).join(","))
     }
   }

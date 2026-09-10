@@ -13,6 +13,7 @@ type ClientDocRow = {
   title: string
   description: string | null
   label: string | null
+  bill_date: string | null
   file_name: string
   file_size_bytes: number | null
   uploaded_at: string
@@ -29,7 +30,7 @@ export default async function PortalDocumentsPage() {
 
   const docsRes = await supabase
     .from("client_documents")
-    .select("id, title, description, label, file_name, file_size_bytes, uploaded_at")
+    .select("id, title, description, label, bill_date, file_name, file_size_bytes, uploaded_at")
     .order("uploaded_at", { ascending: false })
 
   const docs = must(docsRes, "your documents") as ClientDocRow[]
@@ -59,8 +60,14 @@ export default async function PortalDocumentsPage() {
                     <p className="text-xs text-muted-foreground">
                       {d.file_name}
                       {d.file_size_bytes != null && ` (${formatFileSize(d.file_size_bytes)})`}
-                      {" · "}
+                      {" · uploaded "}
                       {new Date(d.uploaded_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {d.bill_date && (
+                        <>
+                          {" · Bill date "}
+                          {new Date(d.bill_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </>
+                      )}
                     </p>
                   </div>
                   <ClientDocumentDownloadButton documentId={d.id} />

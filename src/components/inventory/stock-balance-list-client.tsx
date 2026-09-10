@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, AlertTriangle, SlidersHorizontal, History } from "lucide-react"
+import { Search, AlertTriangle, SlidersHorizontal, History, ArrowLeftRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { formatInr, formatQty } from "@/lib/format"
 import { StockAdjustmentDialog } from "@/components/inventory/stock-adjustment-dialog"
+import { StockTransferDialog } from "@/components/inventory/stock-transfer-dialog"
 import type { UserRole } from "@/types/database"
 
 type BalanceRow = {
@@ -52,6 +53,8 @@ export function StockBalanceListClient({
   const [typeFilter, setTypeFilter] = useState<"all" | "wire" | "rod" | "powder">("all")
   const [adjustOpen, setAdjustOpen] = useState(false)
   const [adjustPrefill, setAdjustPrefill] = useState<{ itemId?: string; locationId?: string; direction?: "in" | "out"; qty?: number }>({})
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [transferPrefill, setTransferPrefill] = useState<{ itemId?: string; fromLocationId?: string }>({})
   const isAdmin = userRole === "admin"
 
   const nonZero = balances.filter((b) => b.balance_qty > 0)
@@ -84,6 +87,11 @@ export function StockBalanceListClient({
     setAdjustOpen(true)
   }
 
+  function openTransfer(itemId?: string, fromLocationId?: string) {
+    setTransferPrefill({ itemId, fromLocationId })
+    setTransferOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -92,9 +100,14 @@ export function StockBalanceListClient({
           <p className="mt-1 text-sm text-muted-foreground">Live balance derived from the stock ledger</p>
         </div>
         {isAdmin && (
-          <Button size="sm" onClick={() => openAdjust()}>
-            <SlidersHorizontal className="mr-1.5 h-4 w-4" /> Adjust Stock
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => openTransfer()}>
+              <ArrowLeftRight className="mr-1.5 h-4 w-4" /> Transfer Stock
+            </Button>
+            <Button size="sm" onClick={() => openAdjust()}>
+              <SlidersHorizontal className="mr-1.5 h-4 w-4" /> Adjust Stock
+            </Button>
+          </div>
         )}
       </div>
 
@@ -165,6 +178,9 @@ export function StockBalanceListClient({
                   </div>
                   {isAdmin && (
                     <div className="flex items-center gap-1.5">
+                      <Button size="sm" variant="outline" onClick={() => openTransfer(b.item_id, b.storage_location_id)}>
+                        Transfer
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => openAdjust(b.item_id, b.storage_location_id)}>
                         Adjust
                       </Button>
@@ -225,6 +241,18 @@ export function StockBalanceListClient({
           initialQty={adjustPrefill.qty}
           open={adjustOpen}
           onOpenChange={setAdjustOpen}
+        />
+      )}
+
+      {isAdmin && (
+        <StockTransferDialog
+          items={items}
+          locations={locations}
+          balances={balanceLookup}
+          initialItemId={transferPrefill.itemId}
+          initialFromLocationId={transferPrefill.fromLocationId}
+          open={transferOpen}
+          onOpenChange={setTransferOpen}
         />
       )}
     </div>

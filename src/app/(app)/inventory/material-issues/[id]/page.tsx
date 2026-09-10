@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatQty } from "@/lib/format"
 import { ConsumptionConfirm } from "@/components/inventory/consumption-confirm"
+import { MaterialIssueRemarksEditor } from "@/components/inventory/material-issue-remarks-editor"
 import type { UserRole } from "@/types/database"
 
 type IssueItem = {
@@ -76,6 +77,15 @@ export default async function MaterialIssueDetailPage({
             {isConfirmed ? "Usage confirmed" : "Usage pending"}
           </span>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-border p-5">
+        <h2 className="font-semibold mb-2">Remarks</h2>
+        <MaterialIssueRemarksEditor
+          issueId={record.id}
+          remarks={record.remarks}
+          canEdit={["admin", "operator", "engineer", "qa"].includes(userRole)}
+        />
       </div>
 
       <div className="rounded-lg border border-border p-5">

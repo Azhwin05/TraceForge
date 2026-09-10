@@ -41,6 +41,7 @@ const DOCUMENT_UPLOAD_ROLES: Record<DocumentType, UserRole[]> = {
   contract_review:           ["admin"],
   process_layout:            ["admin", "engineer"],
   rework_photo:              ["admin", "operator", "engineer", "qa"],
+  consolidated_report:       ["admin", "qa"],
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

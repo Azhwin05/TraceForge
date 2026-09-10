@@ -20,7 +20,7 @@ export default async function ClientDocumentsPage() {
       // query with PGRST201 (the same failure mode fixed earlier on
       // portal_user_clients/profiles: it renders as an empty list, not an
       // error, unless the query result is checked with must()).
-      .select("id, title, description, label, file_name, file_size_bytes, is_active, uploaded_at, clients(name), uploader:profiles!client_documents_uploaded_by_fkey(full_name)")
+      .select("id, title, description, label, bill_date, file_name, file_size_bytes, is_active, uploaded_at, clients(name), uploader:profiles!client_documents_uploaded_by_fkey(full_name)")
       .order("uploaded_at", { ascending: false })
       .limit(200),
   ])

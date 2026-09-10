@@ -12,6 +12,7 @@ import { ProcessExecutionSection } from "@/components/job-cards/process-executio
 import { DispatchSection } from "@/components/job-cards/dispatch-section"
 import { AccountsSection } from "@/components/job-cards/accounts-section"
 import { PmiReportSection } from "@/components/job-cards/pmi-report-section"
+import { ConsolidatedReportUpload } from "@/components/job-cards/consolidated-report-upload"
 import { DimensionReportSection } from "@/components/job-cards/dimension-report-section"
 import { OverlayReportSection } from "@/components/job-cards/overlay-report-section"
 import { AdvancedDetailsSection } from "@/components/job-cards/advanced-details-section"
@@ -418,6 +419,14 @@ export default async function JobCardPage({ params }: { params: Promise<{ id: st
         pwhtJobs={(pwhtJobs ?? []) as PwhtRunJobWithRun[]}
         pwhtRequired={pwhtRequired}
       />
+
+      {/* Alternative to filling every structured report below: upload one
+          complete PDF and the job moves to Reports Complete automatically
+          (trg_after_consolidated_report_upload, migration 0060). Only shown
+          while still pending — once a job has moved on this isn't relevant. */}
+      {jc.status === "reports_pending" && (
+        <ConsolidatedReportUpload jobCardId={jc.id} userRole={userRole} />
+      )}
 
       {/* PMI Report Section */}
       <PmiReportSection

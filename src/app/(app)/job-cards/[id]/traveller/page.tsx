@@ -78,7 +78,7 @@ export default async function TravellerPage({ params }: { params: Promise<{ id: 
         >
           <ArrowLeft className="h-4 w-4" /> Back to job card
         </Link>
-        <PrintButton />
+        <PrintButton label="Print Travel Card" />
       </div>
 
       <header className="border-b-2 border-foreground pb-3">

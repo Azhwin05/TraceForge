@@ -65,6 +65,7 @@ export async function registerClientDocument(
       title:           data.title.trim(),
       description:     data.description?.trim() || null,
       label:           data.label?.trim() || null,
+      bill_date:       data.bill_date || null,
       storage_path:    input.storagePath,
       file_name:       input.fileName,
       file_size_bytes: input.fileSize ?? null,
@@ -115,5 +116,29 @@ export async function restoreClientDocument(id: string): Promise<{ error?: strin
   if (error) { console.error("[client-documents] restore", error); return { error: sanitizeError(error) } }
 
   revalidatePath("/client-documents")
+  return {}
+}
+
+/**
+ * Set or correct the bill date after the fact — the same "don't lock it in
+ * forever" principle applied to Material Issue remarks and Item Master.
+ */
+export async function updateClientDocumentBillDate(
+  id: string,
+  billDate: string | null,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase
+    .from("client_documents")
+    .update({ bill_date: billDate || null })
+    .eq("id", id)
+
+  if (error) { console.error("[client-documents] update bill date", error); return { error: sanitizeError(error) } }
+
+  revalidatePath("/client-documents")
+  revalidatePath("/portal/documents")
   return {}
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -148,6 +149,9 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
                 {l.description && <p className="text-xs text-muted-foreground">{l.description}</p>}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
+                <Link href={`/inventory/locations/${l.id}`} className="text-sm font-medium text-brand-primary hover:underline">
+                  View Contents
+                </Link>
                 {canCreate && (
                   <Button size="sm" variant="outline" onClick={() => setEditing(l)}>Edit</Button>
                 )}

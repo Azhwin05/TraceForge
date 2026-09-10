@@ -10,6 +10,33 @@ function sanitize(v: string | null | undefined): string | null {
   return v.trim()
 }
 
+/**
+ * Remarks were locked after creation — client feedback asked for them to be
+ * editable any time, same as Item Master. Deliberately its own tiny action
+ * rather than folding into a general "edit issue" flow: nothing else about a
+ * confirmed/issued Material Issue should be editable (quantities, items and
+ * locations already feed the stock ledger), only this free-text note.
+ */
+export async function updateMaterialIssueRemarks(
+  issueId: string,
+  remarks: string,
+): Promise<{ error?: string }> {
+  const guard = await requireRole(["admin", "operator", "engineer", "qa"])
+  if (guard.error) return { error: guard.error }
+  const { supabase } = guard
+
+  const { error } = await supabase
+    .from("material_issues")
+    .update({ remarks: sanitize(remarks) })
+    .eq("id", issueId)
+
+  if (error) { console.error("[material-issues] update remarks", error); return { error: sanitizeError(error) } }
+
+  revalidatePath(`/inventory/material-issues/${issueId}`)
+  revalidatePath("/inventory/material-issues")
+  return {}
+}
+
 export async function createMaterialIssue(
   raw: MaterialIssueInput,
 ): Promise<{ error?: string; id?: string }> {

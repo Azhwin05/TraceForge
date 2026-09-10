@@ -25,6 +25,7 @@ import {
   Send,
   Truck,
   Warehouse,
+  FileBarChart,
   Boxes,
   ArrowRightLeft,
   MapPin,
@@ -154,6 +155,7 @@ export const MODULES: Module[] = [
           { href: "/inventory/material-inward", label: "Material Inward", icon: Truck },
           { href: "/inventory/stock",           label: "Stock Balances",  icon: Warehouse },
           { href: "/inventory/material-issues", label: "Material Issues", icon: ArrowRightLeft },
+          { href: "/inventory/reports",         label: "Material Report", icon: FileBarChart },
         ],
       },
       {

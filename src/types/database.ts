@@ -64,7 +64,10 @@ export type DocumentType =
   | "incoming_delivery_challan" | "outgoing_delivery_challan"
   | "final_acceptance_document" | "contract_review" | "process_layout"
   // 0055 — photos attached to a rework record
-  | "rework_photo";
+  | "rework_photo"
+  // 0060 — one complete PDF in place of filling every structured report;
+  // uploading this auto-advances a job out of reports_pending
+  | "consolidated_report";
 
 export interface Database {
   public: {
@@ -752,11 +755,23 @@ export interface Database {
       };
       // 0058 — admin-to-client PDF handoff, independent of any job card
       client_documents: {
-        Row: { id: string; client_id: string; title: string; description: string | null; label: string | null; storage_path: string; file_name: string; file_size_bytes: number | null; is_active: boolean; uploaded_by: string | null; uploaded_at: string; removed_by: string | null; removed_at: string | null };
-        Insert: { id?: string; client_id: string; title: string; description?: string | null; label?: string | null; storage_path: string; file_name: string; file_size_bytes?: number | null; is_active?: boolean; uploaded_by?: string | null; uploaded_at?: string; removed_by?: string | null; removed_at?: string | null };
+        // 0060 — bill_date: admin-entered invoice/bill date, independent of uploaded_at
+        Row: { id: string; client_id: string; title: string; description: string | null; label: string | null; bill_date: string | null; storage_path: string; file_name: string; file_size_bytes: number | null; is_active: boolean; uploaded_by: string | null; uploaded_at: string; removed_by: string | null; removed_at: string | null };
+        Insert: { id?: string; client_id: string; title: string; description?: string | null; label?: string | null; bill_date?: string | null; storage_path: string; file_name: string; file_size_bytes?: number | null; is_active?: boolean; uploaded_by?: string | null; uploaded_at?: string; removed_by?: string | null; removed_at?: string | null };
         Update: Partial<Database["public"]["Tables"]["client_documents"]["Insert"]>;
         Relationships: [
           { foreignKeyName: "client_documents_client_id_fkey"; columns: ["client_id"]; isOneToOne: false; referencedRelation: "clients"; referencedColumns: ["id"] }
+        ];
+      };
+      // 0060 — audit header for a location-to-location stock move
+      stock_transfers: {
+        Row: { id: string; item_id: string; from_location_id: string; to_location_id: string; qty: number; unit_rate: number; reason: string; created_by: string | null; created_at: string };
+        Insert: { id?: string; item_id: string; from_location_id: string; to_location_id: string; qty: number; unit_rate?: number; reason: string; created_by?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["stock_transfers"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "stock_transfers_item_id_fkey"; columns: ["item_id"]; isOneToOne: false; referencedRelation: "item_master"; referencedColumns: ["id"] },
+          { foreignKeyName: "stock_transfers_from_location_id_fkey"; columns: ["from_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] },
+          { foreignKeyName: "stock_transfers_to_location_id_fkey"; columns: ["to_location_id"]; isOneToOne: false; referencedRelation: "storage_locations"; referencedColumns: ["id"] }
         ];
       };
     };
@@ -1001,5 +1016,6 @@ export type StockBalanceWithItem = StockBalance & { item_master: ItemMaster; sto
 // ── 0054 / 0055 — client meeting requests ──────────────────────────────────
 export type ReworkRecord = Database["public"]["Tables"]["rework_records"]["Row"];
 export type ClientDocument = Database["public"]["Tables"]["client_documents"]["Row"];
+export type StockTransfer = Database["public"]["Tables"]["stock_transfers"]["Row"];
 export type PortalInvoiceRef = Database["public"]["Views"]["portal_invoice_refs"]["Row"];
 export type ReworkWithJob = ReworkRecord & { job_cards: { jc_number: string } | null };

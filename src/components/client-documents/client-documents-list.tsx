@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { FileText, Undo2, XCircle } from "lucide-react"
+import { FileText, Undo2, XCircle, Pencil, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { revokeClientDocument, restoreClientDocument } from "@/app/(app)/client-documents/actions"
+import { Input } from "@/components/ui/input"
+import { revokeClientDocument, restoreClientDocument, updateClientDocumentBillDate } from "@/app/(app)/client-documents/actions"
 import { formatFileSize } from "@/lib/documents/storage-utils"
 
 export type ClientDocRow = {
@@ -13,12 +14,49 @@ export type ClientDocRow = {
   title: string
   description: string | null
   label: string | null
+  bill_date: string | null
   file_name: string
   file_size_bytes: number | null
   is_active: boolean
   uploaded_at: string
   clients: { name: string } | null
   uploader: { full_name: string } | null
+}
+
+function BillDateEditor({ id, billDate }: { id: string; billDate: string | null }) {
+  const router = useRouter()
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(billDate ?? "")
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    setBusy(true)
+    const res = await updateClientDocumentBillDate(id, value || null)
+    setBusy(false)
+    if (res.error) { toast.error(res.error); return }
+    toast.success("Bill date updated")
+    setEditing(false)
+    router.refresh()
+  }
+
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Input type="date" value={value} onChange={(e) => setValue(e.target.value)} className="h-6 w-32 text-xs" />
+        <button onClick={save} disabled={busy} aria-label="Save bill date"><Check className="h-3.5 w-3.5 text-green-600" /></button>
+        <button onClick={() => { setValue(billDate ?? ""); setEditing(false) }} aria-label="Cancel"><X className="h-3.5 w-3.5 text-muted-foreground" /></button>
+      </span>
+    )
+  }
+
+  return (
+    <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1 hover:text-foreground">
+      {billDate
+        ? `Bill date ${new Date(billDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+        : "Set bill date"}
+      <Pencil className="h-3 w-3" />
+    </button>
+  )
 }
 
 export function ClientDocumentsList({ records }: { records: ClientDocRow[] }) {
@@ -75,12 +113,16 @@ export function ClientDocumentsList({ records }: { records: ClientDocRow[] }) {
               {r.clients?.name ?? "—"}
               {r.description && ` · ${r.description}`}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {r.file_name}
-              {r.file_size_bytes != null && ` (${formatFileSize(r.file_size_bytes)})`}
-              {" · "}
-              {new Date(r.uploaded_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-              {r.uploader?.full_name && ` · by ${r.uploader.full_name}`}
+            <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+              <span>
+                {r.file_name}
+                {r.file_size_bytes != null && ` (${formatFileSize(r.file_size_bytes)})`}
+                {" · uploaded "}
+                {new Date(r.uploaded_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                {r.uploader?.full_name && ` · by ${r.uploader.full_name}`}
+              </span>
+              <span>·</span>
+              <BillDateEditor id={r.id} billDate={r.bill_date} />
             </p>
           </div>
           {r.is_active ? (
