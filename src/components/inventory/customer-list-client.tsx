@@ -5,8 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, Search, ChevronRight } from "lucide-react"
+import { Plus, Search, ChevronRight, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -149,9 +150,15 @@ export function CustomerListClient({ records, userRole }: { records: CustomerRow
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">{search ? "No customers match your search." : "No customers yet."}</p>
-        </div>
+        <EmptyState
+          icon={Building2}
+          title={search ? "No matches" : "No customers yet"}
+          description={
+            search
+              ? "Nothing matches that search. Check the spelling, or clear it to see everything."
+              : "Customers own the valves you receive; adding one lets you log customer-supplied material against it."
+          }
+        />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((c) => {

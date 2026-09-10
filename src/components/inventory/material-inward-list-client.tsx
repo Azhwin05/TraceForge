@@ -3,8 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, ChevronRight, Pencil } from "lucide-react"
+import { Search, ChevronRight, Pencil, Truck } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { InventoryRowActions } from "@/components/inventory/inventory-row-actions"
@@ -43,9 +44,15 @@ export function MaterialInwardListClient({ records, userRole }: { records: Row[]
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">{search ? "No records match your search." : "No material inward records yet."}</p>
-        </div>
+        <EmptyState
+          icon={Truck}
+          title={search ? "No matches" : "No material inward recorded"}
+          description={
+            search
+              ? "Nothing matches that search. Check the spelling, or clear it to see everything."
+              : "Each delivery of wire, rod or powder is logged here, then inspected and posted to stock as a GRN."
+          }
+        />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((r) => {

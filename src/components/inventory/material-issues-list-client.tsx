@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Plus, ChevronRight, Download, Search } from "lucide-react"
+import { Plus, ChevronRight, Download, Search, ArrowRightLeft } from "lucide-react"
 import { buttonVariants, Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { formatQty } from "@/lib/format"
@@ -168,9 +169,15 @@ export function MaterialIssuesListClient({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">{search ? "No issues match your search." : "No material issues yet."}</p>
-        </div>
+        <EmptyState
+          icon={ArrowRightLeft}
+          title={search ? "No matches" : "No material issued yet"}
+          description={
+            search
+              ? "Nothing matches that search. Check the spelling, or clear it to see everything."
+              : "Issues record consumables leaving stores for a job card, and drive consumption reporting."
+          }
+        />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((r) => {

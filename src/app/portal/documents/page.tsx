@@ -2,6 +2,7 @@ import { FileText } from "lucide-react"
 import { requireCustomer } from "@/lib/auth"
 import { must } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { ClientDocumentDownloadButton } from "@/components/portal/client-document-download-button"
 import { formatFileSize } from "@/lib/documents/storage-utils"
@@ -45,7 +46,12 @@ export default async function PortalDocumentsPage() {
       <Card>
         <CardContent className="p-0">
           {docs.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">No documents have been shared with you yet.</p>
+            <EmptyState
+              icon={FileText}
+              title="No documents yet"
+              description="Test certificates, inspection reports and dispatch paperwork appear here as Raghav Engineering shares them with you."
+              className="border-0 bg-transparent"
+            />
           ) : (
             <div className="divide-y divide-border">
               {docs.map((d) => (

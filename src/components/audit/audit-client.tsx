@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { History, ChevronLeft, ChevronRight } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import type { AuditLog } from "@/types/database"
 
@@ -80,12 +80,11 @@ export function AuditClient({
       </div>
 
       {filtered.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <History className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No audit events found.</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={History}
+          title="No audit events match"
+          description="The audit trail records every status change, edit and deletion. Try widening the date range or clearing the filters."
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((entry) => {

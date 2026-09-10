@@ -5,8 +5,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -125,9 +126,15 @@ export function StorageLocationListClient({ records, userRole }: { records: Stor
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">{search ? "No locations match your search." : "No storage locations found."}</p>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title={search ? "No matches" : "No storage locations yet"}
+          description={
+            search
+              ? "Nothing matches that search. Check the spelling, or clear it to see everything."
+              : "Locations are the racks and rooms stock is held in — every inward and issue is posted against one."
+          }
+        />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((l) => (

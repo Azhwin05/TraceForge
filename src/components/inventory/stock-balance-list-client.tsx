@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, AlertTriangle, SlidersHorizontal, History, ArrowLeftRight } from "lucide-react"
+import { Search, AlertTriangle, SlidersHorizontal, History, ArrowLeftRight, Warehouse } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -140,9 +141,15 @@ export function StockBalanceListClient({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">{search ? "No stock matches your search." : "No stock on hand yet."}</p>
-        </div>
+        <EmptyState
+          icon={Warehouse}
+          title={search ? "No matches" : "No stock on hand"}
+          description={
+            search
+              ? "Nothing matches that search. Check the spelling, or clear it to see everything."
+              : "Stock appears here once material is received through Material Inward and passes GRN inspection."
+          }
+        />
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border">
           {filtered.map((b) => {

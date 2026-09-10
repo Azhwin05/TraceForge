@@ -6,6 +6,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/job-cards/status-badge"
 import { acknowledgeAlert } from "@/app/(app)/alerts/actions"
@@ -173,12 +174,11 @@ export function AlertsClient({
       )}
 
       {overdueJobs.length === 0 && dbAlerts.length === 0 && (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-success mx-auto mb-3" />
-            <p className="text-muted-foreground">No alerts — everything is running smoothly.</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={CheckCircle2}
+          title="Everything is running smoothly"
+          description="Alerts appear here when a job passes its due date or sits in one stage too long. Nothing needs attention right now."
+        />
       )}
     </div>
   )
