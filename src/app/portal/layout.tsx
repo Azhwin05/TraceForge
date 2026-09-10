@@ -60,8 +60,22 @@ export default async function PortalLayout({ children }: { children: React.React
         {children}
       </main>
 
-      <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        ValveTrack · Data shown is scoped to {clientName} only.
+      {/* Portal only — the internal app deliberately carries no agency credit. */}
+      <footer className="border-t border-border py-4">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-1.5 px-4 text-center text-xs text-muted-foreground sm:flex-row sm:justify-between sm:gap-4 sm:text-left md:px-6">
+          <p>ValveTrack · Data shown is scoped to {clientName} only.</p>
+          <p>
+            Built and maintained by{" "}
+            <a
+              href="https://www.clickfieldai.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-foreground underline-offset-2 transition-colors hover:text-brand-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 dark:hover:text-brand-600"
+            >
+              ClickField AI
+            </a>
+          </p>
+        </div>
       </footer>
     </div>
   )
