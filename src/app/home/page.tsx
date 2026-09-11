@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ClipboardList, Warehouse, ArrowRight } from "lucide-react"
+import { ClipboardList, Warehouse, ArrowRight, UserCog } from "lucide-react"
 
 import { requireAuth } from "@/lib/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -83,6 +84,13 @@ export default async function HomePage() {
                   <p className="truncate text-sm font-medium text-foreground">{fullName}</p>
                   <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                 </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem render={<Link href="/account" />}>
+                  <UserCog />
+                  My Account
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>

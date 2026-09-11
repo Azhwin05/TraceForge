@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Bell } from "lucide-react"
+import { Bell, UserCog } from "lucide-react"
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -96,6 +97,13 @@ export function AppHeader({
                   {role}
                 </p>
               </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem render={<Link href="/account" />}>
+                <UserCog />
+                My Account
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
