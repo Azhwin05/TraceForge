@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { requireAuth } from "@/lib/auth"
 import { ItemMasterToggleActive } from "@/components/inventory/item-master-toggle-active"
+import { ItemLocationTransferButton } from "@/components/inventory/item-location-transfer-button"
 import { buttonVariants } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -31,6 +32,17 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   )
 }
 
+type BalanceWithLocation = {
+  storage_location_id: string | null
+  balance_qty: number | null
+  balance_value: number | null
+  avg_unit_cost: number | null
+  // stock_balances is a VIEW, so Supabase's generator can't capture the FK to
+  // storage_locations that the embed below relies on — hence the manual type
+  // rather than `as any`.
+  storage_locations: { code: string; name: string } | null
+}
+
 export default async function ItemMasterDetailPage({
   params,
 }: {
@@ -47,15 +59,34 @@ export default async function ItemMasterDetailPage({
 
   if (error || !record) notFound()
 
-  const { data: balances } = await supabase
-    .from("stock_balances")
-    .select("storage_location_id, balance_qty, balance_value, avg_unit_cost, storage_locations(code, name)")
-    .eq("item_id", record.id)
+  const canTransfer = userRole === "admin"
+
+  const [{ data: balancesRaw }, { data: locations }] = await Promise.all([
+    supabase
+      .from("stock_balances")
+      .select("storage_location_id, balance_qty, balance_value, avg_unit_cost, storage_locations(code, name)")
+      .eq("item_id", record.id),
+    // Only needed to populate the transfer dialog's "To" list — skip the
+    // fetch entirely for roles that can never see the button anyway.
+    canTransfer
+      ? supabase.from("storage_locations").select("id, code, name").eq("is_active", true).order("code")
+      : Promise.resolve({ data: [] as { id: string; code: string; name: string }[] }),
+  ])
+
+  const balances = (balancesRaw ?? []) as unknown as BalanceWithLocation[]
 
   const canEdit = ["admin", "engineer"].includes(userRole)
   const canDeactivate = userRole === "admin"
-  const totalBalance = (balances ?? []).reduce((sum, b) => sum + (b.balance_qty ?? 0), 0)
-  const totalValue = (balances ?? []).reduce((sum, b) => sum + (b.balance_value ?? 0), 0)
+  const totalBalance = balances.reduce((sum, b) => sum + (b.balance_qty ?? 0), 0)
+  const totalValue = balances.reduce((sum, b) => sum + (b.balance_value ?? 0), 0)
+
+  // The dialog's own "current balance at source" check and item picker both
+  // expect these shapes — built once here rather than inside the client
+  // component so every row's button shares one array instead of refetching.
+  const transferItem = { id: record.id, item_code: record.item_code, item_name: record.item_name, uom: record.uom }
+  const transferBalances = balances
+    .filter((b): b is BalanceWithLocation & { storage_location_id: string } => !!b.storage_location_id)
+    .map((b) => ({ item_id: record.id, storage_location_id: b.storage_location_id, balance_qty: b.balance_qty ?? 0 }))
 
   return (
     <div className="p-6 max-w-3xl space-y-6">
@@ -108,17 +139,29 @@ export default async function ItemMasterDetailPage({
           <h2 className="font-semibold">Current Stock ({formatQty(totalBalance)} {record.uom})</h2>
           <span className="text-sm font-semibold tabular-nums">{formatInr(totalValue)}</span>
         </div>
-        {balances && balances.length > 0 ? (
-          <dl className="divide-y divide-border">
+        {balances.length > 0 ? (
+          <div className="divide-y divide-border">
             {balances.map((b, i) => (
-              <Row
-                key={i}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                label={(b as any).storage_locations?.name ?? "Unknown location"}
-                value={`${formatQty(b.balance_qty ?? 0)} ${record.uom} · ${formatInr(b.balance_value ?? 0)} (@ ${formatInr(b.avg_unit_cost ?? 0)})`}
-              />
+              <div key={i} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="grid grid-cols-3 gap-2 flex-1 min-w-0">
+                  <dt className="text-sm text-muted-foreground truncate">
+                    {b.storage_locations?.name ?? "Unknown location"}
+                  </dt>
+                  <dd className="col-span-2 text-sm">
+                    {formatQty(b.balance_qty ?? 0)} {record.uom} · {formatInr(b.balance_value ?? 0)} (@ {formatInr(b.avg_unit_cost ?? 0)})
+                  </dd>
+                </div>
+                {canTransfer && b.storage_location_id && (b.balance_qty ?? 0) > 0 && (
+                  <ItemLocationTransferButton
+                    item={transferItem}
+                    fromLocationId={b.storage_location_id}
+                    locations={locations ?? []}
+                    balances={transferBalances}
+                  />
+                )}
+              </div>
             ))}
-          </dl>
+          </div>
         ) : (
           <p className="text-sm text-muted-foreground">No stock recorded yet.</p>
         )}

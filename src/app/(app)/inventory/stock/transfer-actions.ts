@@ -42,5 +42,9 @@ export async function createStockTransfer(
   revalidatePath("/inventory/stock")
   revalidatePath("/inventory")
   revalidatePath("/inventory/locations")
+  // Transfers can now also be started from an item's own detail page (it
+  // shows the same per-location balances), which needs its own revalidation
+  // or the page would keep showing the pre-transfer quantity after a save.
+  revalidatePath(`/inventory/items/${data.item_id}`)
   return {}
 }
